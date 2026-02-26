@@ -1,5 +1,6 @@
 add_library(systems
     bullet_system.cpp
+    collision_system.cpp
 )
 
 target_include_directories(systems

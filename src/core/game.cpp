@@ -1,13 +1,24 @@
 #include "game.hpp"
-#include "bullet_system.hpp"
-#include "raylib.h"
+#include "player.hpp"
 #include "raymath.h"
+#include "temp_wall.hpp"
+#include <memory>
 
-Game::Game() : m_player(Player({10, 100})), m_camera(Camera2D()), m_bulletSystem(BulletSystem()) {
+Game::Game() : m_camera(Camera2D()), m_bulletSystem(BulletSystem()), m_collisionSystem(CollisionSystem()) {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
+    m_entities.emplace_back(std::make_unique<Player>(Vector2{10, 100}));
+    m_player = static_cast<Player *>(m_entities.back().get());
 
-    m_camera.target = m_player.GetPosition();
+    // TESTING COLLISION
+    m_entities.emplace_back(std::make_unique<Wall>(400, 300, 200, 40));
+    m_wall = static_cast<Wall *>(m_entities.back().get());
+    m_collisionSystem.AddCollider(m_wall->m_collider.get());
+    // ----------------------
+
+    m_collisionSystem.AddCollider(m_player->m_collider.get());
+
+    m_camera.target = m_player->GetPosition();
     m_camera.offset = {640, 360};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
@@ -22,10 +33,11 @@ void Game::Update() {
 
     float dt = GetFrameTime();
 
-    m_player.Update(dt);
-    m_camera.target = Vector2Lerp(m_camera.target, m_player.GetPosition(), 5.0f * dt);
+    m_player->Update(dt);
+    m_camera.target = Vector2Lerp(m_camera.target, m_player->GetPosition(), 5.0f * dt);
 
-    m_bulletSystem.Update(dt, m_player, m_camera);
+    m_bulletSystem.Update(dt, *m_player, m_camera);
+    m_collisionSystem.Update();
     Game::Draw();
 }
 
@@ -38,7 +50,11 @@ void Game::Draw() {
     DrawDebugGrid();
 
     m_bulletSystem.Draw();
-    m_player.Draw();
+    m_player->Draw();
+
+    // TESTING COLLISION
+    m_wall->Draw();
+    // ----------------
 
     EndMode2D();
     EndDrawing();

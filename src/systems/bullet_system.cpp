@@ -1,18 +1,17 @@
 #include "bullet_system.hpp"
-#include "player.hpp"
 #include "raylib.h"
 #include <algorithm>
 
 BulletSystem::BulletSystem() {}
 
-void BulletSystem::Update(float dt, const Player &player, const Camera2D &camera) {
+void BulletSystem::Update(float dt, const Entity &entity, const Camera2D &camera) {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
-        Vector2 playerPos = player.GetPosition();
+        Vector2 entityPos = entity.GetPosition();
 
-        Vector2 dir = Vector2Subtract(mouseWorldPos, playerPos);
+        Vector2 dir = Vector2Subtract(mouseWorldPos, entityPos);
 
-        m_bullets.emplace_back(playerPos, dir);
+        m_bullets.emplace_back(entityPos, dir);
     }
 
     for (auto &bullet : m_bullets) {
