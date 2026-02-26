@@ -1,8 +1,9 @@
 #include "game.hpp"
+#include "bullet_system.hpp"
 #include "raylib.h"
 #include "raymath.h"
 
-Game::Game() : m_player(Player({10, 100})), m_camera(Camera2D()) {
+Game::Game() : m_player(Player({10, 100})), m_camera(Camera2D()), m_bulletSystem(BulletSystem()) {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
 
@@ -19,13 +20,12 @@ void Game::Update() {
     if (!m_running)
         return;
 
-    if (IsKeyPressed(KEY_F11)) {
-        m_debugMode = !m_debugMode;
-    }
-
     float dt = GetFrameTime();
+
     m_player.Update(dt);
     m_camera.target = Vector2Lerp(m_camera.target, m_player.GetPosition(), 5.0f * dt);
+
+    m_bulletSystem.Update(dt, m_player, m_camera);
     Game::Draw();
 }
 
@@ -35,10 +35,9 @@ void Game::Draw() {
 
     BeginMode2D(m_camera);
 
-    if (m_debugMode) {
-        DrawDebugGrid();
-    }
+    DrawDebugGrid();
 
+    m_bulletSystem.Draw();
     m_player.Draw();
 
     EndMode2D();

@@ -1,4 +1,5 @@
 #pragma once
+#include "bullet_system.hpp"
 #include "player.hpp"
 #include <raylib.h>
 
@@ -17,7 +18,7 @@ class Game {
 
   private:
     bool m_running = true;
-    bool m_debugMode = true;
     Player m_player;
     Camera2D m_camera;
+    BulletSystem m_bulletSystem;
 };
