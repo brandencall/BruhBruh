@@ -3,15 +3,14 @@
 #include "../components/collider.hpp"
 #include <vector>
 
+namespace System {
 class CollisionSystem {
   public:
-    void AddCollider(Collider *collider);
+    void AddCollider(Component::Collider *collider);
     void Update();
 
   public:
-    std::vector<Collider *> m_colliders;
-
-  private:
-    bool CheckAABB(const AABB &a, const AABB &b);
-    void CheckPair(const Collider *a, const Collider *b);
+    std::vector<Component::Collider *> m_colliders;
 };
+
+} // namespace System

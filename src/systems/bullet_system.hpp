@@ -4,12 +4,18 @@
 #include <raylib.h>
 #include <vector>
 
+namespace System {
+class DamageSystem;
+
 class BulletSystem {
   public:
-    BulletSystem();
-    void Update(float dt, const Entity &entity, const Camera2D &camera);
+    BulletSystem(DamageSystem &damageSystem);
+    void SpawnBullet(Entity &entity, const Camera2D &camera);
+    void Update(float dt);
     void Draw();
 
   private:
     std::vector<BulletEntity> m_bullets;
+    DamageSystem &m_damageSystem;
 };
+} // namespace System

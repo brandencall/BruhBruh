@@ -10,6 +10,7 @@ class Entity {
 
     virtual Vector2 GetPosition() const = 0;
     virtual void OnCollision(Entity *other) {}
+    virtual void ApplyDamage(int damage) {}
 
   public:
     Vector2 position;

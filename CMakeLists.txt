@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add subdirectories
 add_subdirectory(src/core)
 add_subdirectory(src/entities)
+add_subdirectory(src/components)
 add_subdirectory(src/systems)
 add_subdirectory(external/raylib)
 
@@ -18,6 +19,7 @@ target_link_libraries(BruhBruh
     PRIVATE
         core
         entities
+        components
         systems
         raylib
 )

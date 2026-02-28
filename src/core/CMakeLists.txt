@@ -11,5 +11,6 @@ target_link_libraries(core
     PUBLIC
         entities
         systems
+        components
         raylib
 )
