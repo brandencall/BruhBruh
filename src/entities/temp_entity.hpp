@@ -8,12 +8,13 @@
 // TESTING Entity dmg
 class TestEntity : public Entity {
   public:
+    bool m_isDead = false;
     float width;
     float height;
-    Component::HealthComponent m_health;
+    std::unique_ptr<Component::HealthComponent> m_health;
     std::unique_ptr<Component::Hurtbox> m_hurtbox;
 
-    TestEntity(float x, float y, float w, float h) : m_health(100) {
+    TestEntity(float x, float y, float w, float h) : m_health(std::make_unique<Component::HealthComponent>(100)) {
         position = {x, y};
         width = w;
         height = h;
@@ -22,6 +23,9 @@ class TestEntity : public Entity {
     }
 
     void Update(float dt) override {}
+    bool IsDead() override { return m_isDead; }
+
+    void SetDead() override { m_isDead = true; }
 
     void Draw() override { DrawRectangle(position.x, position.y, width, height, GREEN); }
 
@@ -31,8 +35,11 @@ class TestEntity : public Entity {
     Vector2 GetPosition() const override { return position; }
 
     void ApplyDamage(int damage) override {
-        m_health.takeDamage(damage);
+        m_health->takeDamage(damage);
+        if (m_health->getCurrentHealth() <= 0) {
+            m_isDead = true;
+        }
         std::cout << "Applying damage to test: " << damage << std::endl;
-        std::cout << "Test health after damage: " << m_health.getCurrentHealth() << std::endl;
+        std::cout << "Test health after damage: " << m_health->getCurrentHealth() << std::endl;
     }
 };

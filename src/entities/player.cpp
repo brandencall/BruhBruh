@@ -42,6 +42,10 @@ Component::Collider *Player::GetCollider() const { return m_collider.get(); }
 
 Vector2 Player::GetPosition() const { return m_position; }
 
+bool Player::IsDead() { return m_isDead; }
+
+void Player::SetDead() { m_isDead = true; }
+
 Component::Hurtbox *Player::GetHurtbox() const { return m_hurtbox.get(); }
 
 void Player::OnCollision(Entity *entity) {

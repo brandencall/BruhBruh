@@ -26,6 +26,7 @@ Game::Game()
     m_camera.offset = {640, 360};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
+    m_shootingCamera = m_camera;
 }
 
 Game::~Game() { CloseWindow(); }
@@ -36,14 +37,15 @@ void Game::Update() {
         return;
 
     float dt = GetFrameTime();
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        auto bullet = m_bulletSystem.CreateBullet(*m_player, m_camera);
-        m_entities.push_back(std::move(bullet));
-    }
 
     m_player->Update(dt);
+    m_shootingCamera.target = m_player->GetPosition();
     m_camera.target = Vector2Lerp(m_camera.target, m_player->GetPosition(), 5.0f * dt);
 
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        auto bullet = m_bulletSystem.CreateBullet(*m_player, m_shootingCamera);
+        m_entities.push_back(std::move(bullet));
+    }
     m_bulletSystem.Update(dt, m_entities);
     m_collisionSystem.Update(m_entities);
     m_damageSystem.Update(m_entities);
@@ -59,14 +61,10 @@ void Game::Draw() {
 
     DrawDebugGrid();
 
-    m_bulletSystem.Draw(m_entities);
-    m_player->Draw();
-
-    // TESTING
-    m_wall->Draw();
-    m_testEntity->Draw();
-    // ----------------
-
+    // Draw all entities
+    for (auto &entity : m_entities) {
+        entity->Draw();
+    }
     EndMode2D();
     EndDrawing();
 }

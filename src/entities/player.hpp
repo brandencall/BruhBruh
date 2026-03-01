@@ -16,11 +16,14 @@ class Player : public Entity {
     EntityType GetType() const override;
     Component::Collider *GetCollider() const override;
     Vector2 GetPosition() const override;
+    bool IsDead() override;
+    void SetDead() override;
     void OnCollision(Entity *entity) override;
     void ApplyDamage(int damage) override;
     Component::Hurtbox *GetHurtbox() const override;
 
   private:
+    bool m_isDead = false;
     float m_speed = 200.0f;
     float m_width = 32.0f;
     float m_height = 32.0f;

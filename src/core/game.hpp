@@ -28,6 +28,7 @@ class Game {
   private:
     bool m_running = true;
     Camera2D m_camera;
+    Camera2D m_shootingCamera;
     System::DamageSystem m_damageSystem;
     System::BulletSystem m_bulletSystem;
     System::CollisionSystem m_collisionSystem;
