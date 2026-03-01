@@ -3,7 +3,6 @@
 #include "client.hpp"
 #include <array>
 #include <cstdint>
-#include <netinet/in.h>
 
 namespace network {
 

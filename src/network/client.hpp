@@ -1,6 +1,6 @@
 #pragma once
 
-#include <netinet/in.h>
+#include "platform_sockets.hpp"
 
 namespace network {
 

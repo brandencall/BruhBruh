@@ -1,13 +1,9 @@
 #include "server.hpp"
 #include "packet.hpp"
-#include "platform_sockets.hpp"
-#include <arpa/inet.h>
 #include <cstring>
-#include <fcntl.h>
 #include <iostream>
 #include <sys/types.h>
 #include <thread>
-#include <unistd.h>
 
 namespace network {
 
