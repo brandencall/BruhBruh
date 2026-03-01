@@ -23,6 +23,7 @@ class Game {
     void Draw();
     void DrawDebugGrid();
     void SetGameRunning(bool runningState);
+    void RemoveDeadEntities();
 
   private:
     bool m_running = true;

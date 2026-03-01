@@ -3,29 +3,24 @@
 #include "raymath.h"
 #include "temp_entity.hpp"
 #include "temp_wall.hpp"
+#include <algorithm>
 #include <memory>
 
 Game::Game()
-    : m_camera(Camera2D()), m_damageSystem(System::DamageSystem()),
-      m_bulletSystem(System::BulletSystem(m_damageSystem)), m_collisionSystem(System::CollisionSystem()) {
+    : m_camera(Camera2D()), m_damageSystem(System::DamageSystem()), m_bulletSystem(),
+      m_collisionSystem(System::CollisionSystem()) {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
     m_entities.emplace_back(std::make_unique<Player>(Vector2{10, 100}));
     m_player = static_cast<Player *>(m_entities.back().get());
-    m_damageSystem.AddHurtbox(m_player->m_hurtbox.get());
 
     // TESTING
     m_entities.emplace_back(std::make_unique<Wall>(400, 300, 200, 40));
     m_wall = static_cast<Wall *>(m_entities.back().get());
-    m_collisionSystem.AddCollider(m_wall->m_collider.get());
-    m_damageSystem.AddHitbox(m_wall->m_hitbox.get());
 
     m_entities.emplace_back(std::make_unique<TestEntity>(200, 200, 40, 40));
     m_testEntity = static_cast<TestEntity *>(m_entities.back().get());
-    m_damageSystem.AddHurtbox(m_testEntity->m_hurtbox.get());
-    // ----------------------
-
-    m_collisionSystem.AddCollider(m_player->m_collider.get());
+    //  ----------------------
 
     m_camera.target = m_player->GetPosition();
     m_camera.offset = {640, 360};
@@ -42,16 +37,18 @@ void Game::Update() {
 
     float dt = GetFrameTime();
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        m_bulletSystem.SpawnBullet(*m_player, m_camera);
+        auto bullet = m_bulletSystem.CreateBullet(*m_player, m_camera);
+        m_entities.push_back(std::move(bullet));
     }
 
     m_player->Update(dt);
     m_camera.target = Vector2Lerp(m_camera.target, m_player->GetPosition(), 5.0f * dt);
 
-    m_bulletSystem.Update(dt);
-    m_collisionSystem.Update();
-    m_damageSystem.Update();
+    m_bulletSystem.Update(dt, m_entities);
+    m_collisionSystem.Update(m_entities);
+    m_damageSystem.Update(m_entities);
     Game::Draw();
+    RemoveDeadEntities();
 }
 
 void Game::Draw() {
@@ -62,7 +59,7 @@ void Game::Draw() {
 
     DrawDebugGrid();
 
-    m_bulletSystem.Draw();
+    m_bulletSystem.Draw(m_entities);
     m_player->Draw();
 
     // TESTING
@@ -72,6 +69,12 @@ void Game::Draw() {
 
     EndMode2D();
     EndDrawing();
+}
+
+void Game::RemoveDeadEntities() {
+    m_entities.erase(std::remove_if(m_entities.begin(), m_entities.end(),
+                                    [](const std::unique_ptr<Entity> &e) { return e->IsDead(); }),
+                     m_entities.end());
 }
 
 void Game::DrawDebugGrid() {

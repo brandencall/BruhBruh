@@ -1,7 +1,7 @@
 #pragma once
 
 #include "collision_components.hpp"
-#include "entity.hpp"
+class Entity;
 
 namespace Component {
 class Collider {

@@ -1,29 +1,33 @@
 #include "damage_system.hpp"
+#include "../entities/entity.hpp"
 #include "collision_components.hpp"
-#include <algorithm>
 
 namespace System {
 
-void DamageSystem::AddHurtbox(Component::Hurtbox *hurtbox) { m_hurtboxes.push_back(hurtbox); }
+void DamageSystem::Update(std::vector<std::unique_ptr<Entity>> &entities) {
+    std::vector<Component::Hitbox *> hitboxes;
+    std::vector<Component::Hurtbox *> hurtboxes;
 
-void DamageSystem::AddHitbox(Component::Hitbox *hitbox) { m_hitboxes.push_back(hitbox); }
+    for (auto &e : entities) {
+        if (e->IsDead())
+            continue;
 
-void DamageSystem::RemoveHitbox(Component::Hitbox *h) {
-    m_hitboxes.erase(std::remove(m_hitboxes.begin(), m_hitboxes.end(), h), m_hitboxes.end());
-}
+        if (auto *hit = e->GetHitbox())
+            hitboxes.push_back(hit);
 
-void DamageSystem::RemoveHurtbox(Component::Hurtbox *h) {
-    m_hurtboxes.erase(std::remove(m_hurtboxes.begin(), m_hurtboxes.end(), h), m_hurtboxes.end());
-}
+        if (auto *hurt = e->GetHurtbox())
+            hurtboxes.push_back(hurt);
+    }
 
-void DamageSystem::Update() {
-    for (Component::Hitbox *&hit : m_hitboxes) {
-        for (Component::Hurtbox *&hurt : m_hurtboxes) {
+    for (auto *hit : hitboxes) {
+        for (auto *hurt : hurtboxes) {
             if (hurt->owner == hit->shooter)
                 continue;
 
-            if (hit->bounds.Overlaps(hurt->bounds))
+            if (hit->bounds.Overlaps(hurt->bounds)) {
                 hurt->owner->ApplyDamage(hit->damage);
+                hit->owner->SetDead();
+            }
         }
     }
 }

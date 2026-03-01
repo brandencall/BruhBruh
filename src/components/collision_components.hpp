@@ -1,5 +1,6 @@
 #pragma once
-#include "entity.hpp"
+
+class Entity;
 
 namespace Component {
 struct AABB {
@@ -12,11 +13,13 @@ struct AABB {
     }
 };
 
+// Might be able to delete the owner
 struct Hurtbox {
     AABB bounds;
     Entity *owner;
 };
 
+// Might be able to delete the owner/shooter
 struct Hitbox {
     AABB bounds;
     int damage;

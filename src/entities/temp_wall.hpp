@@ -10,7 +10,6 @@ class Wall : public Entity {
     float width;
     float height;
     std::unique_ptr<Component::Collider> m_collider;
-    std::unique_ptr<Component::Hitbox> m_hitbox;
 
     Wall(float x, float y, float w, float h) {
         position = {x, y};
@@ -18,9 +17,10 @@ class Wall : public Entity {
         height = h;
 
         m_collider = std::make_unique<Component::Collider>(Component::AABB{x, y, w, h}, true, this);
-        m_hitbox = std::make_unique<Component::Hitbox>(Component::AABB{x, y, w, h}, 10, this);
     }
 
+    EntityType GetType() const override { return EntityType::Wall; }
+    Component::Collider *GetCollider() const override { return m_collider.get(); }
     void Update(float dt) override {}
 
     void Draw() override { DrawRectangle(position.x, position.y, width, height, BLUE); }

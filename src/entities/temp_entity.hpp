@@ -25,6 +25,9 @@ class TestEntity : public Entity {
 
     void Draw() override { DrawRectangle(position.x, position.y, width, height, GREEN); }
 
+    EntityType GetType() const override { return EntityType::Player; }
+    Component::Hurtbox *GetHurtbox() const override { return m_hurtbox.get(); }
+
     Vector2 GetPosition() const override { return position; }
 
     void ApplyDamage(int damage) override {

@@ -13,9 +13,12 @@ class Player : public Entity {
     void Update(float dt) override;
     void Draw() override;
 
+    EntityType GetType() const override;
+    Component::Collider *GetCollider() const override;
     Vector2 GetPosition() const override;
     void OnCollision(Entity *entity) override;
     void ApplyDamage(int damage) override;
+    Component::Hurtbox *GetHurtbox() const override;
 
   private:
     float m_speed = 200.0f;

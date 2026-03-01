@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "collider.hpp"
 #include "collision_components.hpp"
 #include "entity.hpp"
 #include <iostream>
@@ -27,9 +28,21 @@ void Player::Update(float dt) {
 
 void Player::Draw() { DrawRectangleV(m_position, {m_width, m_height}, BLUE); }
 
+Player::EntityType Player::GetType() const { return EntityType::Player; }
+
+Component::Collider *Player::GetCollider() const { return m_collider.get(); }
+
 Vector2 Player::GetPosition() const { return m_position; }
 
+Component::Hurtbox *Player::GetHurtbox() const { return m_hurtbox.get(); }
+
 void Player::OnCollision(Entity *entity) {
+    if (entity->GetType() == EntityType::Bullet) {
+        auto hitbox = entity->GetHitbox();
+        if (hitbox && hitbox->shooter == this) {
+            return;
+        }
+    }
     std::cout << "Player collided with entity at " << entity->position.x << ", " << entity->position.y << "\n";
 }
 
