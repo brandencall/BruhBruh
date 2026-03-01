@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "packet.hpp"
+#include "platform_sockets.hpp"
 #include <arpa/inet.h>
 #include <cstring>
 #include <fcntl.h>
@@ -11,6 +12,11 @@
 namespace network {
 
 void Server::Start(uint16_t port) {
+    if (!Net::Init()) {
+        std::cerr << "Socket init failed\n";
+        m_running = false;
+        return;
+    }
     m_socket = socket(AF_INET, SOCK_DGRAM, 0);
     if (m_socket < 0) {
         std::cout << "Failed to create socket\n";
@@ -37,7 +43,7 @@ void Server::Start(uint16_t port) {
 void Server::Stop() {
     m_running = false;
     if (m_socket >= 0)
-        close(m_socket);
+        Net::Shutdown();
 }
 
 void Server::HandleJoin(const sockaddr_in &addr) {

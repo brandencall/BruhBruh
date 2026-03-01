@@ -15,7 +15,7 @@ Game::Game()
     m_player = static_cast<Player *>(m_entities.back().get());
 
     // TESTING
-    m_entities.emplace_back(std::make_unique<Wall>(400, 300, 200, 40));
+    m_entities.emplace_back(std::make_unique<Wall>(400.0f, 300.0f, 200.0f, 40.0f));
     m_wall = static_cast<Wall *>(m_entities.back().get());
 
     m_entities.emplace_back(std::make_unique<TestEntity>(200, 200, 40, 40));

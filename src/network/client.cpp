@@ -1,5 +1,6 @@
 #include "client.hpp"
 #include "packet.hpp"
+#include "platform_sockets.hpp"
 #include <arpa/inet.h>
 #include <cstring>
 #include <fcntl.h>
@@ -44,7 +45,7 @@ void Client::Connect(const char *ip, int port) {
 void Client::Disconnect() {
     m_running = false;
     if (m_socket >= 0)
-        close(m_socket);
+        Net::Shutdown();
 }
 
 void Client::SendJoin() {
