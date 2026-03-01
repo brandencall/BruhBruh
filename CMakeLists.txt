@@ -9,6 +9,7 @@ add_subdirectory(src/core)
 add_subdirectory(src/entities)
 add_subdirectory(src/components)
 add_subdirectory(src/systems)
+add_subdirectory(src/network)
 add_subdirectory(external/raylib)
 
 # Main executable
@@ -21,5 +22,6 @@ target_link_libraries(BruhBruh
         entities
         components
         systems
+        network
         raylib
 )
