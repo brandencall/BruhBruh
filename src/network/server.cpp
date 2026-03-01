@@ -27,11 +27,11 @@ void Server::Start(uint16_t port) {
 
     if (bind(m_socket, (sockaddr *)&m_addr, sizeof(m_addr)) < 0) {
         std::cout << "Bind failed\n";
-        close(m_socket);
+        Net::Close(m_socket);
         m_running = false;
         return;
     }
-    fcntl(m_socket, F_SETFL, O_NONBLOCK);
+    Net::SetNonBlocking(m_socket);
     std::cout << "Server started on port " << port << "\n";
     m_running = true;
 }
@@ -60,7 +60,8 @@ void Server::HandleJoin(const sockaddr_in &addr) {
             response.header.type = PacketType::JoinResponse;
             response.playerId = client.playerId;
 
-            sendto(m_socket, &response, sizeof(response), 0, (sockaddr *)&addr, sizeof(addr));
+            sendto(m_socket, reinterpret_cast<const char *>(&response), static_cast<int>(sizeof(response)), 0,
+                   reinterpret_cast<const sockaddr *>(&addr), sizeof(addr));
 
             std::cout << "Player joined. ID: " << client.playerId << "\n";
 
@@ -71,7 +72,7 @@ void Server::HandleJoin(const sockaddr_in &addr) {
     std::cout << "Server full\n";
 }
 
-void Server::HandleInput(char *buffer, ssize_t bytes, sockaddr_in &addr) {
+void Server::HandleInput(char *buffer, int bytes, sockaddr_in &addr) {
     ClientConnection *client = FindClient(addr);
     InputPacket *inputPacket = (InputPacket *)buffer;
 
@@ -82,7 +83,7 @@ void Server::HandleInput(char *buffer, ssize_t bytes, sockaddr_in &addr) {
 
     if (!client) {
         std::cout << "Received input from unknown address. Ignoring.\n";
-        return; // discard
+        return;
     }
     std::cout << "Received " << bytes << " bytes from client: " << inet_ntoa(addr.sin_addr) << ":"
               << ntohs(addr.sin_port) << std::endl;
@@ -95,7 +96,7 @@ void Server::Receive() {
     sockaddr_in clientAddr{};
     socklen_t addrLen = sizeof(clientAddr);
 
-    ssize_t bytes = recvfrom(m_socket, buffer, sizeof(buffer), 0, (sockaddr *)&clientAddr, &addrLen);
+    int bytes = recvfrom(m_socket, buffer, sizeof(buffer), 0, (sockaddr *)&clientAddr, &addrLen);
 
     if (bytes <= 0)
         return;
@@ -117,7 +118,8 @@ void Server::Receive() {
 }
 
 void Server::Send(const char *data, size_t size, const sockaddr_in &clientAddr) {
-    sendto(m_socket, data, size, 0, (sockaddr *)&clientAddr, sizeof(clientAddr));
+    sendto(m_socket, data, static_cast<int>(size), 0, reinterpret_cast<const sockaddr *>(&clientAddr),
+           sizeof(clientAddr));
 }
 
 ClientConnection *Server::FindClient(const sockaddr_in &addr) {

@@ -15,7 +15,7 @@ class Server {
     void Receive();
     void Send(const char *data, size_t size, const sockaddr_in &clientAddr);
     void HandleJoin(const sockaddr_in &clientAddr);
-    void HandleInput(char *buffer, ssize_t bytes, sockaddr_in &addr);
+    void HandleInput(char *buffer, int bytes, sockaddr_in &addr);
 
     bool IsRunning() const;
     void Tick() const;

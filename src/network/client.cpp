@@ -1,5 +1,6 @@
 #include "client.hpp"
 #include "packet.hpp"
+#include "platform_sockets.hpp"
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -27,12 +28,12 @@ void Client::Connect(const char *ip, int port) {
     // "Connect" UDP socket (sets default send/recv target)
     if (connect(m_socket, (sockaddr *)&m_serverAddr, sizeof(m_serverAddr)) < 0) {
         std::cout << "UDP connect failed\n";
-        close(m_socket);
+        Net::Close(m_socket);
         m_running = false;
         return;
     }
 
-    fcntl(m_socket, F_SETFL, O_NONBLOCK);
+    Net::SetNonBlocking(m_socket);
 
     std::cout << "Connected to server " << ip << ":" << port << "\n";
     m_running = true;
@@ -48,16 +49,16 @@ void Client::SendJoin() {
     JoinPacket packet{};
     packet.header.type = PacketType::Join;
 
-    send(m_socket, &packet, sizeof(packet), 0);
+    send(m_socket, reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)), 0);
     Receive();
 }
 
-void Client::Send(const char *data, size_t size) { send(m_socket, data, size, 0); }
+void Client::Send(const char *data, size_t size) { send(m_socket, data, static_cast<int>(size), 0); }
 
 void Client::Receive() {
     char buffer[1024];
 
-    ssize_t bytes = recv(m_socket, buffer, sizeof(buffer), 0);
+    int bytes = recv(m_socket, buffer, sizeof(buffer), 0);
     if (bytes <= 0)
         return;
 
@@ -77,7 +78,7 @@ void Client::SendInput() {
     packet.header.type = PacketType::Input;
     packet.playerId = m_playerId;
 
-    send(m_socket, &packet, sizeof(packet), 0);
+    send(m_socket, reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)), 0);
 }
 
 void Client::Update() {
