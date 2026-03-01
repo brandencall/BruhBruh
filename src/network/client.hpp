@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform_sockets.hpp"
+#include <cstdint>
 
 namespace network {
 
@@ -26,7 +27,7 @@ class Client {
 
   private:
     bool m_running = false;
-    int m_socket = -1;
+    Socket m_socket = INVALID_SOCKET;
     uint32_t m_playerId = 0;
     sockaddr_in m_serverAddr{};
 };
