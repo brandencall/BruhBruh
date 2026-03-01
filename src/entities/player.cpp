@@ -2,6 +2,7 @@
 #include "collider.hpp"
 #include "collision_components.hpp"
 #include "entity.hpp"
+#include "raymath.h"
 #include <iostream>
 
 // Collider and hurtbox have the same AABB values, may just want them to share that in the future
@@ -11,14 +12,21 @@ Player::Player(Vector2 startPos)
       m_hurtbox(new Component::Hurtbox({m_position.x, m_position.y, m_width, m_height}, this)) {}
 
 void Player::Update(float dt) {
+    Vector2 dir = {0.0f, 0.0f};
+
     if (IsKeyDown(KEY_W))
-        m_position.y -= m_speed * dt;
+        dir.y -= 1.0f;
     if (IsKeyDown(KEY_S))
-        m_position.y += m_speed * dt;
+        dir.y += 1.0f;
     if (IsKeyDown(KEY_A))
-        m_position.x -= m_speed * dt;
+        dir.x -= 1.0f;
     if (IsKeyDown(KEY_D))
-        m_position.x += m_speed * dt;
+        dir.x += 1.0f;
+
+    dir = Vector2Normalize(dir);
+
+    m_position.x += dir.x * m_speed * dt;
+    m_position.y += dir.y * m_speed * dt;
 
     m_collider->bounds.x = m_position.x;
     m_collider->bounds.y = m_position.y;
