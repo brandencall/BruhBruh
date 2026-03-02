@@ -85,5 +85,6 @@ void GameClient::Render() {
 
 bool GameClient::GameRunning() { return m_running; }
 
-network::InputPacket GameClient::CollectInput() {}
+// network::InputPacket GameClient::CollectInput() {}
+
 void GameClient::SendInput(network::InputPacket &packet) {}

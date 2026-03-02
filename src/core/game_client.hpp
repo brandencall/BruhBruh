@@ -19,7 +19,7 @@ class GameClient {
     void Receive();
     void HandlePacket(char *buffer, size_t size);
 
-    network::InputPacket CollectInput();
+    // network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);
     // TODO: Remove when input is actually collected
     void SendInput();
