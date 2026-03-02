@@ -1,28 +1,25 @@
-#include "client.hpp"
 #include "game.hpp"
-#include "network/server.hpp"
+#include "game_client.hpp"
+#include "game_server.hpp"
 #include <iostream>
 
 void RunServer() {
     std::cout << "Running the server" << std::endl;
-    network::Server server;
-    server.Start(54000);
+    GameServer gameServer;
+    gameServer.Start(54000);
 
-    while (server.IsRunning()) {
-        // server.Tick();
-        server.Receive();
+    while (gameServer.IsRunning()) {
+        gameServer.Receive();
     }
 }
 
 void RunClient() {
-    std::cout << "Running the client" << std::endl;
-    network::Client client;
-    client.Connect("127.0.0.1", 54000);
-    client.SendJoin();
+    GameClient gameClient;
+    gameClient.Connect("127.0.0.1", 54000);
+    gameClient.SendJoin();
 
-    while (client.IsRunning()) {
-        // client.Send("Hello", 5);
-        client.Update();
+    while (gameClient.GameRunning()) {
+        gameClient.Update();
     }
 }
 

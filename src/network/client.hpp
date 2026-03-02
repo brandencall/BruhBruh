@@ -14,21 +14,13 @@ struct ClientConnection {
 class Client {
 
   public:
-    void Connect(const char *, int port);
+    bool Connect(const char *, int port);
     void Disconnect();
-
-    void SendJoin();
     void Send(const char *data, size_t size);
-    void Receive();
-    void SendInput();
-
-    bool IsRunning() const;
-    void Update();
+    int Receive(char *buffer, size_t size);
 
   private:
-    bool m_running = false;
     Socket m_socket = INVALID_SOCKET;
-    uint32_t m_playerId = 0;
     sockaddr_in m_serverAddr{};
 };
 
