@@ -12,9 +12,13 @@ class GameServer {
     void Receive(GameSimulation &simulation);
     // Temp method
     void Receive();
+    void BroadcastState(GameSimulation &simulation);
+
+  private:
     void HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr);
     void HandleJoin(const sockaddr_in &addr);
-    void BroadcastState(GameSimulation &simulation);
+    void HandleDisconnect(const char *buffer, const sockaddr_in &clientAddr);
+    bool AddressesEqual(const sockaddr_in &a, const sockaddr_in &b);
     network::ClientConnection *FindClient(const sockaddr_in &addr);
 
   private:

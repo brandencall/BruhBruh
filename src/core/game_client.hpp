@@ -14,10 +14,12 @@ class GameClient {
     bool GameRunning();
 
   private:
+    void Disconnect();
     void Render();
 
     void Receive();
     void HandlePacket(char *buffer, size_t size);
+    void HandleJoinResponse(const char *buffer);
 
     // network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);

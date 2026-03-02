@@ -3,7 +3,7 @@
 
 namespace network {
 
-enum class PacketType : uint8_t { Join, JoinResponse, Input, State };
+enum class PacketType : uint8_t { Join, Disconnect, JoinResponse, Input, State };
 
 struct PacketHeader {
     PacketType type;
@@ -11,6 +11,11 @@ struct PacketHeader {
 
 struct JoinPacket {
     PacketHeader header;
+};
+
+struct DisconnectPacket {
+    PacketHeader header;
+    uint32_t playerId;
 };
 
 struct JoinResponsePacket {

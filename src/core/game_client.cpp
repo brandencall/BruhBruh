@@ -10,9 +10,20 @@ GameClient::GameClient() : m_client(network::Client()) {
 }
 
 // Send a disconnect signal to the server
-GameClient::~GameClient() { CloseWindow(); }
+GameClient::~GameClient() {
+    Disconnect();
+    CloseWindow();
+}
 
 void GameClient::Connect(const char *ip, int port) { bool connected = m_client.Connect(ip, port); }
+
+void GameClient::Disconnect() {
+    network::DisconnectPacket packet{};
+    packet.header.type = network::PacketType::Disconnect;
+    packet.playerId = m_playerId;
+
+    m_client.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)));
+}
 
 void GameClient::SendJoin() {
     network::JoinPacket packet{};
@@ -50,14 +61,9 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
     network::PacketHeader *header = (network::PacketHeader *)buffer;
 
     switch (header->type) {
-    case network::PacketType::JoinResponse: {
-        auto *response = (network::JoinResponsePacket *)buffer;
-        m_playerId = response->playerId;
-        m_joined = true;
-
-        std::cout << "Assigned Player ID: " << m_playerId << "\n";
+    case network::PacketType::JoinResponse:
+        HandleJoinResponse(buffer);
         break;
-    }
 
     case network::PacketType::State:
         // handle state later
@@ -66,6 +72,13 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
     default:
         break;
     }
+}
+void GameClient::HandleJoinResponse(const char *buffer) {
+    auto *response = (network::JoinResponsePacket *)buffer;
+    m_playerId = response->playerId;
+    m_joined = true;
+
+    std::cout << "Assigned Player ID: " << m_playerId << "\n";
 }
 
 void GameClient::SendInput() {

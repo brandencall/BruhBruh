@@ -20,6 +20,8 @@ void GameServer::Receive() {
     HandlePacket(buffer, bytes, clientAddr);
 }
 
+void GameServer::BroadcastState(GameSimulation &simulation) {}
+
 void GameServer::HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr) {
     network::PacketHeader *header = (network::PacketHeader *)buffer;
 
@@ -31,6 +33,9 @@ void GameServer::HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAdd
     case network::PacketType::Input:
         // HandleInput(buffer, bytes, clientAddr);
         std::cout << "Received an Input packet type" << std::endl;
+        break;
+    case network::PacketType::Disconnect:
+        HandleDisconnect(buffer, clientAddr);
         break;
 
     default:
@@ -45,19 +50,18 @@ void GameServer::HandleJoin(const sockaddr_in &addr) {
     if (FindClient(addr))
         return;
 
-    // Find empty slot
-    for (auto &client : m_clients) {
-        if (!client.active) {
-            client.active = true;
-            client.address = addr;
-            client.playerId = m_nextPlayerId++;
+    for (size_t i = 0; i < m_clients.size(); i++) {
+        if (!m_clients[i].active) {
+            m_clients[i].active = true;
+            m_clients[i].address = addr;
+            m_clients[i].playerId = i;
 
             network::JoinResponsePacket response{};
             response.header.type = network::PacketType::JoinResponse;
-            response.playerId = client.playerId;
+            response.playerId = m_clients[i].playerId;
 
             m_server.Send(reinterpret_cast<const char *>(&response), static_cast<int>(sizeof(response)), addr);
-            std::cout << "Player joined. ID: " << client.playerId << "\n";
+            std::cout << "Player joined. ID: " << m_clients[i].playerId << "\n";
 
             return;
         }
@@ -80,9 +84,17 @@ network::ClientConnection *GameServer::FindClient(const sockaddr_in &addr) {
     return nullptr;
 }
 
-// TODO: Actually use this
-bool AddressesEqual(const sockaddr_in &a, const sockaddr_in &b) {
-    return a.sin_addr.s_addr == b.sin_addr.s_addr && a.sin_port == b.sin_port;
+void GameServer::HandleDisconnect(const char *buffer, const sockaddr_in &clientAddr) {
+    auto *response = (network::DisconnectPacket *)buffer;
+    if (response->playerId < 0 || response->playerId > MAX_PLAYERS)
+        return;
+
+    if (!AddressesEqual(clientAddr, m_clients[response->playerId].address))
+        return;
+
+    m_clients[response->playerId].active = false;
 }
 
-void GameServer::BroadcastState(GameSimulation &simulation) {}
+bool GameServer::AddressesEqual(const sockaddr_in &a, const sockaddr_in &b) {
+    return a.sin_addr.s_addr == b.sin_addr.s_addr && a.sin_port == b.sin_port;
+}
