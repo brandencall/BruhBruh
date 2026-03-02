@@ -7,10 +7,7 @@ void RunServer() {
     std::cout << "Running the server" << std::endl;
     GameServer gameServer;
     gameServer.Start(54000);
-
-    while (gameServer.IsRunning()) {
-        gameServer.Receive();
-    }
+    gameServer.RunServer();
 }
 
 void RunClient() {

@@ -6,15 +6,15 @@
 
 class GameServer {
   public:
-    GameServer();
+    GameServer() = default;
     void Start(int port);
+    void RunServer();
     bool IsRunning();
-    void Receive(GameSimulation &simulation);
-    // Temp method
-    void Receive();
-    void BroadcastState(GameSimulation &simulation);
 
   private:
+    void UpdateSimulation(float tickRate);
+    void Receive();
+    void BroadcastState();
     void HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr);
     void HandleJoin(const sockaddr_in &addr);
     void HandleDisconnect(const char *buffer, const sockaddr_in &clientAddr);
@@ -25,7 +25,7 @@ class GameServer {
     static constexpr int MAX_PLAYERS = 4;
     int m_nextPlayerId = 1;
     bool m_running = false;
-    network::Server m_server;
-
     std::array<network::ClientConnection, MAX_PLAYERS> m_clients;
+    network::Server m_server;
+    GameSimulation m_simulation;
 };

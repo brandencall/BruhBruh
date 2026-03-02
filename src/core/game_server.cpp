@@ -1,13 +1,40 @@
 #include "game_server.hpp"
 #include "../network/packet.hpp"
+#include "game_simulation.hpp"
+#include <chrono>
 #include <cstddef>
 #include <iostream>
-
-GameServer::GameServer() : m_server(network::Server()) {}
 
 void GameServer::Start(int port) { m_running = m_server.Start(port); }
 
 bool GameServer::IsRunning() { return m_running; }
+
+void GameServer::RunServer() {
+    const float tickRate = 1.0f / 30.0f;
+    float accumulator = 0.0f;
+
+    auto previousTime = std::chrono::steady_clock::now();
+
+    while (m_running) {
+        auto now = std::chrono::steady_clock::now();
+        float dt = std::chrono::duration<float>(now - previousTime).count();
+        previousTime = now;
+
+        accumulator += dt;
+
+        // Always receive packets as fast as possible
+        Receive();
+
+        while (accumulator >= tickRate) {
+            UpdateSimulation(tickRate);
+            BroadcastState();
+
+            accumulator -= tickRate;
+        }
+    }
+}
+
+void GameServer::UpdateSimulation(float tickRate) { m_simulation.Update(tickRate); }
 
 void GameServer::Receive() {
     char buffer[1024];
@@ -20,7 +47,7 @@ void GameServer::Receive() {
     HandlePacket(buffer, bytes, clientAddr);
 }
 
-void GameServer::BroadcastState(GameSimulation &simulation) {}
+void GameServer::BroadcastState() {}
 
 void GameServer::HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr) {
     network::PacketHeader *header = (network::PacketHeader *)buffer;

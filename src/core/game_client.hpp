@@ -29,6 +29,8 @@ class GameClient {
     void SetGameRunning(bool runningState);
 
   private:
+    static constexpr float m_sendInterval = 1.0f / 30.0f;
+    float m_sendAccumulator = 0.0f;
     int m_playerId = -1;
     bool m_joined = false;
     bool m_running = true;

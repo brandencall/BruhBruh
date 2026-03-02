@@ -2,6 +2,7 @@ add_library(core
     game.cpp
     game_client.cpp
     game_server.cpp
+    game_simulation.cpp
 )
 
 target_include_directories(core

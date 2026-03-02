@@ -2,7 +2,6 @@
 #include "../network/client.hpp"
 #include "raylib.h"
 #include <iostream>
-#include <thread>
 
 GameClient::GameClient() : m_client(network::Client()) {
     InitWindow(1280, 720, "BruhBruh");
@@ -35,14 +34,19 @@ void GameClient::Update() {
     SetGameRunning(!WindowShouldClose());
     if (!m_running)
         return;
-    // Receive
-    // CollectInput
-    // SendInput
-    // Render
+    float dt = GetFrameTime();
+
     Receive();
-    SendInput();
+    // CollectInput
+
+    m_sendAccumulator += dt;
+
+    if (m_sendAccumulator >= m_sendInterval) {
+        SendInput();
+        m_sendAccumulator -= m_sendInterval;
+    }
+
     Render();
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
 
 void GameClient::SetGameRunning(bool runningState) { m_running = runningState; }
