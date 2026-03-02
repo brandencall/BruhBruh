@@ -9,7 +9,6 @@ class GameClient {
     ~GameClient();
     void Connect(const char *ip, int port);
     void SendJoin();
-    // TODO: Implement
     void Update();
     bool GameRunning();
 
@@ -21,10 +20,8 @@ class GameClient {
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
 
-    // network::InputPacket CollectInput();
+    network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);
-    // TODO: Remove when input is actually collected
-    void SendInput();
 
     void SetGameRunning(bool runningState);
 
@@ -34,5 +31,6 @@ class GameClient {
     int m_playerId = -1;
     bool m_joined = false;
     bool m_running = true;
+    uint32_t m_inputSequence = 0;
     network::Client m_client;
 };

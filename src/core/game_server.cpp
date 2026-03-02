@@ -1,5 +1,4 @@
 #include "game_server.hpp"
-#include "../network/packet.hpp"
 #include "game_simulation.hpp"
 #include <chrono>
 #include <cstddef>
@@ -58,8 +57,7 @@ void GameServer::HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAdd
         break;
 
     case network::PacketType::Input:
-        // HandleInput(buffer, bytes, clientAddr);
-        std::cout << "Received an Input packet type" << std::endl;
+        HandleInput(buffer, bytes, clientAddr);
         break;
     case network::PacketType::Disconnect:
         HandleDisconnect(buffer, clientAddr);
@@ -89,12 +87,57 @@ void GameServer::HandleJoin(const sockaddr_in &addr) {
 
             m_server.Send(reinterpret_cast<const char *>(&response), static_cast<int>(sizeof(response)), addr);
             std::cout << "Player joined. ID: " << m_clients[i].playerId << "\n";
+            m_simulation.CreatePlayer(m_clients[i].playerId);
+            SendFullSnapshot(m_clients[i]);
 
             return;
         }
     }
 
     std::cout << "Server full\n";
+}
+
+void GameServer::SendFullSnapshot(network::ClientConnection client) {
+    network::StatePacket packet = {};
+    BuildStatePacket(packet);
+    m_server.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)), client.address);
+}
+
+void GameServer::HandleInput(char *buffer, size_t size, const sockaddr_in &clientAddr) {
+    if (size < sizeof(network::InputPacket))
+        return;
+
+    network::InputPacket *packet = (network::InputPacket *)buffer;
+
+    network::ClientConnection *client = FindClient(clientAddr);
+    if (!client)
+        return;
+
+    if (packet->playerId != client->playerId)
+        return;
+
+    PlayerInput input{};
+    input.moveX = packet->moveX;
+    input.moveY = packet->moveY;
+    input.buttons = packet->buttons;
+    m_simulation.ApplyInput(client->playerId, input);
+}
+
+void GameServer::BuildStatePacket(network::StatePacket &packet) {
+    packet.header.type = network::PacketType::State;
+    packet.tick = m_tick++;
+
+    const auto &players = m_simulation.GetPlayers();
+
+    for (int i = 0; i < MAX_PLAYERS; i++) {
+        const PlayerState &p = players[i];
+
+        packet.players[i].id = p.id;
+        packet.players[i].position.x = p.position.x;
+        packet.players[i].position.y = p.position.y;
+        packet.players[i].health = p.health;
+        packet.players[i].active = p.active ? 1 : 0;
+    }
 }
 
 network::ClientConnection *GameServer::FindClient(const sockaddr_in &addr) {
@@ -120,6 +163,7 @@ void GameServer::HandleDisconnect(const char *buffer, const sockaddr_in &clientA
         return;
 
     m_clients[response->playerId].active = false;
+    m_simulation.RemovePlayer(response->playerId);
 }
 
 bool GameServer::AddressesEqual(const sockaddr_in &a, const sockaddr_in &b) {

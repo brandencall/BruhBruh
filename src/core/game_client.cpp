@@ -37,12 +37,12 @@ void GameClient::Update() {
     float dt = GetFrameTime();
 
     Receive();
-    // CollectInput
 
     m_sendAccumulator += dt;
 
     if (m_sendAccumulator >= m_sendInterval) {
-        SendInput();
+        auto input = CollectInput();
+        m_client.Send(reinterpret_cast<const char *>(&input), sizeof(input));
         m_sendAccumulator -= m_sendInterval;
     }
 
@@ -85,14 +85,6 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     std::cout << "Assigned Player ID: " << m_playerId << "\n";
 }
 
-void GameClient::SendInput() {
-    network::InputPacket packet{};
-    packet.header.type = network::PacketType::Input;
-    packet.playerId = m_playerId;
-
-    m_client.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)));
-}
-
 void GameClient::Render() {
     BeginDrawing();
     ClearBackground(DARKGRAY);
@@ -102,6 +94,35 @@ void GameClient::Render() {
 
 bool GameClient::GameRunning() { return m_running; }
 
-// network::InputPacket GameClient::CollectInput() {}
+network::InputPacket GameClient::CollectInput() {
+    network::InputPacket packet{};
+    packet.header.type = network::PacketType::Input;
+    packet.playerId = m_playerId;
+
+    float x = 0.0f;
+    float y = 0.0f;
+
+    if (IsKeyDown(KEY_W))
+        y -= 1.0f;
+    if (IsKeyDown(KEY_S))
+        y += 1.0f;
+    if (IsKeyDown(KEY_A))
+        x -= 1.0f;
+    if (IsKeyDown(KEY_D))
+        x += 1.0f;
+
+    packet.moveX = x;
+    packet.moveY = y;
+
+    uint8_t buttons = 0;
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        buttons |= 1 << 0; // shoot
+
+    packet.buttons = buttons;
+
+    packet.sequence = m_inputSequence++;
+
+    return packet;
+}
 
 void GameClient::SendInput(network::InputPacket &packet) {}
