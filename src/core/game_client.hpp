@@ -19,6 +19,7 @@ class GameClient {
     void Receive();
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
+    void HandleStateResponse(const char *buffer, size_t size);
 
     network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);

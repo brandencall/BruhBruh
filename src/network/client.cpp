@@ -42,7 +42,7 @@ void Client::Disconnect() {
 void Client::Send(const char *data, size_t size) { send(m_socket, data, static_cast<int>(size), 0); }
 
 int Client::Receive(char *buffer, size_t size) {
-    int bytes = recv(m_socket, buffer, sizeof(buffer), 0);
+    int bytes = recv(m_socket, buffer, size, 0);
     if (bytes <= 0)
         return 0;
 

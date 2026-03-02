@@ -40,6 +40,7 @@ struct InputPacket {
 struct StatePacket {
     PacketHeader header;
     uint32_t tick; // server tick number
+    uint16_t playerCount;
     PlayerState players[MAX_PLAYERS];
 };
 

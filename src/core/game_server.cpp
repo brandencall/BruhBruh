@@ -46,7 +46,13 @@ void GameServer::Receive() {
     HandlePacket(buffer, bytes, clientAddr);
 }
 
-void GameServer::BroadcastState() {}
+void GameServer::BroadcastState() {
+    for (const auto client : m_clients) {
+        if (client.active) {
+            SendFullSnapshot(client);
+        }
+    }
+}
 
 void GameServer::HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr) {
     network::PacketHeader *header = (network::PacketHeader *)buffer;
@@ -100,7 +106,9 @@ void GameServer::HandleJoin(const sockaddr_in &addr) {
 void GameServer::SendFullSnapshot(network::ClientConnection client) {
     network::StatePacket packet = {};
     BuildStatePacket(packet);
-    m_server.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)), client.address);
+
+    size_t sendSize = offsetof(network::StatePacket, players) + packet.playerCount * sizeof(PlayerState);
+    m_server.Send(reinterpret_cast<const char *>(&packet), sendSize, client.address);
 }
 
 void GameServer::HandleInput(char *buffer, size_t size, const sockaddr_in &clientAddr) {
@@ -127,9 +135,10 @@ void GameServer::BuildStatePacket(network::StatePacket &packet) {
     packet.header.type = network::PacketType::State;
     packet.tick = m_tick++;
 
-    const auto &players = m_simulation.GetPlayers();
+    const auto &players = m_simulation.GetActivePlayers();
+    packet.playerCount = std::min<uint16_t>(players.size(), MAX_PLAYERS);
 
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+    for (int i = 0; i < packet.playerCount; i++) {
         const PlayerState &p = players[i];
 
         packet.players[i].id = p.id;

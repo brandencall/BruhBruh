@@ -31,7 +31,19 @@ void GameSimulation::ApplyInput(uint32_t playerId, const PlayerInput &input) {
         m_players[playerId].currentInput = input;
     }
 }
+
 std::array<PlayerState, MAX_PLAYERS> GameSimulation::GetPlayers() { return m_players; }
+
+std::vector<PlayerState> GameSimulation::GetActivePlayers() {
+    // Filter out players who are not active
+    std::vector<PlayerState> active_players;
+    for (const auto &player : m_players) {
+        if (player.active) {
+            active_players.push_back(player);
+        }
+    }
+    return active_players;
+}
 
 void GameSimulation::CreatePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
