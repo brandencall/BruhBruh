@@ -1,6 +1,7 @@
 #include "game_simulation.hpp"
 #include "player_state.hpp"
 #include "raymath.h"
+#include <cstdint>
 #include <iostream>
 
 void GameSimulation::Update(float tickRate) {
@@ -45,7 +46,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId) {
 void GameSimulation::RemovePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         PlayerState &player = m_players[playerId];
-        player.id = -1;
+        player.id = UINT32_MAX;
         player.active = false;
     }
 }

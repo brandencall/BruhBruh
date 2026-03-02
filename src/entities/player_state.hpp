@@ -1,5 +1,6 @@
 #pragma once
 #include "raylib.h"
+#include <cstdint>
 #include <stdint.h>
 
 struct PlayerInput {
@@ -10,7 +11,7 @@ struct PlayerInput {
 };
 
 struct PlayerState {
-    uint32_t id = -1;
+    uint32_t id = UINT32_MAX;
     Vector2 position = {0, 0};
     Vector2 velocity = {0, 0};
     float speed = 300.0f;
