@@ -2,7 +2,6 @@
 #include "../network/packet.hpp"
 #include <cstddef>
 #include <iostream>
-#include <netinet/in.h>
 
 GameServer::GameServer() : m_server(network::Server()) {}
 

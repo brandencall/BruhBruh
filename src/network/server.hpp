@@ -1,6 +1,7 @@
 #pragma once
 
 #include "platform_sockets.hpp"
+#include <cstdint>
 
 namespace network {
 
