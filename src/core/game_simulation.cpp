@@ -19,10 +19,7 @@ void GameSimulation::Update(float tickRate) {
 
         player.velocity = direction * player.speed;
 
-        // now advance simulation
         player.position += player.velocity * tickRate;
-        std::cout << "Player " << player.id << " at position (" << player.position.x << ", " << player.position.y << ")"
-                  << std::endl;
     }
 }
 
@@ -35,7 +32,6 @@ void GameSimulation::ApplyInput(uint32_t playerId, const PlayerInput &input) {
 std::array<PlayerState, MAX_PLAYERS> GameSimulation::GetPlayers() { return m_players; }
 
 std::vector<PlayerState> GameSimulation::GetActivePlayers() {
-    // Filter out players who are not active
     std::vector<PlayerState> active_players;
     for (const auto &player : m_players) {
         if (player.active) {

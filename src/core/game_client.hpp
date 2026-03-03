@@ -1,6 +1,7 @@
 #pragma once
 #include "../network/client.hpp"
 #include "../network/packet.hpp"
+#include "client_world_state.hpp"
 #include <cstddef>
 
 class GameClient {
@@ -10,6 +11,7 @@ class GameClient {
     void Connect(const char *ip, int port);
     void SendJoin();
     void Update();
+    void Sync(float dt);
     bool GameRunning();
 
   private:
@@ -25,6 +27,7 @@ class GameClient {
     void SendInput(network::InputPacket &packet);
 
     void SetGameRunning(bool runningState);
+    void DrawDebugGrid();
 
   private:
     static constexpr float m_sendInterval = 1.0f / 30.0f;
@@ -34,4 +37,6 @@ class GameClient {
     bool m_running = true;
     uint32_t m_inputSequence = 0;
     network::Client m_client;
+    ClientWorldState m_worldState;
+    Camera2D m_camera;
 };
