@@ -2,6 +2,7 @@
 
 #include "../entities/render_player.hpp"
 #include "../entities/state/player_state.hpp"
+#include "state/bullet_state.hpp"
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -12,5 +13,6 @@ class ClientWorldState {
     uint32_t m_currentPlayerId;
     std::unordered_map<uint32_t, RenderPlayer> m_renderPlayers;
     std::unordered_map<uint32_t, state::PlayerState> m_serverState;
+    std::unordered_map<uint32_t, state::BulletState> m_serverBullets;
     std::vector<state::PlayerState> m_players;
 };

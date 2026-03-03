@@ -17,7 +17,7 @@ class GameServer {
     void UpdateSimulation(float tickRate);
     void Receive();
     void BroadcastState();
-    void BuildStatePacket(network::StatePacket &packet);
+    void BuildStatePacket();
     void SendFullSnapshot(network::ClientConnection client);
 
     void HandlePacket(char *buffer, size_t bytes, sockaddr_in &clientAddr);
@@ -35,4 +35,5 @@ class GameServer {
     std::array<network::ClientConnection, MAX_PLAYERS> m_clients;
     network::Server m_server;
     GameSimulation m_simulation;
+    network::StatePacket m_statePacket{};
 };

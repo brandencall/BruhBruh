@@ -104,11 +104,11 @@ void GameServer::HandleJoin(const sockaddr_in &addr) {
 }
 
 void GameServer::SendFullSnapshot(network::ClientConnection client) {
-    network::StatePacket packet = {};
-    BuildStatePacket(packet);
+    BuildStatePacket();
 
-    size_t sendSize = offsetof(network::StatePacket, players) + packet.playerCount * sizeof(state::PlayerState);
-    m_server.Send(reinterpret_cast<const char *>(&packet), sendSize, client.address);
+    // Ofset from the start of the StatePacket struct to base of the struct (bullets and bullet count)
+    size_t sendSize = offsetof(network::StatePacket, bullets) + m_statePacket.bulletCount * sizeof(state::BulletState);
+    m_server.Send(reinterpret_cast<const char *>(&m_statePacket), sendSize, client.address);
 }
 
 void GameServer::HandleInput(char *buffer, size_t size, const sockaddr_in &clientAddr) {
@@ -124,28 +124,38 @@ void GameServer::HandleInput(char *buffer, size_t size, const sockaddr_in &clien
     if (packet->playerId != client->playerId)
         return;
 
-    state::PlayerInput input{};
-    input.moveX = packet->moveX;
-    input.moveY = packet->moveY;
-    input.buttons = packet->buttons;
+    state::PlayerInput input = state::PlayerInput{
+        .moveX = packet->moveX,
+        .moveY = packet->moveY,
+        .aimX = packet->aimX,
+        .aimY = packet->aimY,
+        .buttons = packet->buttons,
+    };
+
     m_simulation.ApplyInput(client->playerId, input);
 }
 
-void GameServer::BuildStatePacket(network::StatePacket &packet) {
-    packet.header.type = network::PacketType::State;
-    packet.tick = m_tick++;
+void GameServer::BuildStatePacket() {
+    m_statePacket.header.type = network::PacketType::State;
+    m_statePacket.tick = m_tick++;
 
     const auto &players = m_simulation.GetActivePlayers();
-    packet.playerCount = std::min<uint16_t>(players.size(), MAX_PLAYERS);
+    m_statePacket.playerCount = std::min<uint16_t>(players.size(), MAX_PLAYERS);
 
-    for (int i = 0; i < packet.playerCount; i++) {
+    for (int i = 0; i < m_statePacket.playerCount; i++) {
         const state::PlayerState &p = players[i];
+        m_statePacket.players[i].id = p.id;
+        m_statePacket.players[i].position.x = p.position.x;
+        m_statePacket.players[i].position.y = p.position.y;
+        m_statePacket.players[i].health = p.health;
+        m_statePacket.players[i].active = p.active ? 1 : 0;
+    }
 
-        packet.players[i].id = p.id;
-        packet.players[i].position.x = p.position.x;
-        packet.players[i].position.y = p.position.y;
-        packet.players[i].health = p.health;
-        packet.players[i].active = p.active ? 1 : 0;
+    const auto &bullets = m_simulation.GetBullets();
+    m_statePacket.bulletCount = 0;
+    for (int i = 0; i < MAX_BULLETS; i++) {
+        if (bullets[i].active)
+            m_statePacket.bullets[m_statePacket.bulletCount++] = bullets[i];
     }
 }
 

@@ -1,8 +1,12 @@
 #pragma once
 #include "../network/client.hpp"
 #include "../network/packet.hpp"
+#include "bullet_system.hpp"
+#include "client_bullet_system.hpp"
 #include "client_world_state.hpp"
 #include <cstddef>
+#include <cstdint>
+#include <vector>
 
 class GameClient {
   public:
@@ -36,7 +40,11 @@ class GameClient {
     bool m_joined = false;
     bool m_running = true;
     uint32_t m_inputSequence = 0;
+    uint8_t m_lastButtons = 0;
     network::Client m_client;
     ClientWorldState m_worldState;
     Camera2D m_camera;
+    System::ClientBulletSystem m_bulletSystem;
+    // TODO: probably shouldn't do this
+    std::vector<char> m_receiveBuffer;
 };

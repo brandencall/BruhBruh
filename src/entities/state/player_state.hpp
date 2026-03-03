@@ -7,6 +7,8 @@ namespace state {
 struct PlayerInput {
     float moveX;
     float moveY;
+    float aimX;
+    float aimY;
     // bitmask (shoot, place_wall, etc.)
     uint8_t buttons;
 };
@@ -20,5 +22,7 @@ struct PlayerState {
     bool active = false;
 
     PlayerInput currentInput;
+    // bitmask (shoot, place_wall, etc.)
+    uint8_t lastButtons;
 };
 } // namespace state

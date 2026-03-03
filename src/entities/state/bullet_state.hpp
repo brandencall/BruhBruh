@@ -9,7 +9,11 @@ struct BulletState {
     uint32_t ownerId;
     Vector2 position;
     Vector2 velocity;
-    bool active;
     float lifetime; // despawn after N seconds
+    bool active;
+};
+
+struct ClientBulletState : public BulletState {
+    Vector2 serverPosition;
 };
 } // namespace state
