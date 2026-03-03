@@ -58,7 +58,7 @@ void GameClient::Sync(float dt) {
     // Sync players
     for (auto &[id, renderPlayer] : m_worldState.m_renderPlayers) {
         const auto &serverState = m_worldState.m_serverState[id];
-        renderPlayer.Sync(serverState);
+        renderPlayer.Sync(serverState, dt);
     }
     // Sync Camera
     auto it = m_worldState.m_renderPlayers.find(m_worldState.m_currentPlayerId);
