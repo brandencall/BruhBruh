@@ -25,6 +25,3 @@ target_link_libraries(BruhBruh
         network
         raylib
 )
-
-target_compile_options(BruhBruh PRIVATE -fsanitize=address -g)
-target_link_options(BruhBruh PRIVATE -fsanitize=address)
