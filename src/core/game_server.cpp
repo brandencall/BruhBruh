@@ -107,7 +107,7 @@ void GameServer::SendFullSnapshot(network::ClientConnection client) {
     network::StatePacket packet = {};
     BuildStatePacket(packet);
 
-    size_t sendSize = offsetof(network::StatePacket, players) + packet.playerCount * sizeof(PlayerState);
+    size_t sendSize = offsetof(network::StatePacket, players) + packet.playerCount * sizeof(state::PlayerState);
     m_server.Send(reinterpret_cast<const char *>(&packet), sendSize, client.address);
 }
 
@@ -124,7 +124,7 @@ void GameServer::HandleInput(char *buffer, size_t size, const sockaddr_in &clien
     if (packet->playerId != client->playerId)
         return;
 
-    PlayerInput input{};
+    state::PlayerInput input{};
     input.moveX = packet->moveX;
     input.moveY = packet->moveY;
     input.buttons = packet->buttons;
@@ -139,7 +139,7 @@ void GameServer::BuildStatePacket(network::StatePacket &packet) {
     packet.playerCount = std::min<uint16_t>(players.size(), MAX_PLAYERS);
 
     for (int i = 0; i < packet.playerCount; i++) {
-        const PlayerState &p = players[i];
+        const state::PlayerState &p = players[i];
 
         packet.players[i].id = p.id;
         packet.players[i].position.x = p.position.x;

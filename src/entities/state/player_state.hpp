@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <stdint.h>
 
+namespace state {
 struct PlayerInput {
     float moveX;
     float moveY;
@@ -20,3 +21,4 @@ struct PlayerState {
 
     PlayerInput currentInput;
 };
+} // namespace state

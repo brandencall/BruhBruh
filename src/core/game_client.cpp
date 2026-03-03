@@ -4,6 +4,7 @@
 #include "raymath.h"
 #include <iostream>
 
+// This class will need to be split out once there are multiple scenes and not just the single Game scene
 GameClient::GameClient() : m_client(network::Client()), m_worldState(ClientWorldState()), m_camera(Camera2D()) {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
@@ -110,7 +111,7 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
     }
     auto *response = (network::StatePacket *)buffer;
     size_t expectedSize = sizeof(network::PacketHeader) + sizeof(uint32_t) + sizeof(uint16_t) +
-                          response->playerCount * sizeof(PlayerState);
+                          response->playerCount * sizeof(state::PlayerState);
 
     if (size < expectedSize) {
         std::cout << "Invalid state packet size\n";

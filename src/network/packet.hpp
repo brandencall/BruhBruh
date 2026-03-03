@@ -1,6 +1,6 @@
 #pragma once
 #include "../config.hpp"
-#include "../entities/player_state.hpp"
+#include "../entities/state/player_state.hpp"
 #include <stdint.h>
 
 namespace network {
@@ -41,7 +41,7 @@ struct StatePacket {
     PacketHeader header;
     uint32_t tick; // server tick number
     uint16_t playerCount;
-    PlayerState players[MAX_PLAYERS];
+    state::PlayerState players[MAX_PLAYERS];
 };
 
 } // namespace network

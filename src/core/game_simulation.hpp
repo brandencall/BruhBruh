@@ -1,6 +1,6 @@
 #pragma once
 #include "../config.hpp"
-#include "../entities/player_state.hpp"
+#include "../entities/state/player_state.hpp"
 #include <array>
 #include <stdint.h>
 #include <vector>
@@ -8,12 +8,12 @@
 class GameSimulation {
   public:
     void Update(float tickRate);
-    void ApplyInput(uint32_t playerId, const PlayerInput &input);
-    std::array<PlayerState, MAX_PLAYERS> GetPlayers();
+    void ApplyInput(uint32_t playerId, const state::PlayerInput &input);
+    std::array<state::PlayerState, MAX_PLAYERS> GetPlayers();
     void CreatePlayer(uint32_t playerId);
     void RemovePlayer(uint32_t playerId);
-    std::vector<PlayerState> GetActivePlayers();
+    std::vector<state::PlayerState> GetActivePlayers();
 
   private:
-    std::array<PlayerState, MAX_PLAYERS> m_players;
+    std::array<state::PlayerState, MAX_PLAYERS> m_players;
 };

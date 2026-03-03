@@ -1,11 +1,11 @@
 #pragma once
-#include "player_state.hpp"
+#include "./state/player_state.hpp"
 #include <cstdint>
 
 class RenderPlayer {
   public:
     RenderPlayer(uint32_t id);
-    void Sync(const PlayerState &state, float dt);
+    void Sync(const state::PlayerState &state, float dt);
     void Draw();
     // Vector2 GetPosition() const override;
     Vector2 GetPosition() const;

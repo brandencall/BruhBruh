@@ -1,5 +1,4 @@
 #include "game_simulation.hpp"
-#include "player_state.hpp"
 #include "raymath.h"
 #include <cstdint>
 #include <iostream>
@@ -23,16 +22,16 @@ void GameSimulation::Update(float tickRate) {
     }
 }
 
-void GameSimulation::ApplyInput(uint32_t playerId, const PlayerInput &input) {
+void GameSimulation::ApplyInput(uint32_t playerId, const state::PlayerInput &input) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         m_players[playerId].currentInput = input;
     }
 }
 
-std::array<PlayerState, MAX_PLAYERS> GameSimulation::GetPlayers() { return m_players; }
+std::array<state::PlayerState, MAX_PLAYERS> GameSimulation::GetPlayers() { return m_players; }
 
-std::vector<PlayerState> GameSimulation::GetActivePlayers() {
-    std::vector<PlayerState> active_players;
+std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
+    std::vector<state::PlayerState> active_players;
     for (const auto &player : m_players) {
         if (player.active) {
             active_players.push_back(player);
@@ -43,7 +42,7 @@ std::vector<PlayerState> GameSimulation::GetActivePlayers() {
 
 void GameSimulation::CreatePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        PlayerState player = {
+        state::PlayerState player = {
             .id = playerId,
             .active = true,
         };
@@ -53,7 +52,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId) {
 
 void GameSimulation::RemovePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        PlayerState &player = m_players[playerId];
+        state::PlayerState &player = m_players[playerId];
         player.id = UINT32_MAX;
         player.active = false;
     }
