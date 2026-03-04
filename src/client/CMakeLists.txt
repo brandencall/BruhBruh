@@ -16,3 +16,8 @@ target_link_libraries(client
         client_systems
         raylib
 )
+
+target_link_libraries(client
+    PRIVATE
+       shared
+)

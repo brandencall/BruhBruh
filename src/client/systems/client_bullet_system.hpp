@@ -1,22 +1,16 @@
 #pragma once
 
 #include "../../shared/systems/bullet_system.hpp"
-#include "../state/client_bullet_state.hpp"
-#include <array>
 
 namespace System {
 
-class ClientBulletSystem : public BulletSystem {
+class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
-  public:
-    int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, float speed = 400.0f,
-              float lifetime = 3.0f) override;
-    void Update(float dt) override;
-    void Deactivate(int slot) override;
-    std::array<state::ClientBulletState, MAX_BULLETS> &GetBullets();
+  protected:
+    void OnSpawn(state::ClientBulletState &bullet, Vector2 position) override;
+    void OnUpdate(state::ClientBulletState &bullet, float dt) override;
 
   private:
-    std::array<state::ClientBulletState, MAX_BULLETS> m_bullets{};
-    std::array<uint16_t, MAX_BULLETS> m_generations{};
+    static constexpr float BULLET_INTERP_SPEED = 5.0f;
 };
 } // namespace System

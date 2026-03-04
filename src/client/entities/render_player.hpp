@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../shared/state/player_state.hpp"
+#include "raylib.h"
 #include <cstdint>
 
 class RenderPlayer {

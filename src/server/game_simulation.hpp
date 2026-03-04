@@ -1,7 +1,7 @@
 #pragma once
 #include "../config.hpp"
 #include "../shared/state/player_state.hpp"
-#include "bullet_system.hpp"
+#include "../shared/systems/bullet_system.hpp"
 #include <array>
 #include <stdint.h>
 #include <vector>
@@ -18,5 +18,5 @@ class GameSimulation {
 
   private:
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
-    System::BulletSystem m_bulletSystem;
+    System::BulletSystem<state::BulletState> m_bulletSystem;
 };

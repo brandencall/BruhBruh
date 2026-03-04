@@ -1,6 +1,4 @@
 
-add_subdirectory(systems)
-
 add_library(shared INTERFACE)
 
 target_include_directories(shared
@@ -10,7 +8,6 @@ target_include_directories(shared
 
 target_link_libraries(shared
     INTERFACE
-        systems
         raylib
 )
 
