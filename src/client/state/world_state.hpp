@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../entities/render_player.hpp"
-#include "../entities/state/player_state.hpp"
-#include "state/bullet_state.hpp"
+#include "../shared/state/bullet_state.hpp"
+#include "../shared/state/player_state.hpp"
+#include "entities/render_player.hpp"
 #include <cstdint>
 #include <unordered_map>
 #include <vector>

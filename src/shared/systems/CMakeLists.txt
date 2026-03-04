@@ -1,8 +1,5 @@
 add_library(systems
     bullet_system.cpp
-    collision_system.cpp
-    damage_system.cpp
-    client_bullet_system.cpp
 )
 
 target_include_directories(systems
@@ -12,6 +9,5 @@ target_include_directories(systems
 
 target_link_libraries(systems
     PUBLIC
-        entities
         raylib
 )

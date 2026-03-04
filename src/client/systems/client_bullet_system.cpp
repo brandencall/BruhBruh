@@ -1,4 +1,5 @@
 #include "client_bullet_system.hpp"
+#include "raymath.h"
 
 namespace System {
 std::array<state::ClientBulletState, MAX_BULLETS> &ClientBulletSystem::GetBullets() { return m_bullets; }

@@ -1,9 +1,7 @@
 #include "game_client.hpp"
 #include "../network/client.hpp"
-#include "client_bullet_system.hpp"
 #include "raylib.h"
 #include "raymath.h"
-#include "state/bullet_state.hpp"
 #include <iostream>
 
 // This class will need to be split out once there are multiple scenes and not just the single Game scene

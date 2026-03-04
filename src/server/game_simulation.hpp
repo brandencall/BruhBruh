@@ -1,6 +1,6 @@
 #pragma once
 #include "../config.hpp"
-#include "../entities/state/player_state.hpp"
+#include "../shared/state/player_state.hpp"
 #include "bullet_system.hpp"
 #include <array>
 #include <stdint.h>

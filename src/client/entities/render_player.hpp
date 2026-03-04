@@ -1,5 +1,6 @@
 #pragma once
-#include "./state/player_state.hpp"
+
+#include "../../shared/state/player_state.hpp"
 #include <cstdint>
 
 class RenderPlayer {

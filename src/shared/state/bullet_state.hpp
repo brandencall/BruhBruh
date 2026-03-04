@@ -13,7 +13,4 @@ struct BulletState {
     bool active;
 };
 
-struct ClientBulletState : public BulletState {
-    Vector2 serverPosition;
-};
 } // namespace state

@@ -1,22 +1,13 @@
 #pragma once
-#include "../config.hpp"
-#include "../entities/state/bullet_state.hpp"
-#include "bullet_entity.hpp"
-#include "entity.hpp"
+#include "../../config.hpp"
+#include "../state/bullet_state.hpp"
 #include <array>
-#include <memory>
 #include <raylib.h>
-#include <vector>
 
 namespace System {
-class DamageSystem;
 
 class BulletSystem {
   public:
-    std::unique_ptr<BulletEntity> CreateBullet(Entity &entity, const Camera2D &camera);
-    void Update(float dt, std::vector<std::unique_ptr<Entity>> &entities);
-    void Draw(std::vector<std::unique_ptr<Entity>> &entities);
-
     virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, float speed = 400.0f,
                       float lifetime = 3.0f);
     virtual void Update(float dt);

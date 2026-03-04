@@ -5,10 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Add subdirectories
-add_subdirectory(src/core)
-add_subdirectory(src/entities)
-add_subdirectory(src/components)
-add_subdirectory(src/systems)
+add_subdirectory(src/client)
+add_subdirectory(src/server)
+add_subdirectory(src/shared)
 add_subdirectory(src/network)
 add_subdirectory(external/raylib)
 
@@ -18,10 +17,9 @@ add_executable(BruhBruh src/main.cpp)
 # Link internal modules
 target_link_libraries(BruhBruh
     PRIVATE
-        core
-        entities
-        components
-        systems
+        client
+        server
+        shared
         network
         raylib
 )

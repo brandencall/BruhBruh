@@ -1,6 +1,4 @@
 add_library(entities
-    player.cpp
-    bullet_entity.cpp
     render_player.cpp
 )
 
@@ -11,6 +9,5 @@ target_include_directories(entities
 
 target_link_libraries(entities
     PUBLIC
-        components
         raylib
 )

@@ -1,5 +1,4 @@
-#include "game.hpp"
-#include "game_client.hpp"
+#include "client/game_client.hpp"
 #include "game_server.hpp"
 #include <iostream>
 
@@ -39,8 +38,4 @@ int main(int argc, char **argv) {
         RunClient();
     else
         RunClient(); // default
-    // Game game;
-    // while (game.GameRunning()) {
-    //     game.Update();
-    // }
 }

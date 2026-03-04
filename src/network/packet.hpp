@@ -1,7 +1,7 @@
 #pragma once
 #include "../config.hpp"
-#include "../entities/state/player_state.hpp"
-#include "state/bullet_state.hpp"
+#include "../shared/state/bullet_state.hpp"
+#include "../shared/state/player_state.hpp"
 #include <stdint.h>
 
 namespace network {

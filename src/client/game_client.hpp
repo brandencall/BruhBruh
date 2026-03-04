@@ -1,9 +1,8 @@
 #pragma once
 #include "../network/client.hpp"
 #include "../network/packet.hpp"
-#include "bullet_system.hpp"
+#include "../state/world_state.hpp"
 #include "client_bullet_system.hpp"
-#include "client_world_state.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <vector>
