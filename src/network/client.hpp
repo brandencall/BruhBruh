@@ -1,12 +1,13 @@
 #pragma once
 
+#include "../shared/network/ITransport.hpp"
 #include "platform_sockets.hpp"
 #include <cstdint>
 
 namespace network {
 
 struct ClientConnection {
-    sockaddr_in address;
+    network::PeerId peerId;
     uint32_t playerId;
     bool active = false;
 };

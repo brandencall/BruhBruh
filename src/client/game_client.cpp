@@ -1,12 +1,12 @@
 #include "game_client.hpp"
-#include "../network/client.hpp"
+#include "client_transport.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <iostream>
 
 // This class will need to be split out once there are multiple scenes and not just the single Game scene
 GameClient::GameClient()
-    : m_client(network::Client()), m_worldState(ClientWorldState()), m_camera(Camera2D()),
+    : m_transport(network::ClientTransport()), m_worldState(ClientWorldState()), m_camera(Camera2D()),
       m_bulletSystem(System::ClientBulletSystem()) {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
@@ -14,8 +14,6 @@ GameClient::GameClient()
     m_camera.offset = {640, 360};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
-
-    m_receiveBuffer.resize(sizeof(network::StatePacket));
 }
 
 GameClient::~GameClient() {
@@ -23,20 +21,20 @@ GameClient::~GameClient() {
     CloseWindow();
 }
 
-void GameClient::Connect(const char *ip, int port) { bool connected = m_client.Connect(ip, port); }
+void GameClient::Connect(const char *ip, int port) { m_transport.connect(ip, port); }
 
 void GameClient::Disconnect() {
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
     packet.playerId = m_playerId;
 
-    m_client.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)));
+    m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 void GameClient::SendJoin() {
     network::JoinPacket packet{};
     packet.header.type = network::PacketType::Join;
-    m_client.Send(reinterpret_cast<const char *>(&packet), static_cast<int>(sizeof(packet)));
+    m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 void GameClient::Update() {
@@ -49,10 +47,9 @@ void GameClient::Update() {
     Sync(dt);
 
     m_sendAccumulator += dt;
-
     if (m_sendAccumulator >= m_sendInterval) {
         auto input = CollectInput();
-        m_client.Send(reinterpret_cast<const char *>(&input), sizeof(input));
+        m_transport.send(network::PEER_SERVER, &input, sizeof(input)); // ← transport
         m_sendAccumulator -= m_sendInterval;
     }
 
@@ -98,10 +95,10 @@ void GameClient::Sync(float dt) {
 void GameClient::SetGameRunning(bool runningState) { m_running = runningState; }
 
 void GameClient::Receive() {
-    int bytes = m_client.Receive(m_receiveBuffer.data(), m_receiveBuffer.size());
-    if (bytes <= 0)
-        return;
-    HandlePacket(m_receiveBuffer.data(), bytes);
+    network::InboundPacket pkt;
+    while (m_transport.recv(pkt)) {
+        HandlePacket(pkt.data, pkt.size);
+    }
 }
 
 void GameClient::HandlePacket(char *buffer, size_t size) {
@@ -248,4 +245,6 @@ network::InputPacket GameClient::CollectInput() {
     return packet;
 }
 
-void GameClient::SendInput(network::InputPacket &packet) {}
+void GameClient::SendInput(network::InputPacket &packet) {
+    m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
+}

@@ -1,5 +1,5 @@
 #pragma once
-#include "../network/client.hpp"
+#include "../client/client_transport.hpp" // ← replaces client.hpp
 #include "../network/packet.hpp"
 #include "../state/world_state.hpp"
 #include "client_bullet_system.hpp"
@@ -40,10 +40,9 @@ class GameClient {
     bool m_running = true;
     uint32_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
-    network::Client m_client;
+    network::ClientTransport m_transport; // ← replaces m_client
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
-    // TODO: probably shouldn't do this
-    std::vector<char> m_receiveBuffer;
 };
+// NOTE: m_receiveBuffer removed — ClientTransport owns its buffer internally
