@@ -11,7 +11,6 @@ void GameSimulation::Update(float tickRate) {
         player.velocity = Vector2Scale(dir, player.speed);
         player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
 
-        // Detect shoot rising edge
         bool shootNow = player.currentInput.buttons & (1 << 0);
         bool shootPrev = player.lastButtons & (1 << 0);
         if (shootNow && !shootPrev) {
@@ -21,7 +20,7 @@ void GameSimulation::Update(float tickRate) {
         player.lastButtons = player.currentInput.buttons;
     }
 
-    m_bulletSystem.Update(tickRate);
+    m_bulletSystem.Update(tickRate, m_players);
 }
 
 const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() { return m_bulletSystem.GetBullets(); }
@@ -32,7 +31,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, const state::PlayerInput &inp
     }
 }
 
-std::array<state::PlayerState, MAX_PLAYERS> GameSimulation::GetPlayers() { return m_players; }
+const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() { return m_players; }
 
 std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
     std::vector<state::PlayerState> active_players;
@@ -46,8 +45,10 @@ std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
 
 void GameSimulation::CreatePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
+        component::Hurtbox hurtbox = {.radius = 16.0f};
         state::PlayerState player = {
             .id = playerId,
+            .hurtbox = hurtbox,
             .active = true,
         };
         m_players[playerId] = player;

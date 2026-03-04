@@ -1,5 +1,6 @@
 #include "game_client.hpp"
 #include "client_transport.hpp"
+#include "components/shapes.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <iostream>
@@ -69,25 +70,27 @@ void GameClient::Sync(float dt) {
         m_camera.target = Vector2Lerp(m_camera.target, player.GetPosition(), 5.0f * dt);
     }
 
-    m_bulletSystem.Update(dt);
-
-    // Overwrite client bullet pool with authoritative server state
+    m_bulletSystem.Update(dt, m_worldState.m_players);
     const auto &serverBullets = m_worldState.m_serverBullets;
     auto &localBullets = m_bulletSystem.GetBullets();
 
     for (int i = 0; i < MAX_BULLETS; i++) {
         auto it = serverBullets.find(i);
-        if (it != serverBullets.end() && it->second.active) {
-            const state::BulletState &serverBullet = it->second;
-            state::ClientBulletState &local = localBullets[i];
-            if (!local.active) {
-                m_bulletSystem.Spawn(serverBullet.ownerId, serverBullet.position, serverBullet.velocity, 1.0f,
-                                     serverBullet.lifetime);
-            } else {
-                // Reconcile — nudge local toward server
-                local.serverPosition = serverBullet.position;
-                local.lifetime = serverBullet.lifetime;
-            }
+        state::ClientBulletState &local = localBullets[i];
+
+        if (it == serverBullets.end() || !it->second.active) {
+            if (local.active)
+                local.active = false;
+
+            continue;
+        }
+        const state::BulletState &serverBullet = it->second;
+        if (!local.active) {
+            m_bulletSystem.Spawn(serverBullet.ownerId, Shapes::CircleToVector(serverBullet.hitbox.circle),
+                                 serverBullet.velocity, 1.0f, serverBullet.lifetime);
+        } else {
+            local.serverPosition = Shapes::CircleToVector(serverBullet.hitbox.circle);
+            local.lifetime = serverBullet.lifetime;
         }
     }
 }
@@ -163,12 +166,17 @@ void GameClient::Render() {
 
     for (auto &[id, renderPlayer] : m_worldState.m_renderPlayers) {
         renderPlayer.Draw();
+        Vector2 pos = renderPlayer.GetPosition(); // use lerped position, not server state
+        const auto &state = m_worldState.m_serverState[id];
+        Vector2 hurtboxCenter = {pos.x + state.hurtbox.offsetX, pos.y + state.hurtbox.offsetY};
+        DrawCircleV(hurtboxCenter, state.hurtbox.radius, {255, 0, 0, 80});
+        DrawCircleLinesV(hurtboxCenter, state.hurtbox.radius, RED);
     }
 
     for (const auto &bullet : m_bulletSystem.GetBullets()) {
         if (!bullet.active)
             continue;
-        DrawCircleV(bullet.position, 4.0f, YELLOW);
+        DrawCircleV(Shapes::CircleToVector(bullet.hitbox.circle), 4.0f, YELLOW);
     }
 
     EndMode2D();

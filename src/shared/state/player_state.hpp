@@ -1,4 +1,5 @@
 #pragma once
+#include "../components/hurtbox.hpp"
 #include "raylib.h"
 #include <cstdint>
 #include <stdint.h>
@@ -19,6 +20,7 @@ struct PlayerState {
     Vector2 velocity = {0, 0};
     float speed = 300.0f;
     float health = 100;
+    component::Hurtbox hurtbox;
     bool active = false;
 
     PlayerInput currentInput;

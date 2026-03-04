@@ -1,4 +1,5 @@
 #include "client_bullet_system.hpp"
+#include "raylib.h"
 #include "raymath.h"
 
 namespace System {
@@ -8,7 +9,10 @@ void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawn
 }
 
 void ClientBulletSystem::OnUpdate(state::ClientBulletState &bullet, float dt) {
-    bullet.position = Vector2Lerp(bullet.position, bullet.serverPosition, BULLET_INTERP_SPEED * dt);
+    Vector2 position =
+        Vector2Lerp(Shapes::CircleToVector(bullet.hitbox.circle), bullet.serverPosition, BULLET_INTERP_SPEED * dt);
+    bullet.hitbox.circle.x = position.x;
+    bullet.hitbox.circle.y = position.y;
 }
 
 } // namespace System

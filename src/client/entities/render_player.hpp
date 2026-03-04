@@ -9,14 +9,12 @@ class RenderPlayer {
     RenderPlayer(uint32_t id);
     void Sync(const state::PlayerState &state, float dt);
     void Draw();
-    // Vector2 GetPosition() const override;
     Vector2 GetPosition() const;
 
   private:
     uint32_t m_id;
+    float m_radius;
     bool m_isDead = false;
-    float m_width = 32.0f;
-    float m_height = 32.0f;
     Vector2 m_position;
     Vector2 m_targetPosition;
     bool m_active;

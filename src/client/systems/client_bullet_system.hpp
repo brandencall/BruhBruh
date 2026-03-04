@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../shared/systems/bullet_system.hpp"
+#include "../state/client_bullet_state.hpp"
 
 namespace System {
 

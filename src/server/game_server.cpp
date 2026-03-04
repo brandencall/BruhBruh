@@ -121,17 +121,20 @@ void GameServer::HandleInput(char *buffer, size_t size, network::PeerId from) {
 void GameServer::BuildStatePacket() {
     m_statePacket.header.type = network::PacketType::State;
     m_statePacket.tick = m_tick++;
+    m_statePacket.playerCount = 0;
+    auto players = m_simulation.GetPlayers();
 
-    const auto &players = m_simulation.GetActivePlayers();
-    m_statePacket.playerCount = std::min<uint16_t>(players.size(), MAX_PLAYERS);
-
-    for (int i = 0; i < m_statePacket.playerCount; i++) {
-        const state::PlayerState &p = players[i];
-        m_statePacket.players[i].id = p.id;
-        m_statePacket.players[i].position.x = p.position.x;
-        m_statePacket.players[i].position.y = p.position.y;
-        m_statePacket.players[i].health = p.health;
-        m_statePacket.players[i].active = p.active ? 1 : 0;
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
+        if (players[i].active) {
+            m_statePacket.playerCount++;
+            const state::PlayerState &p = players[i];
+            m_statePacket.players[i].id = p.id;
+            m_statePacket.players[i].position.x = p.position.x;
+            m_statePacket.players[i].position.y = p.position.y;
+            m_statePacket.players[i].health = p.health;
+            m_statePacket.players[i].hurtbox = p.hurtbox;
+            m_statePacket.players[i].active = p.active ? 1 : 0;
+        }
     }
 
     const auto &bullets = m_simulation.GetBullets();

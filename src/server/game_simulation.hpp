@@ -10,7 +10,7 @@ class GameSimulation {
   public:
     void Update(float tickRate);
     void ApplyInput(uint32_t playerId, const state::PlayerInput &input);
-    std::array<state::PlayerState, MAX_PLAYERS> GetPlayers();
+    const std::array<state::PlayerState, MAX_PLAYERS> &GetPlayers();
     const std::array<state::BulletState, MAX_BULLETS> &GetBullets();
     void CreatePlayer(uint32_t playerId);
     void RemovePlayer(uint32_t playerId);
