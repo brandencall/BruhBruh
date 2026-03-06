@@ -6,7 +6,7 @@
 
 namespace network {
 
-enum class PacketType : uint8_t { Join, Disconnect, JoinResponse, Input, State };
+enum class PacketType : uint8_t { Join, Disconnect, JoinResponse, Input, State, BulletSpawn, BulletHit, BulletExpired };
 
 struct PacketHeader {
     PacketType type;
@@ -45,8 +45,29 @@ struct StatePacket {
     uint32_t tick; // server tick number
     uint16_t playerCount;
     state::PlayerState players[MAX_PLAYERS];
-    uint16_t bulletCount;
-    state::BulletState bullets[MAX_BULLETS];
+    // uint16_t bulletCount;
+    // state::BulletState bullets[MAX_BULLETS];
+};
+
+struct BulletSpawnPacket {
+    PacketHeader header;
+    uint32_t bulletId;
+    uint32_t ownerId;
+    Vector2 position;
+    Vector2 velocity;
+    float lifetime;
+};
+
+struct BulletHitPacket {
+    PacketHeader header;
+    uint32_t bulletId;
+    uint32_t victimId;
+    Vector2 hitPosition;
+};
+
+struct BulletExpirePacket {
+    PacketHeader header;
+    uint32_t bulletId;
 };
 
 } // namespace network

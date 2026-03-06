@@ -8,3 +8,8 @@ target_include_directories(network
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(network
+    PUBLIC
+        raylib
+)
+

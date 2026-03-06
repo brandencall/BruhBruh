@@ -25,6 +25,8 @@ void GameSimulation::Update(float tickRate) {
 
 const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() { return m_bulletSystem.GetBullets(); }
 
+System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { return m_bulletSystem; }
+
 void GameSimulation::ApplyInput(uint32_t playerId, const state::PlayerInput &input) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         m_players[playerId].currentInput = input;

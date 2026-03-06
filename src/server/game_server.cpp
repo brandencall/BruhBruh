@@ -1,4 +1,5 @@
 #include "game_server.hpp"
+#include "events.hpp"
 #include "game_simulation.hpp"
 #include <chrono>
 #include <cstddef>
@@ -33,7 +34,47 @@ void GameServer::RunServer() {
     }
 }
 
-void GameServer::UpdateSimulation(float tickRate) { m_simulation.Update(tickRate); }
+void GameServer::UpdateSimulation(float tickRate) {
+    m_simulation.Update(tickRate);
+
+    for (const auto &e : m_simulation.GetBulletSystem().m_spawnEvents)
+        m_eventBus.publish(e);
+    for (const auto &e : m_simulation.GetBulletSystem().m_hitEvents)
+        m_eventBus.publish(e);
+    for (const auto &e : m_simulation.GetBulletSystem().m_expireEvents)
+        m_eventBus.publish(e);
+
+    m_simulation.GetBulletSystem().clearEvents();
+
+    m_eventBus.drainSpawn([&](const event::BulletSpawnEvent &e) {
+        network::BulletSpawnPacket pkt{};
+        pkt.header.type = network::PacketType::BulletSpawn;
+        pkt.bulletId = e.bulletId;
+        pkt.ownerId = e.ownerId;
+        pkt.position = e.position;
+        pkt.velocity = e.velocity;
+        pkt.lifetime = e.lifetime;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+
+    m_eventBus.drainHit([&](const event::BulletHitEvent &e) {
+        network::BulletHitPacket pkt{};
+        pkt.header.type = network::PacketType::BulletHit;
+        pkt.bulletId = e.bulletId;
+        pkt.victimId = e.victimId;
+        pkt.hitPosition = e.hitPosition;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+
+    m_eventBus.drainExpire([&](const event::BulletExpireEvent &e) {
+        network::BulletExpirePacket pkt{};
+        pkt.header.type = network::PacketType::BulletExpired;
+        pkt.bulletId = e.bulletId;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+
+    m_eventBus.clear();
+}
 
 void GameServer::Receive() {
     network::InboundPacket pkt;
@@ -47,6 +88,12 @@ void GameServer::BroadcastState() {
         if (client.active) {
             SendFullSnapshot(client.peerId); // ← peerId not address
         }
+    }
+}
+void GameServer::BroadcastAll(const void *data, size_t size) {
+    for (const auto &client : m_clients) {
+        if (client.active)
+            m_transport.send(client.peerId, data, size);
     }
 }
 
@@ -94,7 +141,7 @@ void GameServer::HandleJoin(network::PeerId from) {
 
 void GameServer::SendFullSnapshot(network::PeerId peerId) {
     BuildStatePacket();
-    size_t sendSize = offsetof(network::StatePacket, bullets) + m_statePacket.bulletCount * sizeof(state::BulletState);
+    size_t sendSize = offsetof(network::StatePacket, players) + m_statePacket.playerCount * sizeof(state::PlayerState);
     m_transport.send(peerId, &m_statePacket, sendSize);
 }
 
@@ -135,13 +182,6 @@ void GameServer::BuildStatePacket() {
             m_statePacket.players[i].hurtbox = p.hurtbox;
             m_statePacket.players[i].active = p.active ? 1 : 0;
         }
-    }
-
-    const auto &bullets = m_simulation.GetBullets();
-    m_statePacket.bulletCount = 0;
-    for (int i = 0; i < MAX_BULLETS; i++) {
-        if (bullets[i].active)
-            m_statePacket.bullets[m_statePacket.bulletCount++] = bullets[i];
     }
 }
 

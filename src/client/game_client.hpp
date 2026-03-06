@@ -5,6 +5,11 @@
 #include "client_bullet_system.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <queue>
+
+struct PredictedBullet {
+    int localSlot;
+};
 
 class GameClient {
   public:
@@ -24,6 +29,9 @@ class GameClient {
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
     void HandleStateResponse(const char *buffer, size_t size);
+    void HandleBulletSpawn(const char *buffer);
+    void HandleBulletHit(const char *buffer);
+    void HandleBulletExpired(const char *buffer);
 
     network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);
@@ -43,4 +51,5 @@ class GameClient {
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
+    std::queue<PredictedBullet> m_predictedBullets;
 };

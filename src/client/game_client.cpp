@@ -46,6 +46,7 @@ void GameClient::Update() {
 
     Receive();
     Sync(dt);
+    m_bulletSystem.Update(dt, m_worldState.m_players);
 
     m_sendAccumulator += dt;
     if (m_sendAccumulator >= m_sendInterval) {
@@ -66,32 +67,7 @@ void GameClient::Sync(float dt) {
     // Sync Camera
     auto it = m_worldState.m_renderPlayers.find(m_worldState.m_currentPlayerId);
     if (it != m_worldState.m_renderPlayers.end()) {
-        auto &player = it->second;
-        m_camera.target = Vector2Lerp(m_camera.target, player.GetPosition(), 5.0f * dt);
-    }
-
-    m_bulletSystem.Update(dt, m_worldState.m_players);
-    const auto &serverBullets = m_worldState.m_serverBullets;
-    auto &localBullets = m_bulletSystem.GetBullets();
-
-    for (int i = 0; i < MAX_BULLETS; i++) {
-        auto it = serverBullets.find(i);
-        state::ClientBulletState &local = localBullets[i];
-
-        if (it == serverBullets.end() || !it->second.active) {
-            if (local.active)
-                local.active = false;
-
-            continue;
-        }
-        const state::BulletState &serverBullet = it->second;
-        if (!local.active) {
-            m_bulletSystem.Spawn(serverBullet.ownerId, Shapes::CircleToVector(serverBullet.hitbox.circle),
-                                 serverBullet.velocity, 1.0f, serverBullet.lifetime);
-        } else {
-            local.serverPosition = Shapes::CircleToVector(serverBullet.hitbox.circle);
-            local.lifetime = serverBullet.lifetime;
-        }
+        m_camera.target = Vector2Lerp(m_camera.target, it->second.GetPosition(), 5.0f * dt);
     }
 }
 
@@ -114,6 +90,15 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
     case network::PacketType::State:
         HandleStateResponse(buffer, size);
         break;
+    case network::PacketType::BulletSpawn:
+        HandleBulletSpawn(buffer);
+        break;
+    case network::PacketType::BulletHit:
+        HandleBulletHit(buffer);
+        break;
+    case network::PacketType::BulletExpired:
+        HandleBulletExpired(buffer);
+        break;
     default:
         break;
     }
@@ -133,28 +118,40 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
         return;
     }
     auto *response = (network::StatePacket *)buffer;
-
     for (uint16_t i = 0; i < response->playerCount; ++i) {
         const auto &player = response->players[i];
         m_worldState.m_serverState[player.id] = player;
-
         if (!m_worldState.m_renderPlayers.contains(player.id)) {
             m_worldState.m_renderPlayers.emplace(player.id, RenderPlayer(player.id));
         }
     }
+}
 
-    for (auto &[slot, bullet] : m_worldState.m_serverBullets)
-        bullet.active = false;
+void GameClient::HandleBulletSpawn(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
 
-    // Update from packet — active ones get set back to true
-    for (uint16_t i = 0; i < response->bulletCount; i++) {
-        const auto &b = response->bullets[i];
-        int slot = b.id & 0xFFFF;
-        m_worldState.m_serverBullets[slot] = b; // active=true comes from server
+    if (pkt->ownerId == m_playerId) {
+        if (!m_predictedBullets.empty()) {
+            int slot = m_predictedBullets.front().localSlot;
+            m_predictedBullets.pop();
+            m_bulletSystem.AssignId(slot, pkt->bulletId);
+        }
+        return;
     }
 
-    // Remove slots the server no longer knows about
-    std::erase_if(m_worldState.m_serverBullets, [](const auto &pair) { return !pair.second.active; });
+    // Use SpawnWithId so Deactivate can find it later by server ID
+    m_bulletSystem.SpawnWithId(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, pkt->lifetime);
+}
+
+void GameClient::HandleBulletHit(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::BulletHitPacket *>(buffer);
+    m_bulletSystem.Deactivate(pkt->bulletId);
+    // TODO: spawn hit effect at pkt->hitPosition
+}
+
+void GameClient::HandleBulletExpired(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::BulletExpirePacket *>(buffer);
+    m_bulletSystem.Deactivate(pkt->bulletId);
 }
 
 void GameClient::Render() {
@@ -244,8 +241,10 @@ network::InputPacket GameClient::CollectInput() {
         // Client-side prediction: spawn bullet immediately on click
         bool shootNow = buttons & (1 << 0);
         bool shootPrev = m_lastButtons & (1 << 0);
-        if (shootNow && !shootPrev)
-            m_bulletSystem.Spawn(m_playerId, playerPos, aimDir);
+        if (shootNow && !shootPrev) {
+            int slot = m_bulletSystem.Spawn(m_playerId, playerPos, aimDir);
+            m_predictedBullets.push({slot});
+        }
     }
 
     m_lastButtons = buttons;
