@@ -130,16 +130,6 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
 void GameClient::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
 
-    if (pkt->ownerId == m_playerId) {
-        if (!m_predictedBullets.empty()) {
-            int slot = m_predictedBullets.front().localSlot;
-            m_predictedBullets.pop();
-            m_bulletSystem.AssignId(slot, pkt->bulletId);
-        }
-        return;
-    }
-
-    // Use SpawnWithId so Deactivate can find it later by server ID
     m_bulletSystem.SpawnWithId(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, pkt->lifetime);
 }
 
@@ -241,10 +231,6 @@ network::InputPacket GameClient::CollectInput() {
         // Client-side prediction: spawn bullet immediately on click
         bool shootNow = buttons & (1 << 0);
         bool shootPrev = m_lastButtons & (1 << 0);
-        if (shootNow && !shootPrev) {
-            int slot = m_bulletSystem.Spawn(m_playerId, playerPos, aimDir);
-            m_predictedBullets.push({slot});
-        }
     }
 
     m_lastButtons = buttons;

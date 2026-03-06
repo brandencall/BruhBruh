@@ -51,5 +51,4 @@ class GameClient {
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
-    std::queue<PredictedBullet> m_predictedBullets;
 };

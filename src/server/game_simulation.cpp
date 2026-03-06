@@ -10,14 +10,6 @@ void GameSimulation::Update(float tickRate) {
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
         player.velocity = Vector2Scale(dir, player.speed);
         player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
-
-        bool shootNow = player.currentInput.buttons & (1 << 0);
-        bool shootPrev = player.lastButtons & (1 << 0);
-        if (shootNow && !shootPrev) {
-            Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
-            m_bulletSystem.Spawn(player.id, player.position, aimDir);
-        }
-        player.lastButtons = player.currentInput.buttons;
     }
 
     m_bulletSystem.Update(tickRate, m_players);
@@ -28,9 +20,19 @@ const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() 
 System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { return m_bulletSystem; }
 
 void GameSimulation::ApplyInput(uint32_t playerId, const state::PlayerInput &input) {
-    if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        m_players[playerId].currentInput = input;
+    if (playerId < 0 || playerId > MAX_PLAYERS)
+        return;
+
+    state::PlayerState &player = m_players[playerId];
+    bool shootNow = input.buttons & (1 << 0);
+    bool shootPrev = player.lastButtons & (1 << 0);
+    if (shootNow && !shootPrev) {
+        Vector2 aimDir = {input.aimX, input.aimY};
+        m_bulletSystem.Spawn(player.id, player.position, aimDir);
     }
+
+    player.currentInput = input;
+    player.lastButtons = input.buttons;
 }
 
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() { return m_players; }
