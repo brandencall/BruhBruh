@@ -14,6 +14,7 @@ void GameServer::RunServer() {
     float accumulator = 0.0f;
 
     auto previousTime = std::chrono::steady_clock::now();
+    m_simulation.Initialize();
 
     while (m_running) {
         auto now = std::chrono::steady_clock::now();
@@ -22,7 +23,6 @@ void GameServer::RunServer() {
 
         accumulator += dt;
 
-        // Always receive packets as fast as possible
         Receive();
 
         while (accumulator >= tickRate) {

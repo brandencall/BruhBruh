@@ -3,9 +3,9 @@
 #include "../network/packet.hpp"
 #include "../state/world_state.hpp"
 #include "client_bullet_system.hpp"
+#include "map/map_types.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <queue>
 
 struct PredictedBullet {
     int localSlot;
@@ -13,17 +13,21 @@ struct PredictedBullet {
 
 class GameClient {
   public:
-    GameClient();
+    GameClient() = default;
     ~GameClient();
+    void Initialize();
+    void Start(const char *ip, int port);
+
+  private:
+    void Disconnect();
     void Connect(const char *ip, int port);
     void SendJoin();
     void Update();
     void Sync(float dt);
-    bool GameRunning();
-
-  private:
-    void Disconnect();
     void Render();
+
+    // TODO: Make a renderer instead of having the game client handle this
+    void DrawMap(const MapData &map);
 
     void Receive();
     void HandlePacket(char *buffer, size_t size);

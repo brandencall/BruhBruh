@@ -11,12 +11,18 @@ void RunServer() {
 
 void RunClient() {
     GameClient gameClient;
-    gameClient.Connect("127.0.0.1", 54000);
-    gameClient.SendJoin();
+    // initialize
+    // start(ip, port);
+    // start will connect, send join, and run the game loop
+    gameClient.Initialize();
+    gameClient.Start("127.0.0.1", 54000);
 
-    while (gameClient.GameRunning()) {
-        gameClient.Update();
-    }
+    // gameClient.Connect("127.0.0.1", 54000);
+    // gameClient.SendJoin();
+
+    // while (gameClient.GameRunning()) {
+    //     gameClient.Update();
+    // }
 }
 
 int main(int argc, char **argv) {

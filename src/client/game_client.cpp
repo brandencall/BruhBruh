@@ -1,25 +1,44 @@
 #include "game_client.hpp"
+#include "../shared/map/map_loader.hpp"
 #include "client_transport.hpp"
-#include "components/shapes.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <iostream>
 
 // This class will need to be split out once there are multiple scenes and not just the single Game scene
-GameClient::GameClient()
-    : m_transport(network::ClientTransport()), m_worldState(ClientWorldState()), m_camera(Camera2D()),
-      m_bulletSystem(System::ClientBulletSystem()) {
+
+GameClient::~GameClient() {
+    Disconnect();
+    CloseWindow();
+}
+
+void GameClient::Initialize() {
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
 
     m_camera.offset = {640, 360};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
+
+    m_worldState.m_map = LoadMap(MAP_PATH);
 }
 
-GameClient::~GameClient() {
-    Disconnect();
-    CloseWindow();
+void GameClient::DrawMap(const MapData &map) {
+    for (const auto &wall : map.walls) {
+        float w = wall.max.x - wall.min.x;
+        float h = wall.max.y - wall.min.y;
+        DrawRectangle(wall.min.x, wall.min.y, w, h, DARKBLUE);
+
+        DrawRectangleLines(wall.min.x, wall.min.y, w, h, BLUE);
+    }
+}
+
+void GameClient::Start(const char *ip, int port) {
+    Connect(ip, port);
+    SendJoin();
+    while (m_running) {
+        Update();
+    }
 }
 
 void GameClient::Connect(const char *ip, int port) { m_transport.connect(ip, port); }
@@ -159,6 +178,7 @@ void GameClient::Render() {
     BeginMode2D(m_camera);
 
     DrawDebugGrid();
+    DrawMap(m_worldState.m_map);
 
     for (auto &[id, renderPlayer] : m_worldState.m_renderPlayers) {
         renderPlayer.Draw();
@@ -172,7 +192,7 @@ void GameClient::Render() {
     for (const auto &bullet : m_bulletSystem.GetBullets()) {
         if (!bullet.active)
             continue;
-        DrawCircleV(Shapes::CircleToVector(bullet.hitbox.circle), 4.0f, YELLOW);
+        DrawCircleV(bullet.hitbox.circle.center, 4.0f, YELLOW);
     }
 
     EndMode2D();
@@ -194,8 +214,6 @@ void GameClient::DrawDebugGrid() {
     // Origin marker
     DrawCircle(0, 0, 10, RED);
 }
-
-bool GameClient::GameRunning() { return m_running; }
 
 network::InputPacket GameClient::CollectInput() {
     network::InputPacket packet{};

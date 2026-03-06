@@ -1,6 +1,7 @@
 #pragma once
 #include "../../config.hpp"
-#include "../components/shapes.hpp"
+#include "../../shared/map/map_types.hpp"
+#include "../components/collision.hpp"
 #include "../events.hpp"
 #include "../state/bullet_state.hpp"
 #include "../state/player_state.hpp"
@@ -12,6 +13,8 @@ namespace System {
 
 template <typename TBulletState> class BulletSystem {
   public:
+    BulletSystem() = default;
+
     virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, float speed = 400.0f,
                       float lifetime = 3.0f) {
 
@@ -24,12 +27,7 @@ template <typename TBulletState> class BulletSystem {
 
             uint16_t gen = ++m_generations[i];
             component::Hitbox hitbox = {
-                .circle =
-                    {
-                        .x = position.x,
-                        .y = position.y,
-                        .radius = 4.0f,
-                    },
+                .circle = {.center = {position.x, position.y}, .radius = 4.0f},
                 .damage = 10.0f,
             };
 
@@ -55,7 +53,7 @@ template <typename TBulletState> class BulletSystem {
             return -1;
 
         component::Hitbox hitbox = {
-            .circle = {.x = position.x, .y = position.y, .radius = 4.0f},
+            .circle = {.center = {position.x, position.y}, .radius = 4.0f},
             .damage = 10.0f,
         };
 
@@ -76,25 +74,37 @@ template <typename TBulletState> class BulletSystem {
             if (!bullet.active)
                 continue;
 
-            bullet.hitbox.circle.x += bullet.velocity.x * dt;
-            bullet.hitbox.circle.y += bullet.velocity.y * dt;
+            bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
+            bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
             bullet.lifetime -= dt;
 
             if (bullet.lifetime <= 0.0f) {
                 Deactivate(bullet.id);
                 continue;
             }
+
+            if (m_map) {
+                for (auto &wall : m_map->walls) {
+                    if (Collision::Overlap(bullet.hitbox.circle, wall)) {
+                        Deactivate(bullet.id);
+                        break;
+                    }
+                }
+            }
+
             for (auto &player : players) {
-                if (bullet.ownerId != player.id && Shapes::Overlap(bullet.hitbox.circle, Shapes::GetHurtBox(player))) {
+                if (bullet.ownerId != player.id &&
+                    Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
                     player.health -= bullet.hitbox.damage;
                     bullet.active = false;
-                    m_hitEvents.emplace_back(bullet.id, player.id,
-                                             Vector2{bullet.hitbox.circle.x, bullet.hitbox.circle.y});
+                    m_hitEvents.emplace_back(bullet.id, player.id, bullet.hitbox.circle.center);
                     continue;
                 }
             }
         }
     }
+
+    void SetMap(const MapData &map) { m_map = &map; }
 
     virtual void Deactivate(uint32_t id) {
         int slot = GetSlot(id);
@@ -135,5 +145,8 @@ template <typename TBulletState> class BulletSystem {
 
     std::array<TBulletState, MAX_BULLETS> m_bullets{};
     std::array<uint16_t, MAX_BULLETS> m_generations{}; // for stale ID detection
+
+  private:
+    const MapData *m_map = nullptr;
 };
 } // namespace System

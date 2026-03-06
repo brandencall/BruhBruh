@@ -1,10 +1,10 @@
 #pragma once
 
-#include "shapes.hpp"
+#include "collision.hpp"
 
 namespace component {
 struct Hitbox {
-    Shapes::Circle circle;
+    Collision::Circle circle;
     float damage;
 };
 } // namespace component

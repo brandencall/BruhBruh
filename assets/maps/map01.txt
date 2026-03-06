@@ -1,0 +1,9 @@
+WALL  0    0    800  16     # top border
+WALL  0    584  800  16     # bottom border
+WALL  0    0    16   600    # left border
+WALL  784  0    16   600    # right border
+WALL  200  100  16   200    # interior wall
+WALL  300  300  200  16     # interior wall
+
+SPAWN 0  100  100
+SPAWN 1  700  500

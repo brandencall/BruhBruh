@@ -8,8 +8,8 @@ void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLA
         if (!bullet.active)
             continue;
 
-        bullet.hitbox.circle.x += bullet.velocity.x * dt;
-        bullet.hitbox.circle.y += bullet.velocity.y * dt;
+        bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
+        bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
         bullet.lifetime -= dt;
 
         if (bullet.lifetime <= 0.0f) {

@@ -1,6 +1,13 @@
 #include "game_simulation.hpp"
+#include "../config.hpp"
+#include "../shared/map/map_loader.hpp"
 #include "raymath.h"
 #include <cstdint>
+
+void GameSimulation::Initialize() {
+    m_map = LoadMap(MAP_PATH);
+    m_bulletSystem.SetMap(m_map);
+}
 
 void GameSimulation::Update(float tickRate) {
     for (auto &player : m_players) {
@@ -10,6 +17,8 @@ void GameSimulation::Update(float tickRate) {
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
         player.velocity = Vector2Scale(dir, player.speed);
         player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
+        Collision::Circle circle = {player.position, player.hurtbox.radius};
+        player.position = Collision::resolveCircleAABBList(circle, m_map.walls);
     }
 
     m_bulletSystem.Update(tickRate, m_players);
@@ -50,8 +59,10 @@ std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
 void GameSimulation::CreatePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         component::Hurtbox hurtbox = {.radius = 16.0f};
+        Vector2 spawn = m_map.spawnPoints[playerId];
         state::PlayerState player = {
             .id = playerId,
+            .position = spawn,
             .hurtbox = hurtbox,
             .active = true,
         };
