@@ -45,6 +45,15 @@ void GameClient::Update() {
     float dt = GetFrameTime();
 
     Receive();
+
+    if (!m_joined) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawText("Connecting...", 560, 350, 20, WHITE);
+        EndDrawing();
+        return;
+    }
+
     Sync(dt);
     m_bulletSystem.Update(dt, m_worldState.m_players);
 
