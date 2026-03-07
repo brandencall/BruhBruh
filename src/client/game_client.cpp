@@ -35,7 +35,7 @@ void GameClient::DrawMap(const MapData &map) {
 
 void GameClient::Start(const char *ip, int port) {
     Connect(ip, port);
-    SendJoin();
+    m_running = true;
     while (m_running) {
         Update();
     }
@@ -66,6 +66,11 @@ void GameClient::Update() {
     Receive();
 
     if (!m_joined) {
+        m_joinRetryAccumulator += dt;
+        if (m_joinRetryAccumulator >= 1.0f) {
+            SendJoin();
+            m_joinRetryAccumulator = 0.0f;
+        }
         BeginDrawing();
         ClearBackground(BLACK);
         DrawText("Connecting...", 560, 350, 20, WHITE);
@@ -73,6 +78,7 @@ void GameClient::Update() {
         return;
     }
 
+    m_sendAccumulator += dt;
     Sync(dt);
     m_bulletSystem.Update(dt, m_worldState.m_players);
 
@@ -150,7 +156,11 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
         const auto &player = response->players[i];
         m_worldState.m_serverState[player.id] = player;
         if (!m_worldState.m_renderPlayers.contains(player.id)) {
-            m_worldState.m_renderPlayers.emplace(player.id, RenderPlayer(player.id));
+            auto &rp = m_worldState.m_renderPlayers.emplace(player.id, RenderPlayer(player.id)).first->second;
+            rp.SnapToPosition({player.position.x, player.position.y});
+            if (player.id == m_worldState.m_currentPlayerId) {
+                m_camera.target = {player.position.x, player.position.y};
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ class RenderPlayer {
     void Sync(const state::PlayerState &state, float dt);
     void Draw();
     Vector2 GetPosition() const;
+    void SnapToPosition(const Vector2 &position);
 
   private:
     uint32_t m_id;

@@ -13,3 +13,5 @@ void RenderPlayer::Sync(const state::PlayerState &state, float dt) {
 void RenderPlayer::Draw() { DrawCircleV(m_position, m_radius, BLUE); }
 
 Vector2 RenderPlayer::GetPosition() const { return m_position; }
+
+void RenderPlayer::SnapToPosition(const Vector2 &position) { m_position = position; }

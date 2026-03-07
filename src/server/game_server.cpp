@@ -116,8 +116,15 @@ void GameServer::HandlePacket(char *buffer, size_t bytes, network::PeerId from) 
 }
 
 void GameServer::HandleJoin(network::PeerId from) {
-    if (FindClientByPeer(from))
-        return; // already registered
+
+    auto *existing = FindClientByPeer(from);
+    if (existing) {
+        network::JoinResponsePacket response{};
+        response.header.type = network::PacketType::JoinResponse;
+        response.playerId = existing->playerId;
+        m_transport.send(from, &response, sizeof(response));
+        return;
+    }
 
     for (size_t i = 0; i < m_clients.size(); i++) {
         if (!m_clients[i].active) {
@@ -173,14 +180,14 @@ void GameServer::BuildStatePacket() {
 
     for (int i = 0; i < MAX_PLAYERS; ++i) {
         if (players[i].active) {
-            m_statePacket.playerCount++;
+            uint16_t slot = m_statePacket.playerCount++;
             const state::PlayerState &p = players[i];
-            m_statePacket.players[i].id = p.id;
-            m_statePacket.players[i].position.x = p.position.x;
-            m_statePacket.players[i].position.y = p.position.y;
-            m_statePacket.players[i].health = p.health;
-            m_statePacket.players[i].hurtbox = p.hurtbox;
-            m_statePacket.players[i].active = p.active ? 1 : 0;
+            m_statePacket.players[slot].id = p.id;
+            m_statePacket.players[slot].position.x = p.position.x;
+            m_statePacket.players[slot].position.y = p.position.y;
+            m_statePacket.players[slot].health = p.health;
+            m_statePacket.players[slot].hurtbox = p.hurtbox;
+            m_statePacket.players[slot].active = p.active ? 1 : 0;
         }
     }
 }
