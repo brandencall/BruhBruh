@@ -5,6 +5,7 @@
 #include <cstdint>
 
 void GameSimulation::Initialize() {
+    m_players = {};
     m_map = LoadMap(MAP_PATH);
     m_bulletSystem.SetMap(m_map);
 }
@@ -61,11 +62,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId) {
         component::Hurtbox hurtbox = {.radius = 16.0f};
         Vector2 spawn = m_map.spawnPoints[playerId];
         state::PlayerState player = {
-            .id = playerId,
-            .position = spawn,
-            .hurtbox = hurtbox,
-            .active = true,
-        };
+            .id = playerId, .position = spawn, .hurtbox = hurtbox, .active = true, .lastButtons = 0};
         m_players[playerId] = player;
     }
 }
