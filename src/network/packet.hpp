@@ -2,6 +2,7 @@
 #include "../config.hpp"
 #include "../shared/state/bullet_state.hpp"
 #include "../shared/state/player_state.hpp"
+#include "characters/character_types.hpp"
 #include <stdint.h>
 
 namespace network {
@@ -24,11 +25,13 @@ struct DisconnectPacket {
 struct JoinResponsePacket {
     PacketHeader header;
     uint32_t playerId;
+    Character::CharacterId characterId;
 };
 
 struct InputPacket {
     PacketHeader header;
     uint32_t playerId;
+    Character::CharacterId characterId;
 
     float moveX;
     float moveY;
@@ -45,17 +48,15 @@ struct StatePacket {
     uint32_t tick; // server tick number
     uint16_t playerCount;
     state::PlayerState players[MAX_PLAYERS];
-    // uint16_t bulletCount;
-    // state::BulletState bullets[MAX_BULLETS];
 };
 
 struct BulletSpawnPacket {
     PacketHeader header;
     uint32_t bulletId;
     uint32_t ownerId;
+    Character::CharacterId characterId;
     Vector2 position;
     Vector2 velocity;
-    float lifetime;
 };
 
 struct BulletHitPacket {

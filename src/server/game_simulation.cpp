@@ -1,6 +1,8 @@
 #include "game_simulation.hpp"
 #include "../config.hpp"
 #include "../shared/map/map_loader.hpp"
+#include "characters/character_roster.hpp"
+#include "characters/character_types.hpp"
 #include "raymath.h"
 #include <cstdint>
 
@@ -29,16 +31,18 @@ const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() 
 
 System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { return m_bulletSystem; }
 
-void GameSimulation::ApplyInput(uint32_t playerId, const state::PlayerInput &input) {
+void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId characterId,
+                                const state::PlayerInput &input) {
     if (playerId < 0 || playerId > MAX_PLAYERS)
         return;
 
     state::PlayerState &player = m_players[playerId];
+    const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
     bool shootNow = input.buttons & (1 << 0);
     bool shootPrev = player.lastButtons & (1 << 0);
     if (shootNow && !shootPrev) {
         Vector2 aimDir = {input.aimX, input.aimY};
-        m_bulletSystem.Spawn(player.id, player.position, aimDir);
+        m_bulletSystem.Spawn(player.id, player.position, aimDir, charDef);
     }
 
     player.currentInput = input;
@@ -57,12 +61,25 @@ std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
     return active_players;
 }
 
+void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId) {
+    if (playerId >= 0 && playerId < MAX_PLAYERS) {
+        const Character::CharacterDef &charDef = GetCharacterDef(characterId);
+        Vector2 spawn = m_map.spawnPoints[playerId];
+        state::PlayerState player = {.id = playerId,
+                                     .position = spawn,
+                                     .hurtbox = {.radius = charDef.hurtboxRadius},
+                                     .lastButtons = 0,
+                                     .active = true};
+        m_players[playerId] = player;
+    }
+}
+
 void GameSimulation::CreatePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         component::Hurtbox hurtbox = {.radius = 16.0f};
         Vector2 spawn = m_map.spawnPoints[playerId];
         state::PlayerState player = {
-            .id = playerId, .position = spawn, .hurtbox = hurtbox, .active = true, .lastButtons = 0};
+            .id = playerId, .position = spawn, .hurtbox = hurtbox, .lastButtons = 0, .active = true};
         m_players[playerId] = player;
     }
 }

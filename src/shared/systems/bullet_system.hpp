@@ -1,5 +1,6 @@
 #pragma once
 #include "../../config.hpp"
+#include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_types.hpp"
 #include "../components/collision.hpp"
 #include "../events.hpp"
@@ -7,6 +8,7 @@
 #include "../state/player_state.hpp"
 #include "raymath.h"
 #include <array>
+#include <cstdint>
 #include <vector>
 
 namespace System {
@@ -15,8 +17,7 @@ template <typename TBulletState> class BulletSystem {
   public:
     BulletSystem() = default;
 
-    virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, float speed = 400.0f,
-                      float lifetime = 3.0f) {
+    virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, Character::CharacterDef character) {
 
         if (Vector2LengthSqr(direction) < 0.0001f)
             return -1;
@@ -26,47 +27,41 @@ template <typename TBulletState> class BulletSystem {
                 continue;
 
             uint16_t gen = ++m_generations[i];
-            component::Hitbox hitbox = {
-                .circle = {.center = {position.x, position.y}, .radius = 4.0f},
-                .damage = 10.0f,
-            };
+            uint32_t id = MakeId(i, gen);
+            Vector2 velocity = Vector2Scale(Vector2Normalize(direction), character.bullet.speed);
+            InitBulletSlot(i, id, ownerId, position, velocity, character.bullet);
 
-            m_bullets[i] = TBulletState{};
-            m_bullets[i].id = MakeId(i, gen);
-            m_bullets[i].ownerId = ownerId;
-            m_bullets[i].velocity = Vector2Scale(Vector2Normalize(direction), speed);
-            m_bullets[i].lifetime = lifetime;
-            m_bullets[i].hitbox = hitbox;
-            m_bullets[i].active = true;
-            m_spawnEvents.emplace_back(m_bullets[i].id, ownerId, position, m_bullets[i].velocity, lifetime);
-            OnSpawn(m_bullets[i], position);
-
+            m_spawnEvents.emplace_back(m_bullets[i].id, ownerId, character.id, position, m_bullets[i].velocity);
             return i;
         }
         return -1;
     }
 
-    virtual int SpawnWithId(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                            float lifetime = 3.0f) {
+    virtual int SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
+                                     Character::BulletDef bulletDef) {
         int slot = GetSlot(serverId);
         if (slot < 0 || slot >= MAX_BULLETS)
             return -1;
 
-        component::Hitbox hitbox = {
-            .circle = {.center = {position.x, position.y}, .radius = 4.0f},
-            .damage = 10.0f,
-        };
+        InitBulletSlot(slot, serverId, ownerId, position, velocity, bulletDef);
 
+        return slot;
+    }
+
+    void InitBulletSlot(int slot, uint32_t id, uint32_t ownerId, Vector2 position, Vector2 velocity,
+                        Character::BulletDef bulletDef) {
+        component::Hitbox hitbox = {
+            .circle = {.center = {position.x, position.y}, .radius = bulletDef.radius},
+            .damage = bulletDef.damage,
+        };
         m_bullets[slot] = TBulletState{};
-        m_bullets[slot].id = serverId; // use server's ID directly
+        m_bullets[slot].id = id;
         m_bullets[slot].ownerId = ownerId;
         m_bullets[slot].velocity = velocity;
-        m_bullets[slot].lifetime = lifetime;
+        m_bullets[slot].lifetime = bulletDef.lifetime;
         m_bullets[slot].hitbox = hitbox;
         m_bullets[slot].active = true;
         OnSpawn(m_bullets[slot], position);
-
-        return slot;
     }
 
     virtual void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players) {

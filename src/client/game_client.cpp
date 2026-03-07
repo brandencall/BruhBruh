@@ -1,5 +1,7 @@
 #include "game_client.hpp"
 #include "../shared/map/map_loader.hpp"
+#include "characters/character_roster.hpp"
+#include "characters/character_types.hpp"
 #include "client_transport.hpp"
 #include "raylib.h"
 #include "raymath.h"
@@ -141,9 +143,11 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
 void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_playerId = response->playerId;
+    m_characterId = response->characterId;
     m_joined = true;
     m_worldState.m_currentPlayerId = response->playerId;
     std::cout << "Assigned Player ID: " << m_playerId << "\n";
+    std::cout << "Assigned characterId: " << static_cast<int>(m_characterId) << "\n";
 }
 
 void GameClient::HandleStateResponse(const char *buffer, size_t size) {
@@ -168,7 +172,8 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
 void GameClient::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
 
-    m_bulletSystem.SpawnWithId(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, pkt->lifetime);
+    Character::BulletDef bullet = Character::GetCharacterDef(pkt->characterId).bullet;
+    m_bulletSystem.SpawnFromServerEvent(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, bullet);
 }
 
 void GameClient::HandleBulletHit(const char *buffer) {
@@ -232,6 +237,7 @@ network::InputPacket GameClient::CollectInput() {
 
     packet.header.type = network::PacketType::Input;
     packet.playerId = m_playerId;
+    packet.characterId = m_characterId;
 
     float x = 0.0f;
     float y = 0.0f;

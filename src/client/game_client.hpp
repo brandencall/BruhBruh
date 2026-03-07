@@ -2,6 +2,7 @@
 #include "../client/client_transport.hpp"
 #include "../network/packet.hpp"
 #include "../state/world_state.hpp"
+#include "characters/character_types.hpp"
 #include "client_bullet_system.hpp"
 #include "map/map_types.hpp"
 #include <cstddef>
@@ -48,6 +49,7 @@ class GameClient {
     float m_sendAccumulator = 0.0f;
     float m_joinRetryAccumulator = 0.0f;
     int m_playerId = -1;
+    Character::CharacterId m_characterId = Character::CharacterId::None;
     bool m_joined = false;
     bool m_running = false;
     uint32_t m_inputSequence = 0;

@@ -3,6 +3,7 @@
 #include "../shared/events.hpp"
 #include "../shared/state/player_state.hpp"
 #include "../shared/systems/bullet_system.hpp"
+#include "characters/character_types.hpp"
 #include "map/map_types.hpp"
 #include "state/bullet_state.hpp"
 #include <array>
@@ -14,9 +15,10 @@ class GameSimulation {
     GameSimulation() = default;
     void Initialize();
     void Update(float tickRate);
-    void ApplyInput(uint32_t playerId, const state::PlayerInput &input);
+    void ApplyInput(uint32_t playerId, Character::CharacterId characterId, const state::PlayerInput &input);
     const std::array<state::PlayerState, MAX_PLAYERS> &GetPlayers();
     const std::array<state::BulletState, MAX_BULLETS> &GetBullets();
+    void CreatePlayer(uint32_t playerId, Character::CharacterId characterId);
     void CreatePlayer(uint32_t playerId);
     void RemovePlayer(uint32_t playerId);
     std::vector<state::PlayerState> GetActivePlayers();

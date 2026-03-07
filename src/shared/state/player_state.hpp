@@ -1,4 +1,5 @@
 #pragma once
+#include "../characters/character_types.hpp"
 #include "../components/hurtbox.hpp"
 #include "raylib.h"
 #include <cstdint>
@@ -16,15 +17,15 @@ struct PlayerInput {
 
 struct PlayerState {
     uint32_t id = UINT32_MAX;
+    Character::CharacterId characterId = Character::CharacterId::None;
     Vector2 position = {0, 0};
     Vector2 velocity = {0, 0};
     float speed = 300.0f;
     float health = 100;
     component::Hurtbox hurtbox;
-    bool active = false;
-
     PlayerInput currentInput;
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
+    bool active = false;
 };
 } // namespace state

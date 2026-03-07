@@ -1,4 +1,5 @@
 #include "game_server.hpp"
+#include "characters/character_types.hpp"
 #include "events.hpp"
 #include "game_simulation.hpp"
 #include <chrono>
@@ -51,9 +52,9 @@ void GameServer::UpdateSimulation(float tickRate) {
         pkt.header.type = network::PacketType::BulletSpawn;
         pkt.bulletId = e.bulletId;
         pkt.ownerId = e.ownerId;
+        pkt.characterId = e.characterId;
         pkt.position = e.position;
         pkt.velocity = e.velocity;
-        pkt.lifetime = e.lifetime;
         BroadcastAll(&pkt, sizeof(pkt));
     });
 
@@ -135,6 +136,11 @@ void GameServer::HandleJoin(network::PeerId from) {
             network::JoinResponsePacket response{};
             response.header.type = network::PacketType::JoinResponse;
             response.playerId = m_clients[i].playerId;
+
+            // TODO: This will be passed to it from the lobby selection!!!
+            response.characterId = Character::CharacterId::Tonts;
+            // -----------------------------------------------------------
+
             m_transport.send(from, &response, sizeof(response)); // ← transport.send
 
             m_simulation.CreatePlayer(m_clients[i].playerId);
@@ -163,13 +169,14 @@ void GameServer::HandleInput(char *buffer, size_t size, network::PeerId from) {
     if (packet->playerId != client->playerId)
         return;
 
-    m_simulation.ApplyInput(client->playerId, {
-                                                  .moveX = packet->moveX,
-                                                  .moveY = packet->moveY,
-                                                  .aimX = packet->aimX,
-                                                  .aimY = packet->aimY,
-                                                  .buttons = packet->buttons,
-                                              });
+    m_simulation.ApplyInput(client->playerId, packet->characterId,
+                            {
+                                .moveX = packet->moveX,
+                                .moveY = packet->moveY,
+                                .aimX = packet->aimX,
+                                .aimY = packet->aimY,
+                                .buttons = packet->buttons,
+                            });
 }
 
 void GameServer::BuildStatePacket() {

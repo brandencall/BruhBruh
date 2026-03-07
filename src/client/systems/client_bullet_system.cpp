@@ -1,5 +1,6 @@
 #include "client_bullet_system.hpp"
 #include "raylib.h"
+#include <iostream>
 
 namespace System {
 
