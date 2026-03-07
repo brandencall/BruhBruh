@@ -257,9 +257,11 @@ network::InputPacket GameClient::CollectInput() {
 
     // Aim direction
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
-    auto it = m_worldState.m_renderPlayers.find(m_playerId);
-    if (it != m_worldState.m_renderPlayers.end()) {
-        Vector2 playerPos = it->second.GetPosition();
+
+    auto serverIt = m_worldState.m_serverState.find(m_playerId);
+    if (serverIt != m_worldState.m_serverState.end()) {
+        // Use server position for aim calculation to match where server will spawn bullet
+        Vector2 playerPos = {serverIt->second.position.x, serverIt->second.position.y};
         Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
 
         packet.aimX = aimDir.x;
