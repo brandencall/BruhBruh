@@ -11,6 +11,7 @@
 
 GameClient::~GameClient() {
     Disconnect();
+    m_characterRender.Unload();
     CloseWindow();
 }
 
@@ -23,6 +24,7 @@ void GameClient::Initialize() {
     m_camera.zoom = 1.0f;
 
     m_worldState.m_map = LoadMap(MAP_PATH);
+    m_characterRender.Load();
 }
 
 void GameClient::DrawMap(const MapData &map) {
@@ -80,7 +82,6 @@ void GameClient::Update() {
         return;
     }
 
-    m_sendAccumulator += dt;
     Sync(dt);
     m_bulletSystem.Update(dt, m_worldState.m_players);
 
@@ -96,15 +97,12 @@ void GameClient::Update() {
 
 void GameClient::Sync(float dt) {
     // Sync players
-    for (auto &[id, renderPlayer] : m_worldState.m_renderPlayers) {
-        const auto &serverState = m_worldState.m_serverState[id];
-        renderPlayer.Sync(serverState, dt);
+    for (const auto &[id, player] : m_worldState.m_serverState) {
+        m_characterRender.Sync(player, dt);
     }
     // Sync Camera
-    auto it = m_worldState.m_renderPlayers.find(m_worldState.m_currentPlayerId);
-    if (it != m_worldState.m_renderPlayers.end()) {
-        m_camera.target = Vector2Lerp(m_camera.target, it->second.GetPosition(), 5.0f * dt);
-    }
+    Vector2 smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
+    m_camera.target = Vector2Lerp(m_camera.target, smoothedPos, 5.0f * dt);
 }
 
 void GameClient::SetGameRunning(bool runningState) { m_running = runningState; }
@@ -158,14 +156,11 @@ void GameClient::HandleStateResponse(const char *buffer, size_t size) {
     auto *response = (network::StatePacket *)buffer;
     for (uint16_t i = 0; i < response->playerCount; ++i) {
         const auto &player = response->players[i];
-        m_worldState.m_serverState[player.id] = player;
-        if (!m_worldState.m_renderPlayers.contains(player.id)) {
-            auto &rp = m_worldState.m_renderPlayers.emplace(player.id, RenderPlayer(player.id)).first->second;
-            rp.SnapToPosition({player.position.x, player.position.y});
-            if (player.id == m_worldState.m_currentPlayerId) {
-                m_camera.target = {player.position.x, player.position.y};
-            }
+        if (!m_worldState.m_serverState.contains(player.id)) {
+            m_characterRender.SnapToPosition(player);
+            m_camera.target = {player.position.x, player.position.y};
         }
+        m_worldState.m_serverState[player.id] = player;
     }
 }
 
@@ -195,13 +190,14 @@ void GameClient::Render() {
     DrawDebugGrid();
     DrawMap(m_worldState.m_map);
 
-    for (auto &[id, renderPlayer] : m_worldState.m_renderPlayers) {
-        renderPlayer.Draw();
-        Vector2 pos = renderPlayer.GetPosition(); // use lerped position, not server state
-        const auto &state = m_worldState.m_serverState[id];
-        Vector2 hurtboxCenter = {pos.x + state.hurtbox.offsetX, pos.y + state.hurtbox.offsetY};
-        DrawCircleV(hurtboxCenter, state.hurtbox.radius, {255, 0, 0, 80});
-        DrawCircleLinesV(hurtboxCenter, state.hurtbox.radius, RED);
+    for (const auto &[id, player] : m_worldState.m_serverState) {
+        m_characterRender.Draw(player);
+
+        // Use lerped position so hurtbox stays on the sprite
+        Vector2 renderPos = m_characterRender.GetPosition(player.id);
+        Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+        DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
+        DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
     }
 
     for (const auto &bullet : m_bulletSystem.GetBullets()) {

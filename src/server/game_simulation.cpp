@@ -66,6 +66,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
         const Character::CharacterDef &charDef = GetCharacterDef(characterId);
         Vector2 spawn = m_map.spawnPoints[playerId];
         state::PlayerState player = {.id = playerId,
+                                     .characterId = characterId,
                                      .position = spawn,
                                      .hurtbox = {.radius = charDef.hurtboxRadius},
                                      .lastButtons = 0,

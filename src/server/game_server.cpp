@@ -143,7 +143,7 @@ void GameServer::HandleJoin(network::PeerId from) {
 
             m_transport.send(from, &response, sizeof(response)); // ← transport.send
 
-            m_simulation.CreatePlayer(m_clients[i].playerId);
+            m_simulation.CreatePlayer(m_clients[i].playerId, response.characterId);
             SendFullSnapshot(from);
             return;
         }
@@ -190,6 +190,7 @@ void GameServer::BuildStatePacket() {
             uint16_t slot = m_statePacket.playerCount++;
             const state::PlayerState &p = players[i];
             m_statePacket.players[slot].id = p.id;
+            m_statePacket.players[slot].characterId = p.characterId;
             m_statePacket.players[slot].position.x = p.position.x;
             m_statePacket.players[slot].position.y = p.position.y;
             m_statePacket.players[slot].health = p.health;

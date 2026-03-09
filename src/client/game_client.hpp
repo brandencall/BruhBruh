@@ -5,6 +5,7 @@
 #include "characters/character_types.hpp"
 #include "client_bullet_system.hpp"
 #include "map/map_types.hpp"
+#include "renderers/character_renderer.hpp"
 #include <cstddef>
 #include <cstdint>
 
@@ -58,4 +59,5 @@ class GameClient {
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
+    CharacterRenderer m_characterRender;
 };

@@ -2,7 +2,6 @@
 
 #include "../../config.hpp"
 #include "../shared/state/player_state.hpp"
-#include "entities/render_player.hpp"
 #include "map/map_types.hpp"
 #include <array>
 #include <cstdint>
@@ -12,7 +11,6 @@
 class ClientWorldState {
   public:
     uint32_t m_currentPlayerId;
-    std::unordered_map<uint32_t, RenderPlayer> m_renderPlayers;
     std::unordered_map<uint32_t, state::PlayerState> m_serverState;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
     MapData m_map;
