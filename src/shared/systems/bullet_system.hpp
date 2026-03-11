@@ -9,6 +9,7 @@
 #include "raymath.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 namespace System {
@@ -88,9 +89,15 @@ template <typename TBulletState> class BulletSystem {
             }
 
             for (auto &player : players) {
-                if (bullet.ownerId != player.id &&
+                if (player.alive && bullet.ownerId != player.id &&
                     Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
                     player.health -= bullet.hitbox.damage;
+                    if (player.health <= 0.0f) {
+                        player.health = 0.0f;
+                        player.alive = false;
+                        std::cout << "Player " << player.id << " has been killed!" << std::endl;
+                        m_deathEvents.emplace_back(player.id, player.characterId);
+                    }
                     bullet.active = false;
                     m_hitEvents.emplace_back(bullet.id, player.id, bullet.hitbox.circle.center);
                     continue;
@@ -121,13 +128,14 @@ template <typename TBulletState> class BulletSystem {
         m_spawnEvents.clear();
         m_hitEvents.clear();
         m_expireEvents.clear();
+        m_deathEvents.clear();
     }
 
   public:
-    // TODO: Add a despawn event
     std::vector<event::BulletSpawnEvent> m_spawnEvents;
     std::vector<event::BulletHitEvent> m_hitEvents;
     std::vector<event::BulletExpireEvent> m_expireEvents;
+    std::vector<event::PlayerDiedEvent> m_deathEvents;
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos) {}

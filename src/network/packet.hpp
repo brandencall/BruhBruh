@@ -7,7 +7,17 @@
 
 namespace network {
 
-enum class PacketType : uint8_t { Join, Disconnect, JoinResponse, Input, State, BulletSpawn, BulletHit, BulletExpired };
+enum class PacketType : uint8_t {
+    Join,
+    Disconnect,
+    JoinResponse,
+    Input,
+    State,
+    BulletSpawn,
+    BulletHit,
+    BulletExpired,
+    PlayerDied
+};
 
 struct PacketHeader {
     PacketType type;
@@ -69,6 +79,12 @@ struct BulletHitPacket {
 struct BulletExpirePacket {
     PacketHeader header;
     uint32_t bulletId;
+};
+
+struct PlayerDiedPacket {
+    PacketHeader header;
+    uint32_t id;
+    Character::CharacterId characterId;
 };
 
 } // namespace network

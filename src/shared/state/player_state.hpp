@@ -26,6 +26,7 @@ struct PlayerState {
     PlayerInput currentInput;
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
+    bool alive = false;
     bool active = false;
 };
 } // namespace state

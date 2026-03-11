@@ -19,9 +19,7 @@ class GameSimulation {
     const std::array<state::PlayerState, MAX_PLAYERS> &GetPlayers();
     const std::array<state::BulletState, MAX_BULLETS> &GetBullets();
     void CreatePlayer(uint32_t playerId, Character::CharacterId characterId);
-    void CreatePlayer(uint32_t playerId);
     void RemovePlayer(uint32_t playerId);
-    std::vector<state::PlayerState> GetActivePlayers();
 
     System::BulletSystem<state::BulletState> &GetBulletSystem();
 

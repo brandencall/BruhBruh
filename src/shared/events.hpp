@@ -24,4 +24,9 @@ struct BulletExpireEvent {
     uint32_t bulletId;
 };
 
+struct PlayerDiedEvent {
+    uint32_t id;
+    Character::CharacterId characterId;
+};
+
 } // namespace event

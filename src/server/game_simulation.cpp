@@ -14,7 +14,7 @@ void GameSimulation::Initialize() {
 
 void GameSimulation::Update(float tickRate) {
     for (auto &player : m_players) {
-        if (!player.active)
+        if (!player.active || !player.alive)
             continue;
 
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
@@ -37,6 +37,9 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
         return;
 
     state::PlayerState &player = m_players[playerId];
+    if (!player.active || !player.alive)
+        return;
+
     const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
     bool shootNow = input.buttons & (1 << 0);
     bool shootPrev = player.lastButtons & (1 << 0);
@@ -51,16 +54,6 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
 
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() { return m_players; }
 
-std::vector<state::PlayerState> GameSimulation::GetActivePlayers() {
-    std::vector<state::PlayerState> active_players;
-    for (const auto &player : m_players) {
-        if (player.active) {
-            active_players.push_back(player);
-        }
-    }
-    return active_players;
-}
-
 void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         const Character::CharacterDef &charDef = GetCharacterDef(characterId);
@@ -70,17 +63,8 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                      .position = spawn,
                                      .hurtbox = {.radius = charDef.hurtboxRadius},
                                      .lastButtons = 0,
+                                     .alive = true,
                                      .active = true};
-        m_players[playerId] = player;
-    }
-}
-
-void GameSimulation::CreatePlayer(uint32_t playerId) {
-    if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        component::Hurtbox hurtbox = {.radius = 16.0f};
-        Vector2 spawn = m_map.spawnPoints[playerId];
-        state::PlayerState player = {
-            .id = playerId, .position = spawn, .hurtbox = hurtbox, .lastButtons = 0, .active = true};
         m_players[playerId] = player;
     }
 }
@@ -89,6 +73,7 @@ void GameSimulation::RemovePlayer(uint32_t playerId) {
     if (playerId >= 0 && playerId < MAX_PLAYERS) {
         state::PlayerState &player = m_players[playerId];
         player.id = UINT32_MAX;
+        player.alive = false;
         player.active = false;
     }
 }

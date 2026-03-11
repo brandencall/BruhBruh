@@ -38,16 +38,26 @@ void GameServer::RunServer() {
 void GameServer::UpdateSimulation(float tickRate) {
     m_simulation.Update(tickRate);
 
+    PublishEvents();
+    m_simulation.GetBulletSystem().clearEvents();
+
+    DrainEvents();
+    m_eventBus.clear();
+}
+
+void GameServer::PublishEvents() {
     for (const auto &e : m_simulation.GetBulletSystem().m_spawnEvents)
         m_eventBus.publish(e);
     for (const auto &e : m_simulation.GetBulletSystem().m_hitEvents)
         m_eventBus.publish(e);
     for (const auto &e : m_simulation.GetBulletSystem().m_expireEvents)
         m_eventBus.publish(e);
+    for (const auto &e : m_simulation.GetBulletSystem().m_deathEvents)
+        m_eventBus.publish(e);
+}
 
-    m_simulation.GetBulletSystem().clearEvents();
-
-    m_eventBus.drainSpawn([&](const event::BulletSpawnEvent &e) {
+void GameServer::DrainEvents() {
+    m_eventBus.DrainBulletSpawn([&](const event::BulletSpawnEvent &e) {
         network::BulletSpawnPacket pkt{};
         pkt.header.type = network::PacketType::BulletSpawn;
         pkt.bulletId = e.bulletId;
@@ -57,8 +67,7 @@ void GameServer::UpdateSimulation(float tickRate) {
         pkt.velocity = e.velocity;
         BroadcastAll(&pkt, sizeof(pkt));
     });
-
-    m_eventBus.drainHit([&](const event::BulletHitEvent &e) {
+    m_eventBus.DrainBulletHit([&](const event::BulletHitEvent &e) {
         network::BulletHitPacket pkt{};
         pkt.header.type = network::PacketType::BulletHit;
         pkt.bulletId = e.bulletId;
@@ -66,15 +75,19 @@ void GameServer::UpdateSimulation(float tickRate) {
         pkt.hitPosition = e.hitPosition;
         BroadcastAll(&pkt, sizeof(pkt));
     });
-
-    m_eventBus.drainExpire([&](const event::BulletExpireEvent &e) {
+    m_eventBus.DrainBulletExpire([&](const event::BulletExpireEvent &e) {
         network::BulletExpirePacket pkt{};
         pkt.header.type = network::PacketType::BulletExpired;
         pkt.bulletId = e.bulletId;
         BroadcastAll(&pkt, sizeof(pkt));
     });
-
-    m_eventBus.clear();
+    m_eventBus.DrainPlayerDeath([&](const event::PlayerDiedEvent &e) {
+        network::PlayerDiedPacket pkt{};
+        pkt.header.type = network::PacketType::PlayerDied;
+        pkt.id = e.id;
+        pkt.characterId = e.characterId;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
 }
 
 void GameServer::Receive() {
@@ -195,6 +208,7 @@ void GameServer::BuildStatePacket() {
             m_statePacket.players[slot].position.y = p.position.y;
             m_statePacket.players[slot].health = p.health;
             m_statePacket.players[slot].hurtbox = p.hurtbox;
+            m_statePacket.players[slot].alive = p.alive;
             m_statePacket.players[slot].active = p.active ? 1 : 0;
         }
     }

@@ -38,6 +38,7 @@ class GameClient {
     void HandleBulletSpawn(const char *buffer);
     void HandleBulletHit(const char *buffer);
     void HandleBulletExpired(const char *buffer);
+    void HandlePlayerDied(const char *buffer);
 
     network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);

@@ -133,6 +133,8 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
     case network::PacketType::BulletExpired:
         HandleBulletExpired(buffer);
         break;
+    case network::PacketType::PlayerDied:
+        std::cout << "Player died packet recieved" << std::endl;
     default:
         break;
     }
@@ -182,6 +184,16 @@ void GameClient::HandleBulletExpired(const char *buffer) {
     m_bulletSystem.Deactivate(pkt->bulletId);
 }
 
+void GameClient::HandlePlayerDied(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
+    if (pkt->id == m_playerId) {
+        // show player died text/screen
+    }
+    // TODO: spawn death effect
+    m_worldState.m_serverState[pkt->id].alive = false;
+    m_worldState.m_serverState[pkt->id].health = 0;
+}
+
 void GameClient::Render() {
     BeginDrawing();
     ClearBackground(DARKGRAY);
@@ -191,6 +203,9 @@ void GameClient::Render() {
     DrawMap(m_worldState.m_map);
 
     for (const auto &[id, player] : m_worldState.m_serverState) {
+        if (!player.alive) {
+            continue;
+        }
         m_characterRender.Draw(player);
 
         // Use lerped position so hurtbox stays on the sprite
