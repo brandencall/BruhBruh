@@ -190,7 +190,7 @@ void GameClient::HandlePlayerDied(const char *buffer) {
         // show player died text/screen
     }
     // TODO: spawn death effect
-    m_worldState.m_serverState[pkt->id].alive = false;
+    m_worldState.m_serverState[pkt->id].respawnTimer = pkt->respawnTimer;
     m_worldState.m_serverState[pkt->id].health = 0;
 }
 
@@ -203,7 +203,7 @@ void GameClient::Render() {
     DrawMap(m_worldState.m_map);
 
     for (const auto &[id, player] : m_worldState.m_serverState) {
-        if (!player.alive) {
+        if (player.respawnTimer > 0.0f) {
             continue;
         }
         m_characterRender.Draw(player);

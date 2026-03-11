@@ -86,6 +86,7 @@ void GameServer::DrainEvents() {
         pkt.header.type = network::PacketType::PlayerDied;
         pkt.id = e.id;
         pkt.characterId = e.characterId;
+        pkt.respawnTimer = e.respawnTimer;
         BroadcastAll(&pkt, sizeof(pkt));
     });
 }
@@ -208,7 +209,7 @@ void GameServer::BuildStatePacket() {
             m_statePacket.players[slot].position.y = p.position.y;
             m_statePacket.players[slot].health = p.health;
             m_statePacket.players[slot].hurtbox = p.hurtbox;
-            m_statePacket.players[slot].alive = p.alive;
+            m_statePacket.players[slot].respawnTimer = p.respawnTimer;
             m_statePacket.players[slot].active = p.active ? 1 : 0;
         }
     }

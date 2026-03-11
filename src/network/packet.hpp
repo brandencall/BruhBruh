@@ -85,6 +85,7 @@ struct PlayerDiedPacket {
     PacketHeader header;
     uint32_t id;
     Character::CharacterId characterId;
+    float respawnTimer;
 };
 
 } // namespace network

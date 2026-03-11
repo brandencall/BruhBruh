@@ -26,7 +26,7 @@ struct PlayerState {
     PlayerInput currentInput;
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
-    bool alive = false;
+    float respawnTimer = 0.0f;
     bool active = false;
 };
 } // namespace state

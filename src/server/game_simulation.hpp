@@ -15,6 +15,7 @@ class GameSimulation {
     GameSimulation() = default;
     void Initialize();
     void Update(float tickRate);
+    void RespawnPlayer(state::PlayerState &player);
     void ApplyInput(uint32_t playerId, Character::CharacterId characterId, const state::PlayerInput &input);
     const std::array<state::PlayerState, MAX_PLAYERS> &GetPlayers();
     const std::array<state::BulletState, MAX_BULLETS> &GetBullets();

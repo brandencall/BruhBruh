@@ -14,8 +14,17 @@ void GameSimulation::Initialize() {
 
 void GameSimulation::Update(float tickRate) {
     for (auto &player : m_players) {
-        if (!player.active || !player.alive)
+        if (!player.active)
             continue;
+
+        if (player.respawnTimer > 0.0f) {
+            player.respawnTimer -= tickRate;
+            if (player.respawnTimer <= 0.0f) {
+                player.respawnTimer = 0.0f;
+                RespawnPlayer(player);
+            }
+            continue; // skip movement/input while dead
+        }
 
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
         player.velocity = Vector2Scale(dir, player.speed);
@@ -25,6 +34,15 @@ void GameSimulation::Update(float tickRate) {
     }
 
     m_bulletSystem.Update(tickRate, m_players);
+}
+
+void GameSimulation::RespawnPlayer(state::PlayerState &player) {
+    const auto &def = GetCharacterDef(player.characterId);
+    player.health = def.maxHealth;
+    // TODO: Create a better respawn position based on other players positions and map bounds
+    player.position = m_map.spawnPoints[player.id];
+    player.velocity = {0, 0};
+    player.respawnTimer = 0.0f;
 }
 
 const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() { return m_bulletSystem.GetBullets(); }
@@ -37,7 +55,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
         return;
 
     state::PlayerState &player = m_players[playerId];
-    if (!player.active || !player.alive)
+    if (!player.active || player.respawnTimer > 0.0f)
         return;
 
     const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
@@ -64,7 +82,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                  .position = spawn,
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,
-                                 .alive = true,
+                                 .respawnTimer = 0.0f,
                                  .active = true};
     m_players[playerId] = player;
 }
@@ -74,6 +92,5 @@ void GameSimulation::RemovePlayer(uint32_t playerId) {
         return;
     state::PlayerState &player = m_players[playerId];
     player.id = UINT32_MAX;
-    player.alive = false;
     player.active = false;
 }

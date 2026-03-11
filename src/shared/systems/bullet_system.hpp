@@ -89,14 +89,14 @@ template <typename TBulletState> class BulletSystem {
             }
 
             for (auto &player : players) {
-                if (player.alive && bullet.ownerId != player.id &&
+                if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id &&
                     Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
                     player.health -= bullet.hitbox.damage;
                     if (player.health <= 0.0f) {
                         player.health = 0.0f;
-                        player.alive = false;
+                        player.respawnTimer = RESPAWN_TIME;
                         std::cout << "Player " << player.id << " has been killed!" << std::endl;
-                        m_deathEvents.emplace_back(player.id, player.characterId);
+                        m_deathEvents.emplace_back(player.id, player.characterId, player.respawnTimer);
                     }
                     bullet.active = false;
                     m_hitEvents.emplace_back(bullet.id, player.id, bullet.hitbox.circle.center);
