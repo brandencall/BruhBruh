@@ -33,7 +33,7 @@ System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { re
 
 void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId characterId,
                                 const state::PlayerInput &input) {
-    if (playerId < 0 || playerId > MAX_PLAYERS)
+    if (playerId > MAX_PLAYERS)
         return;
 
     state::PlayerState &player = m_players[playerId];
@@ -55,25 +55,25 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() { return m_players; }
 
 void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId) {
-    if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        const Character::CharacterDef &charDef = GetCharacterDef(characterId);
-        Vector2 spawn = m_map.spawnPoints[playerId];
-        state::PlayerState player = {.id = playerId,
-                                     .characterId = characterId,
-                                     .position = spawn,
-                                     .hurtbox = {.radius = charDef.hurtboxRadius},
-                                     .lastButtons = 0,
-                                     .alive = true,
-                                     .active = true};
-        m_players[playerId] = player;
-    }
+    if (playerId > MAX_PLAYERS)
+        return;
+    const Character::CharacterDef &charDef = GetCharacterDef(characterId);
+    Vector2 spawn = m_map.spawnPoints[playerId];
+    state::PlayerState player = {.id = playerId,
+                                 .characterId = characterId,
+                                 .position = spawn,
+                                 .hurtbox = {.radius = charDef.hurtboxRadius},
+                                 .lastButtons = 0,
+                                 .alive = true,
+                                 .active = true};
+    m_players[playerId] = player;
 }
 
 void GameSimulation::RemovePlayer(uint32_t playerId) {
-    if (playerId >= 0 && playerId < MAX_PLAYERS) {
-        state::PlayerState &player = m_players[playerId];
-        player.id = UINT32_MAX;
-        player.alive = false;
-        player.active = false;
-    }
+    if (playerId > MAX_PLAYERS)
+        return;
+    state::PlayerState &player = m_players[playerId];
+    player.id = UINT32_MAX;
+    player.alive = false;
+    player.active = false;
 }
