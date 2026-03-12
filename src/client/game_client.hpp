@@ -6,6 +6,7 @@
 #include "client_bullet_system.hpp"
 #include "map/map_types.hpp"
 #include "renderers/character_renderer.hpp"
+#include "ui/ui_manager.hpp"
 #include <cstddef>
 #include <cstdint>
 
@@ -50,7 +51,6 @@ class GameClient {
     static constexpr float m_sendInterval = 1.0f / 30.0f;
     float m_sendAccumulator = 0.0f;
     float m_joinRetryAccumulator = 0.0f;
-    int m_playerId = -1;
     Character::CharacterId m_characterId = Character::CharacterId::None;
     bool m_joined = false;
     bool m_running = false;
@@ -61,4 +61,5 @@ class GameClient {
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
     CharacterRenderer m_characterRender;
+    UI::UIManager m_ui;
 };

@@ -3,7 +3,7 @@
 #include "../shared/map/map_loader.hpp"
 #include "characters/character_roster.hpp"
 #include "characters/character_types.hpp"
-#include "raymath.h"
+#include "raylib.h"
 #include <cstdint>
 
 void GameSimulation::Initialize() {

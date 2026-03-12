@@ -1,6 +1,5 @@
 #pragma once
 #include "../components/hitbox.hpp"
-#include "raylib.h"
 #include <cstdint>
 #include <stdint.h>
 

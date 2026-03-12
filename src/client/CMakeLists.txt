@@ -5,6 +5,7 @@ add_library(client
 add_subdirectory(entities)
 add_subdirectory(systems)
 add_subdirectory(renderers)
+add_subdirectory(ui)
 
 target_include_directories(client
     PUBLIC
@@ -16,10 +17,7 @@ target_link_libraries(client
         entities
         client_systems
         renderers
+        ui
         raylib
-)
-
-target_link_libraries(client
-    PRIVATE
-       shared
+        shared
 )

@@ -6,7 +6,7 @@
 #include "../events.hpp"
 #include "../state/bullet_state.hpp"
 #include "../state/player_state.hpp"
-#include "raymath.h"
+#include "raylib.h"
 #include <array>
 #include <cstdint>
 #include <iostream>

@@ -4,7 +4,8 @@
 #include "characters/character_types.hpp"
 #include "client_transport.hpp"
 #include "raylib.h"
-#include "raymath.h"
+#include "state/player_state.hpp"
+#include "ui/screens/death_screen.hpp"
 #include <iostream>
 
 // This class will need to be split out once there are multiple scenes and not just the single Game scene
@@ -50,7 +51,7 @@ void GameClient::Connect(const char *ip, int port) { m_transport.connect(ip, por
 void GameClient::Disconnect() {
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
-    packet.playerId = m_playerId;
+    packet.playerId = m_worldState.m_currentPlayerId;
 
     m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
@@ -84,11 +85,14 @@ void GameClient::Update() {
 
     Sync(dt);
     m_bulletSystem.Update(dt, m_worldState.m_players);
+    m_ui.Update(dt);
 
     m_sendAccumulator += dt;
     if (m_sendAccumulator >= m_sendInterval) {
-        auto input = CollectInput();
-        m_transport.send(network::PEER_SERVER, &input, sizeof(input)); // ← transport
+        if (!m_ui.BlocksGameInput()) {
+            auto input = CollectInput();
+            m_transport.send(network::PEER_SERVER, &input, sizeof(input)); // ← transport
+        }
         m_sendAccumulator -= m_sendInterval;
     }
 
@@ -134,7 +138,7 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
         HandleBulletExpired(buffer);
         break;
     case network::PacketType::PlayerDied:
-        std::cout << "Player died packet recieved" << std::endl;
+        HandlePlayerDied(buffer);
     default:
         break;
     }
@@ -142,11 +146,10 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
 
 void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
-    m_playerId = response->playerId;
     m_characterId = response->characterId;
     m_joined = true;
     m_worldState.m_currentPlayerId = response->playerId;
-    std::cout << "Assigned Player ID: " << m_playerId << "\n";
+    std::cout << "Assigned Player ID: " << response->playerId << "\n";
     std::cout << "Assigned characterId: " << static_cast<int>(m_characterId) << "\n";
 }
 
@@ -186,8 +189,9 @@ void GameClient::HandleBulletExpired(const char *buffer) {
 
 void GameClient::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
-    if (pkt->id == m_playerId) {
-        // show player died text/screen
+    if (pkt->id == m_worldState.m_currentPlayerId) {
+        const state::PlayerState &currentPlayer = m_worldState.m_serverState[pkt->id];
+        m_ui.Push(std::make_unique<UI::DeathScreen>(currentPlayer));
     }
     // TODO: spawn death effect
     m_worldState.m_serverState[pkt->id].respawnTimer = pkt->respawnTimer;
@@ -222,6 +226,8 @@ void GameClient::Render() {
     }
 
     EndMode2D();
+
+    m_ui.Render();
     EndDrawing();
 }
 
@@ -247,7 +253,7 @@ network::InputPacket GameClient::CollectInput() {
         return packet;
 
     packet.header.type = network::PacketType::Input;
-    packet.playerId = m_playerId;
+    packet.playerId = m_worldState.m_currentPlayerId;
     packet.characterId = m_characterId;
 
     float x = 0.0f;
@@ -275,7 +281,7 @@ network::InputPacket GameClient::CollectInput() {
     // Aim direction
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
 
-    auto serverIt = m_worldState.m_serverState.find(m_playerId);
+    auto serverIt = m_worldState.m_serverState.find(m_worldState.m_currentPlayerId);
     if (serverIt != m_worldState.m_serverState.end()) {
         // Use server position for aim calculation to match where server will spawn bullet
         Vector2 playerPos = {serverIt->second.position.x, serverIt->second.position.y};
