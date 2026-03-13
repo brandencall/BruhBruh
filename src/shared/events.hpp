@@ -30,4 +30,10 @@ struct PlayerDiedEvent {
     float respawnTimer;
 };
 
+struct PlaceWallEvent {
+    Vector2 worldPos;
+    float maxHealth;
+    uint32_t ownerId;
+};
+
 } // namespace event

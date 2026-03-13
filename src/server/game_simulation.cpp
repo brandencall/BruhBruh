@@ -8,7 +8,7 @@
 
 void GameSimulation::Initialize() {
     m_players = {};
-    m_map = LoadMap(MAP_PATH);
+    m_map = Map::LoadMap(MAP_PATH);
     m_bulletSystem.SetMap(m_map);
 }
 
@@ -49,6 +49,8 @@ const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() 
 
 System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { return m_bulletSystem; }
 
+Map::WallManager &GameSimulation::GetWallManager() { return m_wallManager; }
+
 void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId characterId,
                                 const state::PlayerInput &input) {
     if (playerId > MAX_PLAYERS)
@@ -64,6 +66,19 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     if (shootNow && !shootPrev) {
         Vector2 aimDir = {input.aimX, input.aimY};
         m_bulletSystem.Spawn(player.id, player.position, aimDir, charDef);
+    }
+    bool placeNow = input.buttons & (1 << 1);
+    bool placePrev = player.lastButtons & (1 << 1);
+    if (placeNow && !placePrev) {
+        Vector2 worldPos = {input.aimX, input.aimY};
+        bool placedWall = m_wallManager.PlaceWall(worldPos, playerId, 100, m_map.walls, m_players);
+        if (placedWall) {
+            std::cout << "Player " << playerId << " placed a wall at position (" << worldPos.x << ", " << worldPos.y
+                      << ")." << std::endl;
+        } else {
+            std::cout << "Player " << playerId << " failed to place a wall at position (" << worldPos.x << ", "
+                      << worldPos.y << ")." << std::endl;
+        }
     }
 
     player.currentInput = input;

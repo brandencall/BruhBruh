@@ -30,7 +30,7 @@ class GameClient {
     void Render();
 
     // TODO: Make a renderer instead of having the game client handle this
-    void DrawMap(const MapData &map);
+    void DrawMap(const Map::MapData &map);
 
     void Receive();
     void HandlePacket(char *buffer, size_t size);

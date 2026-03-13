@@ -22,6 +22,8 @@ SPAWN 0  100  100
 SPAWN 1  700  500
 */
 
+namespace Map {
+
 inline MapData LoadMap(const std::string &path) {
     MapData map;
     std::ifstream file(path);
@@ -49,3 +51,5 @@ inline MapData LoadMap(const std::string &path) {
     }
     return map;
 }
+
+} // namespace Map

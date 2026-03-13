@@ -3,6 +3,7 @@
 #include "characters/character_roster.hpp"
 #include "characters/character_types.hpp"
 #include "client_transport.hpp"
+#include "hud_screen.hpp"
 #include "raylib.h"
 #include "state/player_state.hpp"
 #include "ui/screens/death_screen.hpp"
@@ -24,11 +25,11 @@ void GameClient::Initialize() {
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
 
-    m_worldState.m_map = LoadMap(MAP_PATH);
+    m_worldState.m_map = Map::LoadMap(MAP_PATH);
     m_characterRender.Load();
 }
 
-void GameClient::DrawMap(const MapData &map) {
+void GameClient::DrawMap(const Map::MapData &map) {
     for (const auto &wall : map.walls) {
         float w = wall.max.x - wall.min.x;
         float h = wall.max.y - wall.min.y;
@@ -139,6 +140,10 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
         break;
     case network::PacketType::PlayerDied:
         HandlePlayerDied(buffer);
+        break;
+    case network::PacketType::PlaceWall:
+        std::cout << "Place wall event Received" << std::endl;
+        break;
     default:
         break;
     }
@@ -149,6 +154,8 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     m_characterId = response->characterId;
     m_joined = true;
     m_worldState.m_currentPlayerId = response->playerId;
+    const state::PlayerState &currentPlayer = m_worldState.m_serverState[response->playerId];
+    m_ui.Push(std::make_unique<UI::HudScreen>(currentPlayer));
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
     std::cout << "Assigned characterId: " << static_cast<int>(m_characterId) << "\n";
 }
@@ -274,6 +281,8 @@ network::InputPacket GameClient::CollectInput() {
     uint8_t buttons = 0;
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
         buttons |= 1 << 0; // shoot
+    if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+        buttons |= 1 << 1; // place_wall
 
     packet.buttons = buttons;
     packet.sequence = m_inputSequence++;
@@ -285,14 +294,17 @@ network::InputPacket GameClient::CollectInput() {
     if (serverIt != m_worldState.m_serverState.end()) {
         // Use server position for aim calculation to match where server will spawn bullet
         Vector2 playerPos = {serverIt->second.position.x, serverIt->second.position.y};
-        Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
 
-        packet.aimX = aimDir.x;
-        packet.aimY = aimDir.y;
-
-        // Client-side prediction: spawn bullet immediately on click
-        bool shootNow = buttons & (1 << 0);
-        bool shootPrev = m_lastButtons & (1 << 0);
+        if (buttons & (1 << 0)) {
+            // Send aim direction for shooting
+            Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
+            packet.aimX = aimDir.x;
+            packet.aimY = aimDir.y;
+        } else if (buttons & (1 << 1)) {
+            // Send raw world position for wall placement
+            packet.aimX = mouseWorld.x;
+            packet.aimY = mouseWorld.y;
+        }
     }
 
     m_lastButtons = buttons;

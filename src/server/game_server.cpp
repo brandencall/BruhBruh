@@ -40,6 +40,7 @@ void GameServer::UpdateSimulation(float tickRate) {
 
     PublishEvents();
     m_simulation.GetBulletSystem().clearEvents();
+    m_simulation.GetWallManager().clearEvents();
 
     DrainEvents();
     m_eventBus.clear();
@@ -53,6 +54,8 @@ void GameServer::PublishEvents() {
     for (const auto &e : m_simulation.GetBulletSystem().m_expireEvents)
         m_eventBus.publish(e);
     for (const auto &e : m_simulation.GetBulletSystem().m_deathEvents)
+        m_eventBus.publish(e);
+    for (const auto &e : m_simulation.GetWallManager().m_placeWallEvents)
         m_eventBus.publish(e);
 }
 
@@ -87,6 +90,14 @@ void GameServer::DrainEvents() {
         pkt.id = e.id;
         pkt.characterId = e.characterId;
         pkt.respawnTimer = e.respawnTimer;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+    m_eventBus.DrainPlaceWall([&](const event::PlaceWallEvent &e) {
+        network::PlaceWallPacket pkt{};
+        pkt.header.type = network::PacketType::PlaceWall;
+        pkt.worldPos = e.worldPos;
+        pkt.maxHealth = e.maxHealth;
+        pkt.ownerId = e.ownerId;
         BroadcastAll(&pkt, sizeof(pkt));
     });
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "../state/player_state.hpp"
+#include "hurtbox.hpp"
 #include "raymath.h"
 #include <algorithm>
 #include <vector>
@@ -16,13 +17,21 @@ struct Circle {
     float radius;
 };
 
-inline bool Overlap(Circle a, Circle b) {
+inline bool Overlap(const Circle &a, const Circle &b) {
     float dx = a.center.x - b.center.x, dy = a.center.y - b.center.y;
     float r = a.radius + b.radius;
     return dx * dx + dy * dy <= r * r;
 }
 
-inline bool Overlap(Circle circle, AABB aabb) {
+inline bool Overlap(const AABB &a, const AABB &b) {
+    if (a.max.x < b.min.x || a.min.x > b.max.x)
+        return false;
+    if (a.max.y < b.min.y || a.min.y > b.max.y)
+        return false;
+    return true;
+}
+
+inline bool Overlap(const Circle &circle, const AABB &aabb) {
     Vector2 closest = {Clamp(circle.center.x, aabb.min.x, aabb.max.x), Clamp(circle.center.y, aabb.min.y, aabb.max.y)};
 
     // Check if that closest point is within the circle's radius
@@ -33,6 +42,10 @@ inline bool Overlap(Circle circle, AABB aabb) {
 
 inline Circle GetHurtBox(state::PlayerState &player) {
     return {player.position.x, player.position.y, player.hurtbox.radius};
+}
+
+inline Circle HurtboxToCircle(Vector2 position, component::Hurtbox hurtbox) {
+    return Circle{.center = {position.x + hurtbox.offsetX, position.y + hurtbox.offsetY}, .radius = hurtbox.radius};
 }
 
 inline Vector2 resolveCircleAABB(Circle circle, const AABB &wall) {

@@ -5,6 +5,7 @@
 #include "../shared/systems/bullet_system.hpp"
 #include "characters/character_types.hpp"
 #include "map/map_types.hpp"
+#include "map/wall_manager.hpp"
 #include "state/bullet_state.hpp"
 #include <array>
 #include <stdint.h>
@@ -23,11 +24,13 @@ class GameSimulation {
     void RemovePlayer(uint32_t playerId);
 
     System::BulletSystem<state::BulletState> &GetBulletSystem();
+    Map::WallManager &GetWallManager();
 
   private:
-    MapData m_map;
+    Map::MapData m_map;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
     System::BulletSystem<state::BulletState> m_bulletSystem;
     std::vector<event::BulletSpawnEvent> m_bulletSpawnEvents;
     std::vector<event::BulletHitEvent> m_bulletHitEvents;
+    Map::WallManager m_wallManager;
 };

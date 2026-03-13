@@ -1,8 +1,8 @@
 #pragma once
 #include "../config.hpp"
-#include "../shared/state/bullet_state.hpp"
 #include "../shared/state/player_state.hpp"
 #include "characters/character_types.hpp"
+#include "map/wall_manager.hpp"
 #include <stdint.h>
 
 namespace network {
@@ -13,10 +13,19 @@ enum class PacketType : uint8_t {
     JoinResponse,
     Input,
     State,
+
     BulletSpawn,
     BulletHit,
     BulletExpired,
-    PlayerDied
+
+    PlayerDied,
+
+    PlaceWallRequest,
+    PlaceWallResponse,
+    PlaceWallDeny,
+    PlaceWall,
+    WallDamaged,
+    WallDestroyed
 };
 
 struct PacketHeader {
@@ -86,6 +95,13 @@ struct PlayerDiedPacket {
     uint32_t id;
     Character::CharacterId characterId;
     float respawnTimer;
+};
+
+struct PlaceWallPacket {
+    PacketHeader header;
+    Vector2 worldPos;
+    float maxHealth;
+    uint32_t ownerId;
 };
 
 } // namespace network

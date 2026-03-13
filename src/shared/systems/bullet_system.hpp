@@ -106,7 +106,7 @@ template <typename TBulletState> class BulletSystem {
         }
     }
 
-    void SetMap(const MapData &map) { m_map = &map; }
+    void SetMap(const Map::MapData &map) { m_map = &map; }
 
     virtual void Deactivate(uint32_t id) {
         int slot = GetSlot(id);
@@ -150,6 +150,6 @@ template <typename TBulletState> class BulletSystem {
     std::array<uint16_t, MAX_BULLETS> m_generations{}; // for stale ID detection
 
   private:
-    const MapData *m_map = nullptr;
+    const Map::MapData *m_map = nullptr;
 };
 } // namespace System
