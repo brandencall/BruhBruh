@@ -1,6 +1,8 @@
-#include "components/collision.hpp"
+#pragma once
+
+#include "../components/collision.hpp"
 #include "raylib.h"
-#include <math.h>
+#include <cmath>
 
 namespace Map {
 

@@ -21,8 +21,12 @@ class WallManager {
                    const std::array<state::PlayerState, MAX_PLAYERS> &players) {
         Vector2i gridPos = WorldToGrid(worldPos);
         if (CanPlaceWall(gridPos, staticWalls, players)) {
-            m_walls[gridPos] = DynamicWall{
-                .gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
+            m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
+                                           .health = health,
+                                           .maxHealth = health,
+                                           .ownerId = ownerId,
+                                           .collider = GridCellToAABB(gridPos),
+                                           .active = true};
             m_placeWallEvents.emplace_back(worldPos, health, ownerId);
 
             return true;
@@ -57,6 +61,13 @@ class WallManager {
         return true;
     };
 
+    // May want to make a client side wall manager and move this there
+    void PlaceWallFromServerEvent(Vector2 worldPos, float health, uint32_t ownerId) {
+        Vector2i gridPos = WorldToGrid(worldPos);
+        m_walls[gridPos] =
+            DynamicWall{.gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
+    }
+
     // Returns true if wall was destroyed
     bool DamageWall(Vector2i gridPos, float damage) { return false; }
 
@@ -65,6 +76,18 @@ class WallManager {
     const DynamicWall *GetWall(Vector2i gridPos) const { return nullptr; }
 
     const auto &GetAllWalls() const { return m_walls; }
+
+    auto &GetAllWalls() { return m_walls; }
+
+    const std::vector<Collision::AABB> GetColliders() const {
+        std::vector<Collision::AABB> colliders;
+        colliders.reserve(m_walls.size());
+        for (const auto &[gridPos, wall] : m_walls) {
+            if (wall.active)
+                colliders.push_back(wall.collider);
+        }
+        return colliders;
+    }
 
     void clearEvents() { m_placeWallEvents.clear(); }
 

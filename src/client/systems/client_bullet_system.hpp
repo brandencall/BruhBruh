@@ -9,7 +9,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
   public:
     void AssignId(int slot, uint32_t id);
-    void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players) override;
+    void Update(float dt);
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position) override;

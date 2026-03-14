@@ -5,6 +5,7 @@
 #include "characters/character_types.hpp"
 #include "client_bullet_system.hpp"
 #include "map/map_types.hpp"
+#include "map/wall_manager.hpp"
 #include "renderers/character_renderer.hpp"
 #include "ui/ui_manager.hpp"
 #include <cstddef>
@@ -36,10 +37,14 @@ class GameClient {
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
     void HandleStateResponse(const char *buffer, size_t size);
+    // Handle bullets events
     void HandleBulletSpawn(const char *buffer);
     void HandleBulletHit(const char *buffer);
     void HandleBulletExpired(const char *buffer);
+    // Handle player events
     void HandlePlayerDied(const char *buffer);
+    // Handle wall events
+    void HandlePlaceWall(const char *buffer);
 
     network::InputPacket CollectInput();
     void SendInput(network::InputPacket &packet);
@@ -56,10 +61,12 @@ class GameClient {
     bool m_running = false;
     uint32_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
+
     network::ClientTransport m_transport;
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
+    Map::WallManager m_wallManager;
     CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
 };

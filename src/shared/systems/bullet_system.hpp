@@ -4,12 +4,15 @@
 #include "../../shared/map/map_types.hpp"
 #include "../components/collision.hpp"
 #include "../events.hpp"
+#include "../map/dynamic_wall.hpp"
+#include "../map/wall_manager.hpp"
 #include "../state/bullet_state.hpp"
 #include "../state/player_state.hpp"
 #include "raylib.h"
 #include <array>
 #include <cstdint>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
 
 namespace System {
@@ -65,7 +68,8 @@ template <typename TBulletState> class BulletSystem {
         OnSpawn(m_bullets[slot], position);
     }
 
-    virtual void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players) {
+    void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
+                std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
         for (auto &bullet : m_bullets) {
             if (!bullet.active)
                 continue;
@@ -85,6 +89,23 @@ template <typename TBulletState> class BulletSystem {
                         Deactivate(bullet.id);
                         break;
                     }
+                }
+            }
+            for (auto &[_, wall] : dynamicWalls) {
+                if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
+                    Deactivate(bullet.id);
+                    // Gross looking
+                    if (wall.ownerId == bullet.ownerId)
+                        break;
+
+                    wall.health -= bullet.hitbox.damage;
+                    if (wall.health <= 0.0f) {
+                        wall.health = 0.0f;
+                        std::cout << "Dynamic Wall at (" << wall.gridPos.x << ", " << wall.gridPos.y
+                                  << ") has been destroyed!" << std::endl;
+                    }
+                    // Add wall destroy event
+                    break;
                 }
             }
 

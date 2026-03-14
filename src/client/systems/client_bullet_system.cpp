@@ -1,10 +1,9 @@
 #include "client_bullet_system.hpp"
 #include "raylib.h"
-#include <iostream>
 
 namespace System {
 
-void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players) {
+void ClientBulletSystem::Update(float dt) {
     for (auto &bullet : m_bullets) {
         if (!bullet.active)
             continue;

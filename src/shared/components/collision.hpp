@@ -24,9 +24,9 @@ inline bool Overlap(const Circle &a, const Circle &b) {
 }
 
 inline bool Overlap(const AABB &a, const AABB &b) {
-    if (a.max.x < b.min.x || a.min.x > b.max.x)
+    if (a.max.x <= b.min.x || a.min.x >= b.max.x)
         return false;
-    if (a.max.y < b.min.y || a.min.y > b.max.y)
+    if (a.max.y <= b.min.y || a.min.y >= b.max.y)
         return false;
     return true;
 }
@@ -87,4 +87,18 @@ inline Vector2 resolveCircleAABBList(Circle circle, const std::vector<AABB> &wal
     }
     return pos;
 }
+
+inline Vector2 resolveCircleAABBList(Circle circle, const std::vector<AABB> &listA, const std::vector<AABB> &listB) {
+    Vector2 pos = circle.center;
+    for (const auto &wall : listA) {
+        circle.center = pos;
+        pos = resolveCircleAABB(circle, wall);
+    }
+    for (const auto &wall : listB) {
+        circle.center = pos;
+        pos = resolveCircleAABB(circle, wall);
+    }
+    return pos;
+}
+
 } // namespace Collision

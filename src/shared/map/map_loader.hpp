@@ -1,5 +1,5 @@
-// shared/map/map_loader.hpp
 #pragma once
+
 #include "map_types.hpp"
 #include <fstream>
 #include <sstream>

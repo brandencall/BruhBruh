@@ -5,6 +5,7 @@
 #include "characters/character_types.hpp"
 #include "raylib.h"
 #include <cstdint>
+#include <iostream>
 
 void GameSimulation::Initialize() {
     m_players = {};
@@ -13,6 +14,8 @@ void GameSimulation::Initialize() {
 }
 
 void GameSimulation::Update(float tickRate) {
+
+    std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
     for (auto &player : m_players) {
         if (!player.active)
             continue;
@@ -30,10 +33,10 @@ void GameSimulation::Update(float tickRate) {
         player.velocity = Vector2Scale(dir, player.speed);
         player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
         Collision::Circle circle = {player.position, player.hurtbox.radius};
-        player.position = Collision::resolveCircleAABBList(circle, m_map.walls);
+        player.position = Collision::resolveCircleAABBList(circle, m_map.walls, dynamicColliders);
     }
 
-    m_bulletSystem.Update(tickRate, m_players);
+    m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
 }
 
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {

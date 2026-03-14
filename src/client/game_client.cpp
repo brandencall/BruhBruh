@@ -85,7 +85,7 @@ void GameClient::Update() {
     }
 
     Sync(dt);
-    m_bulletSystem.Update(dt, m_worldState.m_players);
+    m_bulletSystem.Update(dt);
     m_ui.Update(dt);
 
     m_sendAccumulator += dt;
@@ -142,7 +142,7 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
         HandlePlayerDied(buffer);
         break;
     case network::PacketType::PlaceWall:
-        std::cout << "Place wall event Received" << std::endl;
+        HandlePlaceWall(buffer);
         break;
     default:
         break;
@@ -205,12 +205,19 @@ void GameClient::HandlePlayerDied(const char *buffer) {
     m_worldState.m_serverState[pkt->id].health = 0;
 }
 
+void GameClient::HandlePlaceWall(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
+    std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->worldPos.x << ", " << pkt->worldPos.y << ")"
+              << std::endl;
+    m_wallManager.PlaceWallFromServerEvent(pkt->worldPos, pkt->maxHealth, pkt->ownerId);
+}
+
 void GameClient::Render() {
     BeginDrawing();
     ClearBackground(DARKGRAY);
     BeginMode2D(m_camera);
 
-    DrawDebugGrid();
+    // DrawDebugGrid();
     DrawMap(m_worldState.m_map);
 
     for (const auto &[id, player] : m_worldState.m_serverState) {
@@ -230,6 +237,20 @@ void GameClient::Render() {
         if (!bullet.active)
             continue;
         DrawCircleV(bullet.hitbox.circle.center, 4.0f, YELLOW);
+    }
+    for (const auto &[gridPos, wall] : m_wallManager.GetAllWalls()) {
+        if (!wall.active)
+            continue;
+
+        float x = gridPos.x * Map::GRID_CELL_SIZE;
+        float y = gridPos.y * Map::GRID_CELL_SIZE;
+
+        DrawRectangle(x, y, Map::GRID_CELL_SIZE, Map::GRID_CELL_SIZE, BROWN);
+        DrawRectangleLines(x, y, Map::GRID_CELL_SIZE, Map::GRID_CELL_SIZE, DARKBROWN);
+
+        // Health bar
+        // float healthPct = wall.health / wall.maxHealth;
+        // DrawRectangle(x, y - 8, Map::GRID_CELL_SIZE * healthPct, 4, GREEN);
     }
 
     EndMode2D();

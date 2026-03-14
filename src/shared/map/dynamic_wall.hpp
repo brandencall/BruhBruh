@@ -1,3 +1,6 @@
+#pragma once
+
+#include "../components/collision.hpp"
 #include "grid.hpp"
 #include <cstdint>
 
@@ -8,6 +11,7 @@ struct DynamicWall {
     float health;
     float maxHealth;
     uint32_t ownerId;
+    Collision::AABB collider;
     bool active = false;
 };
 
