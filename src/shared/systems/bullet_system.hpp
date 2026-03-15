@@ -103,8 +103,9 @@ template <typename TBulletState> class BulletSystem {
                         wall.health = 0.0f;
                         std::cout << "Dynamic Wall at (" << wall.gridPos.x << ", " << wall.gridPos.y
                                   << ") has been destroyed!" << std::endl;
+                        m_destroyWallEvents.emplace_back(wall.gridPos, wall.ownerId);
                     }
-                    // Add wall destroy event
+                    // Add wall damaged event
                     break;
                 }
             }
@@ -150,13 +151,18 @@ template <typename TBulletState> class BulletSystem {
         m_hitEvents.clear();
         m_expireEvents.clear();
         m_deathEvents.clear();
+        m_destroyWallEvents.clear();
     }
 
   public:
+    // Bullet events
     std::vector<event::BulletSpawnEvent> m_spawnEvents;
     std::vector<event::BulletHitEvent> m_hitEvents;
     std::vector<event::BulletExpireEvent> m_expireEvents;
+    // Player events
     std::vector<event::PlayerDiedEvent> m_deathEvents;
+    // Wall events
+    std::vector<event::DestroyWallEvent> m_destroyWallEvents;
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos) {}

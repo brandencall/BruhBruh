@@ -27,7 +27,7 @@ class WallManager {
                                            .ownerId = ownerId,
                                            .collider = GridCellToAABB(gridPos),
                                            .active = true};
-            m_placeWallEvents.emplace_back(worldPos, health, ownerId);
+            m_placeWallEvents.emplace_back(gridPos, health, ownerId);
 
             return true;
         }
@@ -62,8 +62,7 @@ class WallManager {
     };
 
     // May want to make a client side wall manager and move this there
-    void PlaceWallFromServerEvent(Vector2 worldPos, float health, uint32_t ownerId) {
-        Vector2i gridPos = WorldToGrid(worldPos);
+    void PlaceWallFromServerEvent(Map::Vector2i gridPos, float health, uint32_t ownerId) {
         m_walls[gridPos] =
             DynamicWall{.gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
     }
@@ -71,7 +70,11 @@ class WallManager {
     // Returns true if wall was destroyed
     bool DamageWall(Vector2i gridPos, float damage) { return false; }
 
-    void RemoveWall(Vector2i gridPos) {}
+    void RemoveWall(Vector2i gridPos) {
+        auto it = m_walls.find(gridPos);
+        if (it != m_walls.end())
+            m_walls.erase(it);
+    }
 
     const DynamicWall *GetWall(Vector2i gridPos) const { return nullptr; }
 

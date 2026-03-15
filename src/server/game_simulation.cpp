@@ -74,7 +74,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     bool placePrev = player.lastButtons & (1 << 1);
     if (placeNow && !placePrev) {
         Vector2 worldPos = {input.aimX, input.aimY};
-        bool placedWall = m_wallManager.PlaceWall(worldPos, playerId, 100, m_map.walls, m_players);
+        bool placedWall = m_wallManager.PlaceWall(worldPos, playerId, 10, m_map.walls, m_players);
         if (placedWall) {
             std::cout << "Player " << playerId << " placed a wall at position (" << worldPos.x << ", " << worldPos.y
                       << ")." << std::endl;

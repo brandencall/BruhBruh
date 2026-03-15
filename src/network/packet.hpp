@@ -1,8 +1,8 @@
 #pragma once
 #include "../config.hpp"
+#include "../shared/characters/character_types.hpp"
 #include "../shared/state/player_state.hpp"
-#include "characters/character_types.hpp"
-#include "map/wall_manager.hpp"
+#include "map/grid.hpp"
 #include <stdint.h>
 
 namespace network {
@@ -20,9 +20,6 @@ enum class PacketType : uint8_t {
 
     PlayerDied,
 
-    PlaceWallRequest,
-    PlaceWallResponse,
-    PlaceWallDeny,
     PlaceWall,
     WallDamaged,
     WallDestroyed
@@ -99,8 +96,14 @@ struct PlayerDiedPacket {
 
 struct PlaceWallPacket {
     PacketHeader header;
-    Vector2 worldPos;
+    Map::Vector2i gridPos;
     float maxHealth;
+    uint32_t ownerId;
+};
+
+struct WallDestroyedPacket {
+    PacketHeader header;
+    Map::Vector2i gridPos;
     uint32_t ownerId;
 };
 

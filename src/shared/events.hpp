@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../shared/map/grid.hpp"
 #include "characters/character_types.hpp"
 #include "raylib.h"
 #include <stdint.h>
@@ -31,8 +32,13 @@ struct PlayerDiedEvent {
 };
 
 struct PlaceWallEvent {
-    Vector2 worldPos;
+    Map::Vector2i gridPos;
     float maxHealth;
+    uint32_t ownerId;
+};
+
+struct DestroyWallEvent {
+    Map::Vector2i gridPos;
     uint32_t ownerId;
 };
 

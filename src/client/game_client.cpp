@@ -144,6 +144,9 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
     case network::PacketType::PlaceWall:
         HandlePlaceWall(buffer);
         break;
+    case network::PacketType::WallDestroyed:
+        HandleDestroyWall(buffer);
+        break;
     default:
         break;
     }
@@ -207,9 +210,14 @@ void GameClient::HandlePlayerDied(const char *buffer) {
 
 void GameClient::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
-    std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->worldPos.x << ", " << pkt->worldPos.y << ")"
+    std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->gridPos.x << ", " << pkt->gridPos.y << ")"
               << std::endl;
-    m_wallManager.PlaceWallFromServerEvent(pkt->worldPos, pkt->maxHealth, pkt->ownerId);
+    m_wallManager.PlaceWallFromServerEvent(pkt->gridPos, pkt->maxHealth, pkt->ownerId);
+}
+
+void GameClient::HandleDestroyWall(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
+    m_wallManager.RemoveWall(pkt->gridPos);
 }
 
 void GameClient::Render() {

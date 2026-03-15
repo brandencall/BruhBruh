@@ -15,6 +15,7 @@ class EventBus {
 
     // Wall Events
     void publish(const event::PlaceWallEvent &e) { m_placeWallEvents.push_back(e); }
+    void publish(const event::DestroyWallEvent &e) { m_destroyWallEvents.push_back(e); }
 
     // Drain bullet events
     template <typename Func> void DrainBulletSpawn(Func callback) {
@@ -41,6 +42,10 @@ class EventBus {
         for (const auto &e : m_placeWallEvents)
             callback(e);
     }
+    template <typename Func> void DrainDestroyWall(Func callback) {
+        for (const auto &e : m_destroyWallEvents)
+            callback(e);
+    }
 
     void clear() {
         m_bulletSpawnEvents.clear();
@@ -48,6 +53,7 @@ class EventBus {
         m_bulletExpireEvents.clear();
         m_playerDiedEvents.clear();
         m_placeWallEvents.clear();
+        m_destroyWallEvents.clear();
     }
 
   private:
@@ -61,4 +67,5 @@ class EventBus {
 
     // Wall Events
     std::vector<event::PlaceWallEvent> m_placeWallEvents;
+    std::vector<event::DestroyWallEvent> m_destroyWallEvents;
 };
