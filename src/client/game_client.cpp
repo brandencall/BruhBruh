@@ -18,6 +18,7 @@ GameClient::~GameClient() {
 }
 
 void GameClient::Initialize() {
+    RegisterHandlers();
     InitWindow(1280, 720, "BruhBruh");
     SetTargetFPS(60);
 
@@ -27,6 +28,17 @@ void GameClient::Initialize() {
 
     m_worldState.m_map = Map::LoadMap(MAP_PATH);
     m_characterRender.Load();
+}
+
+void GameClient::RegisterHandlers() {
+    m_handlers[network::PacketType::JoinResponse] = [this](const char *buf) { HandleJoinResponse(buf); };
+    m_handlers[network::PacketType::State] = [this](const char *buf) { HandleStateResponse(buf); };
+    m_handlers[network::PacketType::BulletSpawn] = [this](const char *buf) { HandleBulletSpawn(buf); };
+    m_handlers[network::PacketType::BulletHit] = [this](const char *buf) { HandleBulletHit(buf); };
+    m_handlers[network::PacketType::BulletExpired] = [this](const char *buf) { HandleBulletExpired(buf); };
+    m_handlers[network::PacketType::PlayerDied] = [this](const char *buf) { HandlePlayerDied(buf); };
+    m_handlers[network::PacketType::PlaceWall] = [this](const char *buf) { HandlePlaceWall(buf); };
+    m_handlers[network::PacketType::WallDestroyed] = [this](const char *buf) { HandleDestroyWall(buf); };
 }
 
 void GameClient::DrawMap(const Map::MapData &map) {
@@ -122,33 +134,9 @@ void GameClient::Receive() {
 void GameClient::HandlePacket(char *buffer, size_t size) {
     network::PacketHeader *header = (network::PacketHeader *)buffer;
 
-    switch (header->type) {
-    case network::PacketType::JoinResponse:
-        HandleJoinResponse(buffer);
-        break;
-    case network::PacketType::State:
-        HandleStateResponse(buffer, size);
-        break;
-    case network::PacketType::BulletSpawn:
-        HandleBulletSpawn(buffer);
-        break;
-    case network::PacketType::BulletHit:
-        HandleBulletHit(buffer);
-        break;
-    case network::PacketType::BulletExpired:
-        HandleBulletExpired(buffer);
-        break;
-    case network::PacketType::PlayerDied:
-        HandlePlayerDied(buffer);
-        break;
-    case network::PacketType::PlaceWall:
-        HandlePlaceWall(buffer);
-        break;
-    case network::PacketType::WallDestroyed:
-        HandleDestroyWall(buffer);
-        break;
-    default:
-        break;
+    auto it = m_handlers.find(header->type);
+    if (it != m_handlers.end()) {
+        it->second(buffer);
     }
 }
 
@@ -163,11 +151,7 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     std::cout << "Assigned characterId: " << static_cast<int>(m_characterId) << "\n";
 }
 
-void GameClient::HandleStateResponse(const char *buffer, size_t size) {
-    if (size < sizeof(network::PacketHeader) + sizeof(uint32_t) + sizeof(uint16_t)) {
-        std::cout << "State packet too small\n";
-        return;
-    }
+void GameClient::HandleStateResponse(const char *buffer) {
     auto *response = (network::StatePacket *)buffer;
     for (uint16_t i = 0; i < response->playerCount; ++i) {
         const auto &player = response->players[i];

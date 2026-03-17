@@ -10,10 +10,14 @@
 #include "ui/ui_manager.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <unordered_map>
 
 struct PredictedBullet {
     int localSlot;
 };
+
+using PacketHandler = std::function<void(const char *buffer)>;
 
 class GameClient {
   public:
@@ -23,6 +27,8 @@ class GameClient {
     void Start(const char *ip, int port);
 
   private:
+    void RegisterHandlers();
+
     void Disconnect();
     void Connect(const char *ip, int port);
     void SendJoin();
@@ -36,7 +42,7 @@ class GameClient {
     void Receive();
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
-    void HandleStateResponse(const char *buffer, size_t size);
+    void HandleStateResponse(const char *buffer);
     // Handle bullets events
     void HandleBulletSpawn(const char *buffer);
     void HandleBulletHit(const char *buffer);
@@ -63,6 +69,7 @@ class GameClient {
     uint32_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
 
+    std::unordered_map<network::PacketType, PacketHandler> m_handlers;
     network::ClientTransport m_transport;
     ClientWorldState m_worldState;
     Camera2D m_camera;
