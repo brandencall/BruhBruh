@@ -17,23 +17,15 @@ struct GridHash {
 
 class WallManager {
   public:
-    bool PlaceWall(Vector2 worldPos, uint32_t ownerId, float health, const std::vector<Collision::AABB> &staticWalls,
-                   const std::array<state::PlayerState, MAX_PLAYERS> &players) {
-        Vector2i gridPos = WorldToGrid(worldPos);
-        if (CanPlaceWall(gridPos, staticWalls, players)) {
-            m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
-                                           .health = health,
-                                           .maxHealth = health,
-                                           .ownerId = ownerId,
-                                           .collider = GridCellToAABB(gridPos),
-                                           .active = true};
-            m_placeWallEvents.emplace_back(gridPos, health, ownerId);
+    explicit WallManager(bool trackEvents = false) : m_trackEvents(trackEvents) {}
 
-            return true;
+    void PlaceWall(Map::Vector2i gridPos, float health, uint32_t ownerId) {
+        m_walls[gridPos] =
+            DynamicWall{.gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
+        if (m_trackEvents) {
+            m_placeWallEvents.emplace_back(gridPos, health, ownerId);
         }
-        // Add wall deny event (MAYBE??)
-        return false;
-    };
+    }
 
     bool CanPlaceWall(Vector2i gridPos, const std::vector<Collision::AABB> &staticWalls,
                       const std::array<state::PlayerState, MAX_PLAYERS> &players) const {
@@ -60,12 +52,6 @@ class WallManager {
         }
         return true;
     };
-
-    // May want to make a client side wall manager and move this there
-    void PlaceWallFromServerEvent(Map::Vector2i gridPos, float health, uint32_t ownerId) {
-        m_walls[gridPos] =
-            DynamicWall{.gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
-    }
 
     // Returns true if wall was destroyed
     bool DamageWall(Vector2i gridPos, float damage) { return false; }
@@ -98,6 +84,7 @@ class WallManager {
     std::vector<event::PlaceWallEvent> m_placeWallEvents;
 
   private:
+    bool m_trackEvents;
     std::unordered_map<Vector2i, DynamicWall, GridHash> m_walls;
 };
 

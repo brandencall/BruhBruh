@@ -1,5 +1,6 @@
 #include "game_simulation.hpp"
 #include "../config.hpp"
+#include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
 #include "characters/character_roster.hpp"
 #include "characters/character_types.hpp"
@@ -74,8 +75,9 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     bool placePrev = player.lastButtons & (1 << 1);
     if (placeNow && !placePrev) {
         Vector2 worldPos = {input.aimX, input.aimY};
-        bool placedWall = m_wallManager.PlaceWall(worldPos, playerId, 10, m_map.walls, m_players);
-        if (placedWall) {
+        Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
+        if (m_wallManager.CanPlaceWall(gridPos, m_map.walls, m_players)) {
+            m_wallManager.PlaceWall(gridPos, 20, playerId);
             std::cout << "Player " << playerId << " placed a wall at position (" << worldPos.x << ", " << worldPos.y
                       << ")." << std::endl;
         } else {

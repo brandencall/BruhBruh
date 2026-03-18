@@ -74,7 +74,7 @@ class GameClient {
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
-    Map::WallManager m_wallManager;
+    Map::WallManager m_wallManager{false};
     CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
 };

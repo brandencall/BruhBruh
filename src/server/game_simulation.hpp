@@ -32,5 +32,5 @@ class GameSimulation {
     System::BulletSystem<state::BulletState> m_bulletSystem;
     std::vector<event::BulletSpawnEvent> m_bulletSpawnEvents;
     std::vector<event::BulletHitEvent> m_bulletHitEvents;
-    Map::WallManager m_wallManager;
+    Map::WallManager m_wallManager{true};
 };

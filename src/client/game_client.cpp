@@ -196,7 +196,7 @@ void GameClient::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
     std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->gridPos.x << ", " << pkt->gridPos.y << ")"
               << std::endl;
-    m_wallManager.PlaceWallFromServerEvent(pkt->gridPos, pkt->maxHealth, pkt->ownerId);
+    m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->ownerId);
 }
 
 void GameClient::HandleDestroyWall(const char *buffer) {
