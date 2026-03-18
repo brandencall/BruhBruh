@@ -101,6 +101,13 @@ struct PlaceWallPacket {
     uint32_t ownerId;
 };
 
+struct WallDamagedPacket {
+    PacketHeader header;
+    Map::Vector2i gridPos;
+    uint32_t ownerId;
+    float currentHealth;
+};
+
 struct WallDestroyedPacket {
     PacketHeader header;
     Map::Vector2i gridPos;

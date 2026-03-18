@@ -3,6 +3,7 @@
 #include "../../config.hpp"
 #include "../components/collision.hpp"
 #include "../events.hpp"
+#include "./grid.hpp"
 #include "dynamic_wall.hpp"
 #include <array>
 #include <unordered_map>
@@ -20,8 +21,12 @@ class WallManager {
     explicit WallManager(bool trackEvents = false) : m_trackEvents(trackEvents) {}
 
     void PlaceWall(Map::Vector2i gridPos, float health, uint32_t ownerId) {
-        m_walls[gridPos] =
-            DynamicWall{.gridPos = gridPos, .health = health, .maxHealth = health, .ownerId = ownerId, .active = true};
+        m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
+                                       .health = health,
+                                       .maxHealth = health,
+                                       .ownerId = ownerId,
+                                       .collider = GridCellToAABB(gridPos),
+                                       .active = true};
         if (m_trackEvents) {
             m_placeWallEvents.emplace_back(gridPos, health, ownerId);
         }
@@ -52,6 +57,12 @@ class WallManager {
         }
         return true;
     };
+
+    void UpdateWallHealth(Vector2i gridPos, float currentHealth) {
+        if (m_walls.find(gridPos) != m_walls.end()) {
+            m_walls[gridPos].health = currentHealth;
+        }
+    }
 
     // Returns true if wall was destroyed
     bool DamageWall(Vector2i gridPos, float damage) { return false; }

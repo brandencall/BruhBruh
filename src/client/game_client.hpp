@@ -51,6 +51,7 @@ class GameClient {
     void HandlePlayerDied(const char *buffer);
     // Handle wall events
     void HandlePlaceWall(const char *buffer);
+    void HandleWallDamaged(const char *buffer);
     void HandleDestroyWall(const char *buffer);
 
     network::InputPacket CollectInput();

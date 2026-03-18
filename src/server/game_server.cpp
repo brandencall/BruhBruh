@@ -62,6 +62,8 @@ void GameServer::PublishEvents() {
     // Wall events
     for (const auto &e : m_simulation.GetWallManager().m_placeWallEvents)
         m_eventBus.publish(e);
+    for (const auto &e : m_simulation.GetBulletSystem().m_damageWallEvents)
+        m_eventBus.publish(e);
     for (const auto &e : m_simulation.GetBulletSystem().m_destroyWallEvents)
         m_eventBus.publish(e);
 }
@@ -105,6 +107,14 @@ void GameServer::DrainEvents() {
         pkt.gridPos = e.gridPos;
         pkt.maxHealth = e.maxHealth;
         pkt.ownerId = e.ownerId;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+    m_eventBus.DrainDamageWall([&](const event::DamageWallEvent &e) {
+        network::WallDamagedPacket pkt{};
+        pkt.header.type = network::PacketType::WallDamaged;
+        pkt.gridPos = e.gridPos;
+        pkt.ownerId = e.ownerId;
+        pkt.currentHealth = e.currentHealth;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     m_eventBus.DrainDestroyWall([&](const event::DestroyWallEvent &e) {

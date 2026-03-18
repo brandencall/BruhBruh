@@ -38,6 +38,7 @@ void GameClient::RegisterHandlers() {
     m_handlers[network::PacketType::BulletExpired] = [this](const char *buf) { HandleBulletExpired(buf); };
     m_handlers[network::PacketType::PlayerDied] = [this](const char *buf) { HandlePlayerDied(buf); };
     m_handlers[network::PacketType::PlaceWall] = [this](const char *buf) { HandlePlaceWall(buf); };
+    m_handlers[network::PacketType::WallDamaged] = [this](const char *buf) { HandleWallDamaged(buf); };
     m_handlers[network::PacketType::WallDestroyed] = [this](const char *buf) { HandleDestroyWall(buf); };
 }
 
@@ -197,6 +198,12 @@ void GameClient::HandlePlaceWall(const char *buffer) {
     std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->gridPos.x << ", " << pkt->gridPos.y << ")"
               << std::endl;
     m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->ownerId);
+}
+
+void GameClient::HandleWallDamaged(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::WallDamagedPacket *>(buffer);
+    std::cout << "Wall was damaged. Current health: " << pkt->currentHealth << std::endl;
+    m_wallManager.UpdateWallHealth(pkt->gridPos, pkt->currentHealth);
 }
 
 void GameClient::HandleDestroyWall(const char *buffer) {

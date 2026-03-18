@@ -42,4 +42,10 @@ struct DestroyWallEvent {
     uint32_t ownerId;
 };
 
+struct DamageWallEvent {
+    Map::Vector2i gridPos;
+    uint32_t ownerId;
+    float currentHealth;
+};
+
 } // namespace event
