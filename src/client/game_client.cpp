@@ -35,6 +35,7 @@ void GameClient::RegisterHandlers() {
     m_handlers[network::PacketType::State] = [this](const char *buf) { HandleStateResponse(buf); };
     m_handlers[network::PacketType::BulletSpawn] = [this](const char *buf) { HandleBulletSpawn(buf); };
     m_handlers[network::PacketType::BulletDestroyed] = [this](const char *buf) { HandleBulletDestroyed(buf); };
+    m_handlers[network::PacketType::PlayerRespawned] = [this](const char *buf) { HandlePlayerRespawned(buf); };
     m_handlers[network::PacketType::PlayerDamaged] = [this](const char *buf) { HandlePlayerDamaged(buf); };
     m_handlers[network::PacketType::PlayerDied] = [this](const char *buf) { HandlePlayerDied(buf); };
     m_handlers[network::PacketType::PlaceWall] = [this](const char *buf) { HandlePlaceWall(buf); };
@@ -128,9 +129,7 @@ void GameClient::Sync(float dt) {
         return;
 
     Vector2 smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
-
     if (!m_cameraReady) {
-        // Snap both the render position and camera on the first valid frame
         m_characterRender.SnapToPosition(it->second);
         smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
         m_camera.target = smoothedPos;
@@ -163,8 +162,7 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_characterId = response->characterId;
     m_worldState.m_currentPlayerId = response->playerId;
-    const state::PlayerState &currentPlayer = m_worldState.m_serverState[response->playerId];
-    m_ui.Push(std::make_unique<UI::HudScreen>(currentPlayer));
+    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_serverState[response->playerId]));
     m_joined = true;
     m_cameraReady = false;
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
@@ -189,6 +187,13 @@ void GameClient::HandleBulletSpawn(const char *buffer) {
 void GameClient::HandleBulletDestroyed(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
     m_bulletSystem.Deactivate(pkt->bulletId);
+}
+
+void GameClient::HandlePlayerRespawned(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PlayerRespawnedPacket *>(buffer);
+    m_worldState.m_serverState[pkt->player.id] = pkt->player;
+    m_characterRender.SnapToPosition(pkt->player);
+    m_cameraReady = false;
 }
 
 void GameClient::HandlePlayerDamaged(const char *buffer) {
@@ -234,9 +239,9 @@ void GameClient::Render() {
     DrawMap(m_worldState.m_map);
 
     for (const auto &[id, player] : m_worldState.m_serverState) {
-        if (player.respawnTimer > 0.0f) {
+        if (player.respawnTimer > 0.0f)
             continue;
-        }
+
         m_characterRender.Draw(player);
 
         // Use lerped position so hurtbox stays on the sprite

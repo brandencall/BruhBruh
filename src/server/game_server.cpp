@@ -59,6 +59,12 @@ void GameServer::DrainEvents() {
         pkt.bulletId = e.bulletId;
         BroadcastAll(&pkt, sizeof(pkt));
     });
+    m_eventBus.DrainPlayerRespawn([&](const event::PlayerRespawnEvent &e) {
+        network::PlayerRespawnedPacket pkt{};
+        pkt.header.type = network::PacketType::PlayerRespawned;
+        pkt.player = e.player;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
     m_eventBus.DrainPlayerDamaged([&](const event::PlayerDamagedEvent &e) {
         network::PlayerDamagedPacket pkt{};
         pkt.header.type = network::PacketType::PlayerDamaged;

@@ -3,6 +3,7 @@
 #include "../shared/map/grid.hpp"
 #include "characters/character_types.hpp"
 #include "raylib.h"
+#include "state/player_state.hpp"
 #include <stdint.h>
 
 namespace event {
@@ -17,6 +18,10 @@ struct BulletSpawnEvent {
 
 struct BulletDestroyedEvent {
     uint32_t bulletId;
+};
+
+struct PlayerRespawnEvent {
+    state::PlayerState player;
 };
 
 struct PlayerDamagedEvent {

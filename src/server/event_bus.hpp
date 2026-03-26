@@ -10,6 +10,7 @@ class EventBus {
     void publish(const event::BulletDestroyedEvent &e) { m_bulletDestroyedEvents.push_back(e); }
 
     // Player Events
+    void publish(const event::PlayerRespawnEvent &e) { m_playerRespawnEvents.push_back(e); }
     void publish(const event::PlayerDamagedEvent &e) { m_playerDamagedEvents.push_back(e); }
     void publish(const event::PlayerDiedEvent &e) { m_playerDiedEvents.push_back(e); }
 
@@ -29,6 +30,10 @@ class EventBus {
     }
 
     // Drain player events
+    template <typename Func> void DrainPlayerRespawn(Func callback) {
+        for (const auto &e : m_playerRespawnEvents)
+            callback(e);
+    }
     template <typename Func> void DrainPlayerDamaged(Func callback) {
         for (const auto &e : m_playerDamagedEvents)
             callback(e);
@@ -55,6 +60,8 @@ class EventBus {
     void clear() {
         m_bulletSpawnEvents.clear();
         m_bulletDestroyedEvents.clear();
+        m_playerRespawnEvents.clear();
+        m_playerDamagedEvents.clear();
         m_playerDiedEvents.clear();
         m_placeWallEvents.clear();
         m_damageWallEvents.clear();
@@ -67,6 +74,7 @@ class EventBus {
     std::vector<event::BulletDestroyedEvent> m_bulletDestroyedEvents;
 
     // Player Events
+    std::vector<event::PlayerRespawnEvent> m_playerRespawnEvents;
     std::vector<event::PlayerDamagedEvent> m_playerDamagedEvents;
     std::vector<event::PlayerDiedEvent> m_playerDiedEvents;
 

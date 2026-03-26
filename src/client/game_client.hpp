@@ -48,6 +48,7 @@ class GameClient {
     // void HandleBulletHit(const char *buffer);
     void HandleBulletDestroyed(const char *buffer);
     // Handle player events
+    void HandlePlayerRespawned(const char *buffer);
     void HandlePlayerDamaged(const char *buffer);
     void HandlePlayerDied(const char *buffer);
     // Handle wall events

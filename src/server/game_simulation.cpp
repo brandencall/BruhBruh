@@ -7,7 +7,6 @@
 #include "events.hpp"
 #include "raylib.h"
 #include <cstdint>
-#include <iostream>
 #include <sys/types.h>
 
 void GameSimulation::Initialize(EventBus &eventBus) {
@@ -93,6 +92,7 @@ void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     player.position = m_map.spawnPoints[player.id];
     player.velocity = {0, 0};
     player.respawnTimer = 0.0f;
+    m_eventBus->publish(event::PlayerRespawnEvent{player});
 }
 
 const std::array<state::BulletState, MAX_BULLETS> &GameSimulation::GetBullets() { return m_bulletSystem.GetBullets(); }
@@ -124,11 +124,6 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
         Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
         if (m_wallManager.CanPlaceWall(gridPos, m_map.walls, m_players)) {
             m_wallManager.PlaceWall(gridPos, 20, playerId);
-            std::cout << "Player " << playerId << " placed a wall at position (" << worldPos.x << ", " << worldPos.y
-                      << ")." << std::endl;
-        } else {
-            std::cout << "Player " << playerId << " failed to place a wall at position (" << worldPos.x << ", "
-                      << worldPos.y << ")." << std::endl;
         }
     }
 

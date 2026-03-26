@@ -2,7 +2,6 @@
 #include "../config.hpp"
 #include "../shared/characters/character_types.hpp"
 #include "../shared/state/player_state.hpp"
-#include "events.hpp"
 #include "map/grid.hpp"
 #include <stdint.h>
 
@@ -16,9 +15,9 @@ enum class PacketType : uint8_t {
     State,
 
     BulletSpawn,
-    // BulletHit,
     BulletDestroyed,
 
+    PlayerRespawned,
     PlayerDamaged,
     PlayerDied,
 
@@ -80,6 +79,11 @@ struct BulletSpawnPacket {
 struct BulletDestroyedPacket {
     PacketHeader header;
     uint32_t bulletId;
+};
+
+struct PlayerRespawnedPacket {
+    PacketHeader header;
+    state::PlayerState player;
 };
 
 struct PlayerDamagedPacket {
