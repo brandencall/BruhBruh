@@ -118,8 +118,26 @@ void GameClient::Sync(float dt) {
     for (const auto &[id, player] : m_worldState.m_serverState) {
         m_characterRender.Sync(player, dt);
     }
+
+    if (!m_joined)
+        return;
     // Sync Camera
+
+    auto it = m_worldState.m_serverState.find(m_worldState.m_currentPlayerId);
+    if (it == m_worldState.m_serverState.end())
+        return;
+
     Vector2 smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
+
+    if (!m_cameraReady) {
+        // Snap both the render position and camera on the first valid frame
+        m_characterRender.SnapToPosition(it->second);
+        smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
+        m_camera.target = smoothedPos;
+        m_cameraReady = true;
+        return;
+    }
+
     m_camera.target = Vector2Lerp(m_camera.target, smoothedPos, 5.0f * dt);
 }
 
@@ -144,10 +162,11 @@ void GameClient::HandlePacket(char *buffer, size_t size) {
 void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_characterId = response->characterId;
-    m_joined = true;
     m_worldState.m_currentPlayerId = response->playerId;
     const state::PlayerState &currentPlayer = m_worldState.m_serverState[response->playerId];
     m_ui.Push(std::make_unique<UI::HudScreen>(currentPlayer));
+    m_joined = true;
+    m_cameraReady = false;
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
     std::cout << "Assigned characterId: " << static_cast<int>(m_characterId) << "\n";
 }
@@ -156,10 +175,6 @@ void GameClient::HandleStateResponse(const char *buffer) {
     auto *response = (network::StatePacket *)buffer;
     for (uint16_t i = 0; i < response->playerCount; ++i) {
         const auto &player = response->players[i];
-        if (!m_worldState.m_serverState.contains(player.id)) {
-            m_characterRender.SnapToPosition(player);
-            m_camera.target = {player.position.x, player.position.y};
-        }
         m_worldState.m_serverState[player.id] = player;
     }
 }

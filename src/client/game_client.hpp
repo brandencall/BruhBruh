@@ -75,6 +75,7 @@ class GameClient {
     network::ClientTransport m_transport;
     ClientWorldState m_worldState;
     Camera2D m_camera;
+    bool m_cameraReady;
     System::ClientBulletSystem m_bulletSystem;
     Map::WallManager m_wallManager;
     CharacterRenderer m_characterRender;
