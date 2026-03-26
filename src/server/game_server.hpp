@@ -16,7 +16,6 @@ class GameServer {
 
   private:
     void UpdateSimulation(float dt);
-    void PublishEvents();
     void DrainEvents();
     void Receive();
     void BroadcastAll(const void *data, size_t size);

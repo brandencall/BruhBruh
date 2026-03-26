@@ -15,7 +15,7 @@ void GameServer::RunServer() {
     float accumulator = 0.0f;
 
     auto previousTime = std::chrono::steady_clock::now();
-    m_simulation.Initialize();
+    m_simulation.Initialize(m_eventBus);
 
     while (m_running) {
         auto now = std::chrono::steady_clock::now();
@@ -38,34 +38,8 @@ void GameServer::RunServer() {
 void GameServer::UpdateSimulation(float tickRate) {
     m_simulation.Update(tickRate);
 
-    PublishEvents();
-    m_simulation.GetBulletSystem().clearEvents();
-    m_simulation.GetWallManager().clearEvents();
-
     DrainEvents();
     m_eventBus.clear();
-}
-
-void GameServer::PublishEvents() {
-    // Bullet events
-    for (const auto &e : m_simulation.GetBulletSystem().m_spawnEvents)
-        m_eventBus.publish(e);
-    for (const auto &e : m_simulation.GetBulletSystem().m_hitEvents)
-        m_eventBus.publish(e);
-    for (const auto &e : m_simulation.GetBulletSystem().m_expireEvents)
-        m_eventBus.publish(e);
-
-    // Player events
-    for (const auto &e : m_simulation.GetBulletSystem().m_deathEvents)
-        m_eventBus.publish(e);
-
-    // Wall events
-    for (const auto &e : m_simulation.GetWallManager().m_placeWallEvents)
-        m_eventBus.publish(e);
-    for (const auto &e : m_simulation.GetBulletSystem().m_damageWallEvents)
-        m_eventBus.publish(e);
-    for (const auto &e : m_simulation.GetBulletSystem().m_destroyWallEvents)
-        m_eventBus.publish(e);
 }
 
 void GameServer::DrainEvents() {
@@ -79,18 +53,17 @@ void GameServer::DrainEvents() {
         pkt.velocity = e.velocity;
         BroadcastAll(&pkt, sizeof(pkt));
     });
-    m_eventBus.DrainBulletHit([&](const event::BulletHitEvent &e) {
-        network::BulletHitPacket pkt{};
-        pkt.header.type = network::PacketType::BulletHit;
+    m_eventBus.DrainBulletDestroyed([&](const event::BulletDestroyedEvent &e) {
+        network::BulletDestroyedPacket pkt{};
+        pkt.header.type = network::PacketType::BulletDestroyed;
         pkt.bulletId = e.bulletId;
-        pkt.victimId = e.victimId;
-        pkt.hitPosition = e.hitPosition;
         BroadcastAll(&pkt, sizeof(pkt));
     });
-    m_eventBus.DrainBulletExpire([&](const event::BulletExpireEvent &e) {
-        network::BulletExpirePacket pkt{};
-        pkt.header.type = network::PacketType::BulletExpired;
-        pkt.bulletId = e.bulletId;
+    m_eventBus.DrainPlayerDamaged([&](const event::PlayerDamagedEvent &e) {
+        network::PlayerDamagedPacket pkt{};
+        pkt.header.type = network::PacketType::PlayerDamaged;
+        pkt.id = e.id;
+        pkt.currentHealth = e.currentHealth;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     m_eventBus.DrainPlayerDeath([&](const event::PlayerDiedEvent &e) {
@@ -118,7 +91,6 @@ void GameServer::DrainEvents() {
         BroadcastAll(&pkt, sizeof(pkt));
     });
     m_eventBus.DrainDestroyWall([&](const event::DestroyWallEvent &e) {
-        m_simulation.GetWallManager().RemoveWall(e.gridPos);
         network::WallDestroyedPacket pkt{};
         pkt.header.type = network::PacketType::WallDestroyed;
         pkt.gridPos = e.gridPos;

@@ -2,10 +2,11 @@
 
 #include "../../config.hpp"
 #include "../components/collision.hpp"
-#include "../events.hpp"
 #include "./grid.hpp"
 #include "dynamic_wall.hpp"
 #include <array>
+#include <cstdint>
+#include <sys/types.h>
 #include <unordered_map>
 #include <vector>
 
@@ -18,7 +19,7 @@ struct GridHash {
 
 class WallManager {
   public:
-    explicit WallManager(bool trackEvents = false) : m_trackEvents(trackEvents) {}
+    WallManager() = default;
 
     void PlaceWall(Map::Vector2i gridPos, float health, uint32_t ownerId) {
         m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
@@ -27,9 +28,7 @@ class WallManager {
                                        .ownerId = ownerId,
                                        .collider = GridCellToAABB(gridPos),
                                        .active = true};
-        if (m_trackEvents) {
-            m_placeWallEvents.emplace_back(gridPos, health, ownerId);
-        }
+        OnWallPlaced(gridPos, health, ownerId);
     }
 
     bool CanPlaceWall(Vector2i gridPos, const std::vector<Collision::AABB> &staticWalls,
@@ -64,13 +63,27 @@ class WallManager {
         }
     }
 
-    // Returns true if wall was destroyed
-    bool DamageWall(Vector2i gridPos, float damage) { return false; }
+    // Returns true if it damaged the wall
+    bool DamageWall(Vector2i gridPos, float damage, uint32_t shooterId) {
+        if (m_walls.find(gridPos) == m_walls.end() || m_walls[gridPos].ownerId == shooterId)
+            return false;
 
-    void RemoveWall(Vector2i gridPos) {
+        DynamicWall &wall = m_walls[gridPos];
+        wall.health -= damage;
+        if (wall.health <= 0.0f) {
+            RemoveWall(gridPos, wall.ownerId);
+            return true;
+        }
+        OnWallDamaged(gridPos, wall.health, wall.ownerId);
+        return true;
+    }
+
+    void RemoveWall(Vector2i gridPos, uint32_t ownerId) {
         auto it = m_walls.find(gridPos);
-        if (it != m_walls.end())
+        if (it != m_walls.end()) {
             m_walls.erase(it);
+            OnWallDestroyed(gridPos, ownerId);
+        }
     }
 
     const DynamicWall *GetWall(Vector2i gridPos) const { return nullptr; }
@@ -89,13 +102,12 @@ class WallManager {
         return colliders;
     }
 
-    void clearEvents() { m_placeWallEvents.clear(); }
-
-  public:
-    std::vector<event::PlaceWallEvent> m_placeWallEvents;
+  protected:
+    virtual void OnWallPlaced(Map::Vector2i gridPos, float health, uint32_t ownerId) {}
+    virtual void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {}
+    virtual void OnWallDestroyed(Map::Vector2i gridPos, uint32_t ownerId) {}
 
   private:
-    bool m_trackEvents;
     std::unordered_map<Vector2i, DynamicWall, GridHash> m_walls;
 };
 

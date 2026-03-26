@@ -45,9 +45,10 @@ class GameClient {
     void HandleStateResponse(const char *buffer);
     // Handle bullets events
     void HandleBulletSpawn(const char *buffer);
-    void HandleBulletHit(const char *buffer);
-    void HandleBulletExpired(const char *buffer);
+    // void HandleBulletHit(const char *buffer);
+    void HandleBulletDestroyed(const char *buffer);
     // Handle player events
+    void HandlePlayerDamaged(const char *buffer);
     void HandlePlayerDied(const char *buffer);
     // Handle wall events
     void HandlePlaceWall(const char *buffer);
@@ -75,7 +76,7 @@ class GameClient {
     ClientWorldState m_worldState;
     Camera2D m_camera;
     System::ClientBulletSystem m_bulletSystem;
-    Map::WallManager m_wallManager{false};
+    Map::WallManager m_wallManager;
     CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
 };

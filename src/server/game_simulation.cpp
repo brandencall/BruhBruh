@@ -4,14 +4,60 @@
 #include "../shared/map/map_loader.hpp"
 #include "characters/character_roster.hpp"
 #include "characters/character_types.hpp"
+#include "events.hpp"
 #include "raylib.h"
 #include <cstdint>
 #include <iostream>
+#include <sys/types.h>
 
-void GameSimulation::Initialize() {
+void GameSimulation::Initialize(EventBus &eventBus) {
     m_players = {};
     m_map = Map::LoadMap(MAP_PATH);
+    m_eventBus = &eventBus;
+    SetupBulletSystem();
+    SetupWallManager();
+}
+
+void GameSimulation::SetupBulletSystem() {
+    m_bulletSystem.Initialize(*m_eventBus);
     m_bulletSystem.SetMap(m_map);
+
+    m_bulletSystem.SetOnWallHit([this](Map::Vector2i gridPos, float damage, uint32_t shooterId) {
+        m_wallManager.DamageWall(gridPos, damage, shooterId);
+    });
+
+    m_bulletSystem.SetOnPlayerHit([this](uint32_t playerId, float damage, uint32_t shooterId) {
+        auto &player = m_players[playerId];
+        player.health -= damage;
+        if (player.health <= 0.0f) {
+            player.health = 0.0f;
+            player.respawnTimer = RESPAWN_TIME;
+            m_eventBus->publish(event::PlayerDiedEvent{player.id, player.characterId, player.respawnTimer});
+            return;
+        }
+        m_eventBus->publish(event::PlayerDamagedEvent{player.id, player.health});
+    });
+
+    m_bulletSystem.SetOnBulletSpawn([this](uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
+                                           Vector2 position, Vector2 velocity) {
+        m_eventBus->publish(event::BulletSpawnEvent{bulletId, ownerId, characterId, position, velocity});
+    });
+    m_bulletSystem.SetOnBulletDestroyed(
+        [this](uint32_t bulletId) { m_eventBus->publish(event::BulletDestroyedEvent{bulletId}); });
+}
+
+void GameSimulation::SetupWallManager() {
+    m_wallManager.SetOnWallPlaced([this](Map::Vector2i gridPos, float health, uint32_t ownerId) {
+        m_eventBus->publish(event::PlaceWallEvent{gridPos, health, ownerId});
+    });
+
+    m_wallManager.SetOnWallDamaged([this](Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {
+        m_eventBus->publish(event::DamageWallEvent{gridPos, currentHealth, ownerId});
+    });
+
+    m_wallManager.SetOnWallDestroyed([this](Map::Vector2i gridPos, uint32_t ownerId) {
+        m_eventBus->publish(event::DestroyWallEvent{gridPos, ownerId});
+    });
 }
 
 void GameSimulation::Update(float tickRate) {

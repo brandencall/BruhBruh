@@ -3,7 +3,6 @@
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_types.hpp"
 #include "../components/collision.hpp"
-#include "../events.hpp"
 #include "../map/dynamic_wall.hpp"
 #include "../map/wall_manager.hpp"
 #include "../state/bullet_state.hpp"
@@ -11,9 +10,7 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
-#include <iostream>
 #include <unordered_map>
-#include <vector>
 
 namespace System {
 
@@ -35,7 +32,7 @@ template <typename TBulletState> class BulletSystem {
             Vector2 velocity = Vector2Scale(Vector2Normalize(direction), character.bullet.speed);
             InitBulletSlot(i, id, ownerId, position, velocity, character.bullet);
 
-            m_spawnEvents.emplace_back(m_bullets[i].id, ownerId, character.id, position, m_bullets[i].velocity);
+            OnBulletSpawn(m_bullets[i].id, ownerId, character.id, position, m_bullets[i].velocity);
             return i;
         }
         return -1;
@@ -94,20 +91,7 @@ template <typename TBulletState> class BulletSystem {
             for (auto &[_, wall] : dynamicWalls) {
                 if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
                     Deactivate(bullet.id);
-                    // Gross looking
-                    if (wall.ownerId == bullet.ownerId)
-                        break;
-
-                    wall.health -= bullet.hitbox.damage;
-                    if (wall.health <= 0.0f) {
-                        wall.health = 0.0f;
-                        std::cout << "Dynamic Wall at (" << wall.gridPos.x << ", " << wall.gridPos.y
-                                  << ") has been destroyed!" << std::endl;
-                        m_destroyWallEvents.emplace_back(wall.gridPos, wall.ownerId);
-                        break;
-                    }
-                    // Add wall damaged event
-                    m_damageWallEvents.emplace_back(wall.gridPos, wall.ownerId, wall.health);
+                    OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
                     break;
                 }
             }
@@ -115,16 +99,9 @@ template <typename TBulletState> class BulletSystem {
             for (auto &player : players) {
                 if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id &&
                     Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
-                    player.health -= bullet.hitbox.damage;
-                    if (player.health <= 0.0f) {
-                        player.health = 0.0f;
-                        player.respawnTimer = RESPAWN_TIME;
-                        std::cout << "Player " << player.id << " has been killed!" << std::endl;
-                        m_deathEvents.emplace_back(player.id, player.characterId, player.respawnTimer);
-                    }
-                    bullet.active = false;
-                    m_hitEvents.emplace_back(bullet.id, player.id, bullet.hitbox.circle.center);
-                    continue;
+                    Deactivate(bullet.id);
+                    OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+                    break;
                 }
             }
         }
@@ -136,7 +113,7 @@ template <typename TBulletState> class BulletSystem {
         int slot = GetSlot(id);
         if (slot >= 0 && slot < MAX_BULLETS) {
             m_bullets[slot].active = false;
-            m_expireEvents.emplace_back(id);
+            OnBulletDestroyed(id);
         }
     }
 
@@ -148,25 +125,12 @@ template <typename TBulletState> class BulletSystem {
         return &m_bullets[slot];
     }
 
-    void clearEvents() {
-        m_spawnEvents.clear();
-        m_hitEvents.clear();
-        m_expireEvents.clear();
-        m_deathEvents.clear();
-        m_destroyWallEvents.clear();
-        m_damageWallEvents.clear();
-    }
-
-  public:
-    // Bullet events
-    std::vector<event::BulletSpawnEvent> m_spawnEvents;
-    std::vector<event::BulletHitEvent> m_hitEvents;
-    std::vector<event::BulletExpireEvent> m_expireEvents;
-    // Player events
-    std::vector<event::PlayerDiedEvent> m_deathEvents;
-    // Wall events
-    std::vector<event::DestroyWallEvent> m_destroyWallEvents;
-    std::vector<event::DamageWallEvent> m_damageWallEvents;
+  protected:
+    virtual void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) {}
+    virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
+    virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
+                               Vector2 position, Vector2 velocity) {}
+    virtual void OnBulletDestroyed(uint32_t bulletId) {}
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos) {}

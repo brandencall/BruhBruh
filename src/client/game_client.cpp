@@ -34,8 +34,8 @@ void GameClient::RegisterHandlers() {
     m_handlers[network::PacketType::JoinResponse] = [this](const char *buf) { HandleJoinResponse(buf); };
     m_handlers[network::PacketType::State] = [this](const char *buf) { HandleStateResponse(buf); };
     m_handlers[network::PacketType::BulletSpawn] = [this](const char *buf) { HandleBulletSpawn(buf); };
-    m_handlers[network::PacketType::BulletHit] = [this](const char *buf) { HandleBulletHit(buf); };
-    m_handlers[network::PacketType::BulletExpired] = [this](const char *buf) { HandleBulletExpired(buf); };
+    m_handlers[network::PacketType::BulletDestroyed] = [this](const char *buf) { HandleBulletDestroyed(buf); };
+    m_handlers[network::PacketType::PlayerDamaged] = [this](const char *buf) { HandlePlayerDamaged(buf); };
     m_handlers[network::PacketType::PlayerDied] = [this](const char *buf) { HandlePlayerDied(buf); };
     m_handlers[network::PacketType::PlaceWall] = [this](const char *buf) { HandlePlaceWall(buf); };
     m_handlers[network::PacketType::WallDamaged] = [this](const char *buf) { HandleWallDamaged(buf); };
@@ -171,15 +171,14 @@ void GameClient::HandleBulletSpawn(const char *buffer) {
     m_bulletSystem.SpawnFromServerEvent(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, bullet);
 }
 
-void GameClient::HandleBulletHit(const char *buffer) {
-    auto *pkt = reinterpret_cast<const network::BulletHitPacket *>(buffer);
+void GameClient::HandleBulletDestroyed(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
     m_bulletSystem.Deactivate(pkt->bulletId);
-    // TODO: spawn hit effect at pkt->hitPosition
 }
 
-void GameClient::HandleBulletExpired(const char *buffer) {
-    auto *pkt = reinterpret_cast<const network::BulletExpirePacket *>(buffer);
-    m_bulletSystem.Deactivate(pkt->bulletId);
+void GameClient::HandlePlayerDamaged(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PlayerDamagedPacket *>(buffer);
+    m_worldState.m_serverState[pkt->id].health = pkt->currentHealth;
 }
 
 void GameClient::HandlePlayerDied(const char *buffer) {
@@ -208,7 +207,7 @@ void GameClient::HandleWallDamaged(const char *buffer) {
 
 void GameClient::HandleDestroyWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
-    m_wallManager.RemoveWall(pkt->gridPos);
+    m_wallManager.RemoveWall(pkt->gridPos, pkt->ownerId);
 }
 
 void GameClient::Render() {

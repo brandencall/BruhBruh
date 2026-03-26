@@ -15,14 +15,13 @@ struct BulletSpawnEvent {
     Vector2 velocity;
 };
 
-struct BulletHitEvent {
+struct BulletDestroyedEvent {
     uint32_t bulletId;
-    uint32_t victimId;
-    Vector2 hitPosition;
 };
 
-struct BulletExpireEvent {
-    uint32_t bulletId;
+struct PlayerDamagedEvent {
+    uint32_t id;
+    float currentHealth;
 };
 
 struct PlayerDiedEvent {
@@ -44,8 +43,8 @@ struct DestroyWallEvent {
 
 struct DamageWallEvent {
     Map::Vector2i gridPos;
-    uint32_t ownerId;
     float currentHealth;
+    uint32_t ownerId;
 };
 
 } // namespace event
