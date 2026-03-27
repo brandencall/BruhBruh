@@ -80,12 +80,6 @@ SPAWN 0    100  100
 SPAWN 1    700  500
 ```
 
-## Known Issues / TODO
-
-- Camera briefly snaps to a newly spawned player's position for other connected clients
-- Respawn should snap to spawn position instead of lerping from death position
-- Clients who join after a dynamic wall has been placed won't see it until the wall state is added to the state packet
-
 ## Tech Stack
 
 | Component | Technology |
