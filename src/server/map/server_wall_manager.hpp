@@ -1,6 +1,6 @@
 #pragma once
 
-#include "event_bus.hpp"
+#include "../event_bus.hpp"
 #include "map/grid.hpp"
 #include "map/wall_manager.hpp"
 #include <cstdint>

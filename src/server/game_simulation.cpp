@@ -131,7 +131,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     player.lastButtons = input.buttons;
 }
 
-const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() { return m_players; }
+const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() const { return m_players; }
 
 void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId) {
     if (playerId > MAX_PLAYERS)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../shared/characters/character_types.hpp"
 #include "../shared/network/ITransport.hpp"
 #include "platform_sockets.hpp"
 #include <cstdint>
@@ -10,6 +11,7 @@ struct ClientConnection {
     network::PeerId peerId;
     uint32_t playerId;
     bool active = false;
+    Character::CharacterId characterId;
 };
 
 class Client {

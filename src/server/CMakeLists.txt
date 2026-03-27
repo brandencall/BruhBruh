@@ -3,12 +3,15 @@ add_library(server
     game_simulation.cpp
 )
 
+add_subdirectory(network)
+
 target_include_directories(server
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_link_libraries(server
-    PRIVATE
+    PUBLIC 
+       server_network
        shared
 )

@@ -1,41 +1,29 @@
 #pragma once
-// TODO: move the ClientConnection out of here
-#include "../network/client.hpp"
-#include "../network/packet.hpp"
 #include "../server/server_transport.hpp"
 #include "event_bus.hpp"
 #include "game_simulation.hpp"
-#include <array>
+#include "network/client_registry.hpp"
+#include "network/packet_handler.hpp"
+#include "network/state_broadcaster.hpp"
 
 class GameServer {
   public:
-    GameServer() = default;
+    GameServer();
     void Start(int port);
     void RunServer();
     bool IsRunning();
 
   private:
-    void UpdateSimulation(float dt);
-    void DrainEvents();
+    void UpdateSimulation(float tickRate);
     void Receive();
-    void BroadcastAll(const void *data, size_t size);
-    void BroadcastState();
-    void BuildStatePacket();
-    void SendFullSnapshot(network::PeerId peerId); // ← PeerId not ClientConnection
 
-    void HandlePacket(char *buffer, size_t bytes, network::PeerId from); // ← PeerId
-    void HandleJoin(network::PeerId from);
-    void HandleDisconnect(char *buffer, network::PeerId from);
-    void HandleInput(char *buffer, size_t bytes, network::PeerId from);
-
-    network::ClientConnection *FindClientByPeer(network::PeerId peerId); // ← by PeerId
-
-  private:
     bool m_running = false;
     int m_tick = 0;
-    std::array<network::ClientConnection, MAX_PLAYERS> m_clients;
-    network::ServerTransport m_transport; // ← replaces m_server
+
+    network::ServerTransport m_transport;
+    network::ClientRegistry m_registry;
     EventBus m_eventBus;
     GameSimulation m_simulation;
-    network::StatePacket m_statePacket{};
+    network::StateBroadcaster m_broadcaster;
+    network::PacketHandler m_packetHandler;
 };
