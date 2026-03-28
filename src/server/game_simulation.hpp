@@ -28,6 +28,7 @@ class GameSimulation {
 
     System::BulletSystem<state::BulletState> &GetBulletSystem();
     Map::WallManager &GetWallManager();
+    const Map::WallManager &GetWallManager() const;
 
   private:
     Map::MapData m_map;

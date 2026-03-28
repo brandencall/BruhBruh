@@ -33,6 +33,7 @@ void GameClient::Initialize() {
 void GameClient::RegisterHandlers() {
     m_handlers[network::PacketType::JoinResponse] = [this](const char *buf) { HandleJoinResponse(buf); };
     m_handlers[network::PacketType::State] = [this](const char *buf) { HandleStateResponse(buf); };
+    m_handlers[network::PacketType::CurrentWorldState] = [this](const char *buf) { HandleCurrentWorldState(buf); };
     m_handlers[network::PacketType::BulletSpawn] = [this](const char *buf) { HandleBulletSpawn(buf); };
     m_handlers[network::PacketType::BulletDestroyed] = [this](const char *buf) { HandleBulletDestroyed(buf); };
     m_handlers[network::PacketType::PlayerRespawned] = [this](const char *buf) { HandlePlayerRespawned(buf); };
@@ -116,7 +117,7 @@ void GameClient::Update() {
 
 void GameClient::Sync(float dt) {
     // Sync players
-    for (const auto &[id, player] : m_worldState.m_serverState) {
+    for (const auto &player : m_worldState.m_players) {
         m_characterRender.Sync(player, dt);
     }
 
@@ -124,13 +125,12 @@ void GameClient::Sync(float dt) {
         return;
     // Sync Camera
 
-    auto it = m_worldState.m_serverState.find(m_worldState.m_currentPlayerId);
-    if (it == m_worldState.m_serverState.end())
+    if (m_worldState.m_currentPlayerId == -1)
         return;
 
     Vector2 smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
     if (!m_cameraReady) {
-        m_characterRender.SnapToPosition(it->second);
+        m_characterRender.SnapToPosition(m_worldState.m_players[m_worldState.m_currentPlayerId]);
         smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
         m_camera.target = smoothedPos;
         m_cameraReady = true;
@@ -162,7 +162,7 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_characterId = response->characterId;
     m_worldState.m_currentPlayerId = response->playerId;
-    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_serverState[response->playerId]));
+    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[response->playerId]));
     m_joined = true;
     m_cameraReady = false;
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
@@ -173,7 +173,23 @@ void GameClient::HandleStateResponse(const char *buffer) {
     auto *response = (network::StatePacket *)buffer;
     for (uint16_t i = 0; i < response->playerCount; ++i) {
         const auto &player = response->players[i];
-        m_worldState.m_serverState[player.id] = player;
+        m_worldState.m_players[player.id] = player;
+    }
+}
+
+void GameClient::HandleCurrentWorldState(const char *buffer) {
+    auto *response = (network::CurrentWorldStatePacket *)buffer;
+
+    std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> walls;
+    walls.reserve(response->wallCount);
+    for (uint16_t i = 0; i < response->wallCount; ++i) {
+        walls[response->walls[i].position] = response->walls[i].wall;
+    }
+    m_wallManager.SetWalls(std::move(walls));
+
+    for (uint16_t i = 0; i < response->playerCount; ++i) {
+        const auto &player = response->players[i];
+        m_worldState.m_players[player.id] = player;
     }
 }
 
@@ -191,25 +207,25 @@ void GameClient::HandleBulletDestroyed(const char *buffer) {
 
 void GameClient::HandlePlayerRespawned(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerRespawnedPacket *>(buffer);
-    m_worldState.m_serverState[pkt->player.id] = pkt->player;
+    m_worldState.m_players[pkt->player.id] = pkt->player;
     m_characterRender.SnapToPosition(pkt->player);
     m_cameraReady = false;
 }
 
 void GameClient::HandlePlayerDamaged(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDamagedPacket *>(buffer);
-    m_worldState.m_serverState[pkt->id].health = pkt->currentHealth;
+    m_worldState.m_players[pkt->id].health = pkt->currentHealth;
 }
 
 void GameClient::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
     if (pkt->id == m_worldState.m_currentPlayerId) {
-        const state::PlayerState &currentPlayer = m_worldState.m_serverState[pkt->id];
+        const state::PlayerState &currentPlayer = m_worldState.m_players[pkt->id];
         m_ui.Push(std::make_unique<UI::DeathScreen>(currentPlayer));
     }
     // TODO: spawn death effect
-    m_worldState.m_serverState[pkt->id].respawnTimer = pkt->respawnTimer;
-    m_worldState.m_serverState[pkt->id].health = 0;
+    m_worldState.m_players[pkt->id].respawnTimer = pkt->respawnTimer;
+    m_worldState.m_players[pkt->id].health = 0;
 }
 
 void GameClient::HandlePlaceWall(const char *buffer) {
@@ -238,7 +254,7 @@ void GameClient::Render() {
     // DrawDebugGrid();
     DrawMap(m_worldState.m_map);
 
-    for (const auto &[id, player] : m_worldState.m_serverState) {
+    for (const auto &player : m_worldState.m_players) {
         if (player.respawnTimer > 0.0f)
             continue;
 
@@ -329,10 +345,10 @@ network::InputPacket GameClient::CollectInput() {
     // Aim direction
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
 
-    auto serverIt = m_worldState.m_serverState.find(m_worldState.m_currentPlayerId);
-    if (serverIt != m_worldState.m_serverState.end()) {
+    if (m_worldState.m_currentPlayerId != -1) {
         // Use server position for aim calculation to match where server will spawn bullet
-        Vector2 playerPos = {serverIt->second.position.x, serverIt->second.position.y};
+        const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
+        Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
 
         if (buttons & (1 << 0)) {
             // Send aim direction for shooting

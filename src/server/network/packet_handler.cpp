@@ -41,7 +41,8 @@ void PacketHandler::OnJoin(network::PeerId from) {
 
     m_simulation.CreatePlayer(client->playerId, client->characterId);
     SendJoinResponse(from, client->playerId, client->characterId);
-    m_broadcaster.SendFullSnapshot(from, m_simulation);
+    m_broadcaster.SendCurrentWorldState(from, m_simulation);
+    // m_broadcaster.SendFullSnapshot(from, m_simulation);
 }
 
 void PacketHandler::OnDisconnect(char *buffer, network::PeerId from) {

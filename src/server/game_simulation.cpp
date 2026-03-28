@@ -101,6 +101,8 @@ System::BulletSystem<state::BulletState> &GameSimulation::GetBulletSystem() { re
 
 Map::WallManager &GameSimulation::GetWallManager() { return m_wallManager; }
 
+const Map::WallManager &GameSimulation::GetWallManager() const { return m_wallManager; }
+
 void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId characterId,
                                 const state::PlayerInput &input) {
     if (playerId > MAX_PLAYERS)

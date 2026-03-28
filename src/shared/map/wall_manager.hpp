@@ -86,6 +86,8 @@ class WallManager {
         }
     }
 
+    void SetWalls(std::unordered_map<Vector2i, DynamicWall, GridHash> walls) { m_walls = walls; }
+
     const DynamicWall *GetWall(Vector2i gridPos) const { return nullptr; }
 
     const auto &GetAllWalls() const { return m_walls; }

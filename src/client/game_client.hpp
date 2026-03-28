@@ -43,6 +43,7 @@ class GameClient {
     void HandlePacket(char *buffer, size_t size);
     void HandleJoinResponse(const char *buffer);
     void HandleStateResponse(const char *buffer);
+    void HandleCurrentWorldState(const char *buffer);
     // Handle bullets events
     void HandleBulletSpawn(const char *buffer);
     // void HandleBulletHit(const char *buffer);

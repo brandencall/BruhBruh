@@ -1,9 +1,13 @@
 #pragma once
 #include "../config.hpp"
 #include "../shared/characters/character_types.hpp"
+#include "../shared/map/dynamic_wall.hpp"
+#include "../shared/map/grid.hpp"
 #include "../shared/state/player_state.hpp"
 #include "map/grid.hpp"
+#include "map/wall_manager.hpp"
 #include <stdint.h>
+#include <unordered_map>
 
 namespace network {
 
@@ -13,6 +17,7 @@ enum class PacketType : uint8_t {
     JoinResponse,
     Input,
     State,
+    CurrentWorldState,
 
     BulletSpawn,
     BulletDestroyed,
@@ -63,6 +68,20 @@ struct InputPacket {
 struct StatePacket {
     PacketHeader header;
     uint32_t tick; // server tick number
+    uint16_t playerCount;
+    state::PlayerState players[MAX_PLAYERS];
+};
+
+struct WallEntry {
+    Map::Vector2i position;
+    Map::DynamicWall wall;
+};
+
+struct CurrentWorldStatePacket {
+    PacketHeader header;
+    uint32_t tick;
+    uint16_t wallCount;
+    WallEntry walls[MAX_WALLS];
     uint16_t playerCount;
     state::PlayerState players[MAX_PLAYERS];
 };
