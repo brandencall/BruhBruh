@@ -26,7 +26,10 @@ void GameClient::Initialize() {
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
 
-    m_worldState.m_map = Map::LoadMap(MAP_PATH);
+    Map::MapData mapData = Map::LoadMap(ACTIVE_MAP);
+    m_worldState.m_map = mapData;             // collision, if client needs it
+    m_worldState.m_tileMap = mapData.tileMap; // for the renderer
+    m_tilemapRenderer.Load(ACTIVE_MAP.tileset);
     m_characterRender.Load();
 }
 
@@ -253,6 +256,7 @@ void GameClient::Render() {
 
     // DrawDebugGrid();
     DrawMap(m_worldState.m_map);
+    m_tilemapRenderer.Draw(m_worldState.m_tileMap);
 
     for (const auto &player : m_worldState.m_players) {
         if (player.respawnTimer > 0.0f)

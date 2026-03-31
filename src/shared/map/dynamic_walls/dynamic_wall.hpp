@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../components/collision.hpp"
-#include "grid.hpp"
+#include "../../components/collision.hpp"
+#include "../grid.hpp"
 #include <cstdint>
 
 namespace Map {

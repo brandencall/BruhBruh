@@ -4,9 +4,10 @@
 #include "../state/world_state.hpp"
 #include "characters/character_types.hpp"
 #include "client_bullet_system.hpp"
+#include "map/dynamic_walls/wall_manager.hpp"
 #include "map/map_types.hpp"
-#include "map/wall_manager.hpp"
 #include "renderers/character_renderer.hpp"
+#include "tilemap_renderer.hpp"
 #include "ui/ui_manager.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -80,6 +81,7 @@ class GameClient {
     bool m_cameraReady;
     System::ClientBulletSystem m_bulletSystem;
     Map::WallManager m_wallManager;
-    CharacterRenderer m_characterRender;
+    Render::TilemapRenderer m_tilemapRenderer;
+    Render::CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
 };

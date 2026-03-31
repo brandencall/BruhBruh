@@ -1,13 +1,11 @@
 #pragma once
 #include "../config.hpp"
 #include "../shared/characters/character_types.hpp"
-#include "../shared/map/dynamic_wall.hpp"
+#include "../shared/map/dynamic_walls/dynamic_wall.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/state/player_state.hpp"
 #include "map/grid.hpp"
-#include "map/wall_manager.hpp"
 #include <stdint.h>
-#include <unordered_map>
 
 namespace network {
 

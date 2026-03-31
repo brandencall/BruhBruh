@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../event_bus.hpp"
+#include "map/dynamic_walls/wall_manager.hpp"
 #include "map/grid.hpp"
-#include "map/wall_manager.hpp"
 #include <cstdint>
 #include <functional>
 

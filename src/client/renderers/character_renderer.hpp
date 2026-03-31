@@ -6,6 +6,8 @@
 #include <map>
 #include <unordered_map>
 
+namespace Render {
+
 class CharacterRenderer {
   public:
     void Load();
@@ -20,3 +22,5 @@ class CharacterRenderer {
     std::map<uint32_t, Vector2> m_positions;
     std::map<uint32_t, Vector2> m_targetPosition;
 };
+
+} // namespace Render

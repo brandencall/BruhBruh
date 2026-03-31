@@ -2,6 +2,8 @@
 #include "raymath.h"
 #include <cstdint>
 
+namespace Render {
+
 void CharacterRenderer::Load() {
     m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/Tonts.png");
     m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/tmp/Chavz.png");
@@ -42,3 +44,5 @@ void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {
 }
 
 Vector2 CharacterRenderer::GetPosition(uint32_t playerId) { return m_positions[playerId]; }
+
+} // namespace Render

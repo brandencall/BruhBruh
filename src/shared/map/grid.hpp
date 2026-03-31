@@ -6,7 +6,7 @@
 
 namespace Map {
 
-constexpr int GRID_CELL_SIZE = 64; // matches your debug grid already
+constexpr int GRID_CELL_SIZE = 64;
 
 struct Vector2i {
     int x;

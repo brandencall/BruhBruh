@@ -4,9 +4,9 @@
 #include "../shared/systems/bullet_system.hpp"
 #include "characters/character_types.hpp"
 #include "event_bus.hpp"
+#include "map/dynamic_walls/wall_manager.hpp"
 #include "map/map_types.hpp"
 #include "map/server_wall_manager.hpp"
-#include "map/wall_manager.hpp"
 #include "state/bullet_state.hpp"
 #include "systems/server_bullet_system.hpp"
 #include <array>

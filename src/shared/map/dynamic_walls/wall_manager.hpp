@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../../config.hpp"
-#include "../components/collision.hpp"
-#include "./grid.hpp"
 #include "dynamic_wall.hpp"
 #include <array>
 #include <cstdint>

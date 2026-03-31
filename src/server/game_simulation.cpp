@@ -11,7 +11,7 @@
 
 void GameSimulation::Initialize(EventBus &eventBus) {
     m_players = {};
-    m_map = Map::LoadMap(MAP_PATH);
+    m_map = Map::LoadMap(ACTIVE_MAP);
     m_eventBus = &eventBus;
     SetupBulletSystem();
     SetupWallManager();
