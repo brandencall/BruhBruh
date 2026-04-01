@@ -2,7 +2,8 @@
 
 #include "../../config.hpp"
 #include "../../state/player_state.hpp"
-#include "dynamic_wall.hpp"
+#include "../dynamic_walls/dynamic_wall.hpp"
+#include "../grid.hpp"
 #include <array>
 #include <cstdint>
 #include <sys/types.h>
@@ -20,7 +21,7 @@ class WallManager {
   public:
     WallManager() = default;
 
-    void PlaceWall(Map::Vector2i gridPos, float health, const state::PlayerState &player) {
+    void PlaceWall(const Map::Vector2i &gridPos, float health, const state::PlayerState &player) {
         m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
                                        .health = health,
                                        .maxHealth = health,
@@ -30,7 +31,7 @@ class WallManager {
         OnWallPlaced(gridPos, health, player);
     }
 
-    bool CanPlaceWall(Vector2i gridPos, const std::vector<Collision::AABB> &staticWalls,
+    bool CanPlaceWall(const Vector2i &gridPos, const std::vector<Collision::AABB> &staticWalls,
                       const state::PlayerState currentPlayer,
                       const std::array<state::PlayerState, MAX_PLAYERS> &players) const {
 
@@ -57,14 +58,14 @@ class WallManager {
         return currentPlayer.currentAvaliableWalls > 0;
     };
 
-    void UpdateWallHealth(Vector2i gridPos, float currentHealth) {
+    void UpdateWallHealth(const Vector2i &gridPos, float currentHealth) {
         if (m_walls.find(gridPos) != m_walls.end()) {
             m_walls[gridPos].health = currentHealth;
         }
     }
 
     // Returns true if it damaged the wall
-    bool DamageWall(Vector2i gridPos, float damage, uint32_t shooterId) {
+    bool DamageWall(const Vector2i &gridPos, float damage, uint32_t shooterId) {
         if (m_walls.find(gridPos) == m_walls.end() || m_walls[gridPos].ownerId == shooterId)
             return false;
 
@@ -78,7 +79,7 @@ class WallManager {
         return true;
     }
 
-    void RemoveWall(Vector2i gridPos, uint32_t ownerId) {
+    void RemoveWall(const Vector2i &gridPos, uint32_t ownerId) {
         auto it = m_walls.find(gridPos);
         if (it != m_walls.end()) {
             m_walls.erase(it);
@@ -86,9 +87,15 @@ class WallManager {
         }
     }
 
-    void SetWalls(std::unordered_map<Vector2i, DynamicWall, GridHash> walls) { m_walls = walls; }
+    int GetOwnerId(const Vector2i &gridPos) {
+        auto it = m_walls.find(gridPos);
+        if (it != m_walls.end())
+            return -1;
 
-    const DynamicWall *GetWall(Vector2i gridPos) const { return nullptr; }
+        return it->second.ownerId;
+    }
+
+    void SetWalls(std::unordered_map<Vector2i, DynamicWall, GridHash> walls) { m_walls = walls; }
 
     const auto &GetAllWalls() const { return m_walls; }
 
