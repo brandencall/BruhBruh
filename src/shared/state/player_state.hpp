@@ -27,6 +27,7 @@ struct PlayerState {
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
     float respawnTimer = 0.0f;
+    uint32_t currentAvaliableWalls = 5;
     bool active = false;
 };
 } // namespace state

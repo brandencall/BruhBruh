@@ -120,7 +120,7 @@ struct PlaceWallPacket {
     PacketHeader header;
     Map::Vector2i gridPos;
     float maxHealth;
-    uint32_t ownerId;
+    state::PlayerState player;
 };
 
 struct WallDamagedPacket {

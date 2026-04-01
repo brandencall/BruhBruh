@@ -70,7 +70,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         pkt.header.type = network::PacketType::PlaceWall;
         pkt.gridPos = e.gridPos;
         pkt.maxHealth = e.maxHealth;
-        pkt.ownerId = e.ownerId;
+        pkt.player = e.player;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     eventBus.DrainDamageWall([&](const event::DamageWallEvent &e) {

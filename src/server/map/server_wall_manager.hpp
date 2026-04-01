@@ -3,6 +3,7 @@
 #include "../event_bus.hpp"
 #include "map/dynamic_walls/wall_manager.hpp"
 #include "map/grid.hpp"
+#include "state/player_state.hpp"
 #include <cstdint>
 #include <functional>
 
@@ -14,7 +15,7 @@ class ServerWallManager : public WallManager {
 
     void Initialize(EventBus &eventBus) { m_eventBus = &eventBus; }
 
-    void SetOnWallPlaced(std::function<void(Map::Vector2i, float, uint32_t)> callback) {
+    void SetOnWallPlaced(std::function<void(Map::Vector2i, float, const state::PlayerState &)> callback) {
         m_onWallPlaced = std::move(callback);
     }
 
@@ -27,9 +28,9 @@ class ServerWallManager : public WallManager {
     }
 
   protected:
-    void OnWallPlaced(Map::Vector2i gridPos, float health, uint32_t ownerId) override {
+    void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) override {
         if (m_onWallPlaced)
-            m_onWallPlaced(gridPos, health, ownerId);
+            m_onWallPlaced(gridPos, health, player);
     }
 
     void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) override {
@@ -45,7 +46,7 @@ class ServerWallManager : public WallManager {
   private:
     EventBus *m_eventBus = nullptr;
 
-    std::function<void(Map::Vector2i gridPos, float health, uint32_t ownerId)> m_onWallPlaced;
+    std::function<void(Map::Vector2i gridPos, float health, const state::PlayerState &player)> m_onWallPlaced;
     std::function<void(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId)> m_onWallDamaged;
     std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallDestroyed;
 };

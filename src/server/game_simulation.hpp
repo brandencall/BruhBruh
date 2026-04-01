@@ -5,6 +5,7 @@
 #include "characters/character_types.hpp"
 #include "event_bus.hpp"
 #include "map/dynamic_walls/wall_manager.hpp"
+#include "map/grid.hpp"
 #include "map/map_types.hpp"
 #include "map/server_wall_manager.hpp"
 #include "state/bullet_state.hpp"
@@ -29,6 +30,9 @@ class GameSimulation {
     System::BulletSystem<state::BulletState> &GetBulletSystem();
     Map::WallManager &GetWallManager();
     const Map::WallManager &GetWallManager() const;
+
+  private:
+    bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:
     Map::MapData m_map;

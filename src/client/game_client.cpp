@@ -242,9 +242,10 @@ void GameClient::HandlePlayerDied(const char *buffer) {
 
 void GameClient::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
-    std::cout << "Player " << pkt->ownerId << " placed a wall at (" << pkt->gridPos.x << ", " << pkt->gridPos.y << ")"
-              << std::endl;
-    m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->ownerId);
+    std::cout << "Player " << pkt->player.id << " placed a wall at (" << pkt->gridPos.x << ", " << pkt->gridPos.y << ")"
+              << ", Walls left: " << pkt->player.currentAvaliableWalls << std::endl;
+    m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->player);
+    m_worldState.m_players[pkt->player.id] = pkt->player;
 }
 
 void GameClient::HandleWallDamaged(const char *buffer) {

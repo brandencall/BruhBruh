@@ -6,7 +6,9 @@
 #include "characters/character_types.hpp"
 #include "events.hpp"
 #include "raylib.h"
+#include "state/player_state.hpp"
 #include <cstdint>
+#include <iostream>
 #include <sys/types.h>
 
 void GameSimulation::Initialize(EventBus &eventBus) {
@@ -46,8 +48,8 @@ void GameSimulation::SetupBulletSystem() {
 }
 
 void GameSimulation::SetupWallManager() {
-    m_wallManager.SetOnWallPlaced([this](Map::Vector2i gridPos, float health, uint32_t ownerId) {
-        m_eventBus->publish(event::PlaceWallEvent{gridPos, health, ownerId});
+    m_wallManager.SetOnWallPlaced([this](Map::Vector2i gridPos, float health, const state::PlayerState &player) {
+        m_eventBus->publish(event::PlaceWallEvent{gridPos, health, player});
     });
 
     m_wallManager.SetOnWallDamaged([this](Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {
@@ -124,13 +126,21 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     if (placeNow && !placePrev) {
         Vector2 worldPos = {input.aimX, input.aimY};
         Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
-        if (m_wallManager.CanPlaceWall(gridPos, m_map.walls, m_players)) {
-            m_wallManager.PlaceWall(gridPos, 20, playerId);
-        }
+        TryPlaceWall(player, gridPos);
     }
 
     player.currentInput = input;
     player.lastButtons = input.buttons;
+}
+
+bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos) {
+    if (m_wallManager.CanPlaceWall(gridPos, m_map.walls, player, m_players))
+        return false;
+
+    player.currentAvaliableWalls--;
+    m_wallManager.PlaceWall(gridPos, 20, player);
+    std::cout << "Current walls: " << player.currentAvaliableWalls << std::endl;
+    return true;
 }
 
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() const { return m_players; }
@@ -146,6 +156,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,
                                  .respawnTimer = 0.0f,
+                                 .currentAvaliableWalls = 5,
                                  .active = true};
     m_players[playerId] = player;
 }

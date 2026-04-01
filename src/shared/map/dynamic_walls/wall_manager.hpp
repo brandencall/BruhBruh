@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../config.hpp"
+#include "../../state/player_state.hpp"
 #include "dynamic_wall.hpp"
 #include <array>
 #include <cstdint>
@@ -19,17 +20,18 @@ class WallManager {
   public:
     WallManager() = default;
 
-    void PlaceWall(Map::Vector2i gridPos, float health, uint32_t ownerId) {
+    void PlaceWall(Map::Vector2i gridPos, float health, const state::PlayerState &player) {
         m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
                                        .health = health,
                                        .maxHealth = health,
-                                       .ownerId = ownerId,
+                                       .ownerId = player.id,
                                        .collider = GridCellToAABB(gridPos),
                                        .active = true};
-        OnWallPlaced(gridPos, health, ownerId);
+        OnWallPlaced(gridPos, health, player);
     }
 
     bool CanPlaceWall(Vector2i gridPos, const std::vector<Collision::AABB> &staticWalls,
+                      const state::PlayerState currentPlayer,
                       const std::array<state::PlayerState, MAX_PLAYERS> &players) const {
 
         Collision::AABB newWallAABB = GridCellToAABB(gridPos);
@@ -52,7 +54,7 @@ class WallManager {
                 return false;
             }
         }
-        return true;
+        return currentPlayer.currentAvaliableWalls > 0;
     };
 
     void UpdateWallHealth(Vector2i gridPos, float currentHealth) {
@@ -103,7 +105,7 @@ class WallManager {
     }
 
   protected:
-    virtual void OnWallPlaced(Map::Vector2i gridPos, float health, uint32_t ownerId) {}
+    virtual void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) {}
     virtual void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {}
     virtual void OnWallDestroyed(Map::Vector2i gridPos, uint32_t ownerId) {}
 

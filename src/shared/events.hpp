@@ -38,7 +38,7 @@ struct PlayerDiedEvent {
 struct PlaceWallEvent {
     Map::Vector2i gridPos;
     float maxHealth;
-    uint32_t ownerId;
+    state::PlayerState player;
 };
 
 struct DestroyWallEvent {
