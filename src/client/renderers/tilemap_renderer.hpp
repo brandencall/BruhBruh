@@ -18,7 +18,8 @@ class TilemapRenderer {
             for (int x = 0; x < map.width; x++) {
                 int tileId = static_cast<int>(map.At(x, y));
                 Rectangle src = m_tileset.GetSourceRect(tileId);
-                Rectangle dest = {x * S, y * S, S, S};
+                Rectangle dest = {(float)(x * Map::GRID_CELL_SIZE), (float)(y * Map::GRID_CELL_SIZE),
+                                  (float)Map::GRID_CELL_SIZE, (float)Map::GRID_CELL_SIZE};
                 DrawTexturePro(m_tileset.GetTexture(), src, dest, {0, 0}, 0.0f, WHITE);
             }
         }

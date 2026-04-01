@@ -20,9 +20,14 @@ GameClient::~GameClient() {
 void GameClient::Initialize() {
     RegisterHandlers();
     InitWindow(1280, 720, "BruhBruh");
-    SetTargetFPS(60);
+    SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
+    SetWindowState(FLAG_VSYNC_HINT);
+    if (GetFPS() == 0) {
+        int monitorHz = GetMonitorRefreshRate(GetCurrentMonitor());
+        SetTargetFPS(monitorHz > 0 ? monitorHz : 60);
+    }
 
-    m_camera.offset = {640, 360};
+    m_camera.offset = {std::round(1280 / 2.0f), std::round(720 / 2.0f)};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.0f;
 
@@ -140,7 +145,11 @@ void GameClient::Sync(float dt) {
         return;
     }
 
-    m_camera.target = Vector2Lerp(m_camera.target, smoothedPos, 5.0f * dt);
+    Vector2 smoothed = Vector2Lerp(m_camera.target, smoothedPos, 5.0f * dt);
+    m_camera.target = {
+        std::round(smoothed.x),
+        std::round(smoothed.y),
+    };
 }
 
 void GameClient::SetGameRunning(bool runningState) { m_running = runningState; }
@@ -294,6 +303,12 @@ void GameClient::Render() {
     EndMode2D();
 
     m_ui.Render();
+
+    int fps = (int)(1.0f / GetFrameTime());
+    std::string fpsText = std::to_string(fps) + " fps";
+    int textWidth = MeasureText(fpsText.c_str(), 20);
+    DrawText(fpsText.c_str(), 1280 - textWidth - 10, 10, 20, GREEN);
+
     EndDrawing();
 }
 
