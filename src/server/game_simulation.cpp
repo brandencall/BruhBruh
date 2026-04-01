@@ -126,13 +126,22 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     bool placeNow = input.buttons & (1 << 1);
     bool placePrev = player.lastButtons & (1 << 1);
     if (placeNow && !placePrev) {
-        Vector2 worldPos = {input.aimX, input.aimY};
-        Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
-        TryPlaceWall(player, gridPos);
+        HandleWallInput(player, input);
     }
 
     player.currentInput = input;
     player.lastButtons = input.buttons;
+}
+
+void GameSimulation::HandleWallInput(state::PlayerState &player, const state::PlayerInput &input) {
+    Vector2 worldPos = {input.aimX, input.aimY};
+    Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
+    if (!TryPlaceWall(player, gridPos)) {
+        int wallOwnerId = m_wallManager.GetOwnerId(gridPos);
+        if (wallOwnerId == player.id) {
+            m_wallManager.RemoveWall(gridPos, player.id);
+        }
+    }
 }
 
 bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos) {

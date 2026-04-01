@@ -81,15 +81,16 @@ class WallManager {
 
     void RemoveWall(const Vector2i &gridPos, uint32_t ownerId) {
         auto it = m_walls.find(gridPos);
-        if (it != m_walls.end()) {
-            m_walls.erase(it);
-            OnWallDestroyed(gridPos, ownerId);
-        }
+        if (it == m_walls.end())
+            return;
+
+        m_walls.erase(it);
+        OnWallDestroyed(gridPos, ownerId);
     }
 
     int GetOwnerId(const Vector2i &gridPos) {
         auto it = m_walls.find(gridPos);
-        if (it != m_walls.end())
+        if (it == m_walls.end())
             return -1;
 
         return it->second.ownerId;
