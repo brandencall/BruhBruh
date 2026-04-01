@@ -43,7 +43,7 @@ struct PlaceWallEvent {
 
 struct DestroyWallEvent {
     Map::Vector2i gridPos;
-    uint32_t ownerId;
+    state::PlayerState player;
 };
 
 struct DamageWallEvent {

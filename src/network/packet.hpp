@@ -133,7 +133,7 @@ struct WallDamagedPacket {
 struct WallDestroyedPacket {
     PacketHeader header;
     Map::Vector2i gridPos;
-    uint32_t ownerId;
+    state::PlayerState player;
 };
 
 } // namespace network

@@ -57,7 +57,9 @@ void GameSimulation::SetupWallManager() {
     });
 
     m_wallManager.SetOnWallDestroyed([this](Map::Vector2i gridPos, uint32_t ownerId) {
-        m_eventBus->publish(event::DestroyWallEvent{gridPos, ownerId});
+        state::PlayerState &player = m_players[ownerId];
+        player.currentAvaliableWalls++;
+        m_eventBus->publish(event::DestroyWallEvent{gridPos, player});
     });
 }
 
@@ -134,12 +136,11 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
 }
 
 bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos) {
-    if (m_wallManager.CanPlaceWall(gridPos, m_map.walls, player, m_players))
+    if (!m_wallManager.CanPlaceWall(gridPos, m_map.walls, player, m_players))
         return false;
 
     player.currentAvaliableWalls--;
     m_wallManager.PlaceWall(gridPos, 20, player);
-    std::cout << "Current walls: " << player.currentAvaliableWalls << std::endl;
     return true;
 }
 

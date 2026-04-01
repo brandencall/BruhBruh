@@ -85,7 +85,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         network::WallDestroyedPacket pkt{};
         pkt.header.type = network::PacketType::WallDestroyed;
         pkt.gridPos = e.gridPos;
-        pkt.ownerId = e.ownerId;
+        pkt.player = e.player;
         BroadcastAll(&pkt, sizeof(pkt));
     });
 }
