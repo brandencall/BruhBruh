@@ -231,13 +231,12 @@ void GameClient::HandlePlayerDamaged(const char *buffer) {
 
 void GameClient::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
-    if (pkt->id == m_worldState.m_currentPlayerId) {
-        const state::PlayerState &currentPlayer = m_worldState.m_players[pkt->id];
-        m_ui.Push(std::make_unique<UI::DeathScreen>(currentPlayer));
+    if (pkt->deadPlayer.id == m_worldState.m_currentPlayerId) {
+        m_ui.Push(std::make_unique<UI::DeathScreen>(pkt->deadPlayer));
     }
     // TODO: spawn death effect
-    m_worldState.m_players[pkt->id].respawnTimer = pkt->respawnTimer;
-    m_worldState.m_players[pkt->id].health = 0;
+    m_worldState.m_players[pkt->deadPlayer.id] = pkt->deadPlayer;
+    std::cout << "Player " << pkt->deadPlayer.id << " has died. Killed by: " << pkt->killer.id << std::endl;
 }
 
 void GameClient::HandlePlaceWall(const char *buffer) {

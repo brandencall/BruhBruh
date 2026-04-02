@@ -33,7 +33,8 @@ void GameSimulation::SetupBulletSystem() {
         if (player.health <= 0.0f) {
             player.health = 0.0f;
             player.respawnTimer = RESPAWN_TIME;
-            m_eventBus->publish(event::PlayerDiedEvent{player.id, player.characterId, player.respawnTimer});
+            auto &killer = m_players[shooterId];
+            m_eventBus->publish(event::PlayerDiedEvent{player, killer});
             return;
         }
         m_eventBus->publish(event::PlayerDamagedEvent{player.id, player.health});

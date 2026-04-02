@@ -60,9 +60,8 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
     eventBus.DrainPlayerDeath([&](const event::PlayerDiedEvent &e) {
         network::PlayerDiedPacket pkt{};
         pkt.header.type = network::PacketType::PlayerDied;
-        pkt.id = e.id;
-        pkt.characterId = e.characterId;
-        pkt.respawnTimer = e.respawnTimer;
+        pkt.deadPlayer = e.deadPlayer;
+        pkt.killer = e.killer;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     eventBus.DrainPlaceWall([&](const event::PlaceWallEvent &e) {

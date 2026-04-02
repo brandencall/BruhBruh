@@ -30,9 +30,8 @@ struct PlayerDamagedEvent {
 };
 
 struct PlayerDiedEvent {
-    uint32_t id;
-    Character::CharacterId characterId;
-    float respawnTimer;
+    state::PlayerState deadPlayer;
+    state::PlayerState killer;
 };
 
 struct PlaceWallEvent {
