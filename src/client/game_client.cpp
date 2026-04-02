@@ -232,7 +232,8 @@ void GameClient::HandlePlayerDamaged(const char *buffer) {
 void GameClient::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
     if (pkt->deadPlayer.id == m_worldState.m_currentPlayerId) {
-        m_ui.Push(std::make_unique<UI::DeathScreen>(pkt->deadPlayer));
+        const state::PlayerState &currentPlayer = m_worldState.m_players[pkt->deadPlayer.id];
+        m_ui.Push(std::make_unique<UI::DeathScreen>(currentPlayer));
     }
     // TODO: spawn death effect
     m_worldState.m_players[pkt->deadPlayer.id] = pkt->deadPlayer;
