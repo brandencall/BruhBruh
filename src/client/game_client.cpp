@@ -184,7 +184,8 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_characterId = response->characterId;
     m_worldState.m_currentPlayerId = response->playerId;
-    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[response->playerId], m_killFeed.GetFeed()));
+    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[response->playerId], m_killFeed.GetFeed(),
+                                              m_worldState.m_lobbyTime));
     m_joined = true;
     m_cameraReady = false;
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
@@ -197,6 +198,7 @@ void GameClient::HandleStateResponse(const char *buffer) {
         const auto &player = response->players[i];
         m_worldState.m_players[player.id] = player;
     }
+    m_worldState.m_lobbyTime = response->currentLobbyTime;
 }
 
 void GameClient::HandleCurrentWorldState(const char *buffer) {

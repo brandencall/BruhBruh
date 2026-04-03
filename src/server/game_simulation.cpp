@@ -93,6 +93,7 @@ void GameSimulation::Update(float tickRate) {
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
+    m_lobbyTime -= tickRate;
 }
 
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {
@@ -189,3 +190,5 @@ void GameSimulation::RemovePlayer(uint32_t playerId) {
     player.id = UINT32_MAX;
     player.active = false;
 }
+
+float GameSimulation::GetLobbyTime() const { return m_lobbyTime; }

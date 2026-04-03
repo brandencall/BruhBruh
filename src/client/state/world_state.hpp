@@ -11,6 +11,7 @@
 class ClientWorldState {
   public:
     uint32_t m_currentPlayerId = -1;
+    float m_lobbyTime = -1;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
     Map::MapData m_map;
     Map::TileMap m_tileMap;

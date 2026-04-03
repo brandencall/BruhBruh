@@ -1,13 +1,17 @@
 #include "hud_screen.hpp"
+#include "../../utils/text_utils.hpp"
+#include "raylib.h"
 #include <string>
 
 namespace UI {
 
-HudScreen::HudScreen(const state::PlayerState &localPlayer, const std::vector<System::Feed> &feed)
-    : m_localPlayer(localPlayer), m_feed(feed) {}
+HudScreen::HudScreen(const state::PlayerState &localPlayer, const std::vector<System::Feed> &feed,
+                     const float &lobbyTime)
+    : m_localPlayer(localPlayer), m_feed(feed), m_lobbyTime(lobbyTime) {}
 
 void HudScreen::Render() {
     int screenH = GetScreenHeight();
+    int screenW = GetScreenWidth();
     int padding = 10;
     int fontSize = 24;
     int gap = 20;
@@ -37,6 +41,10 @@ void HudScreen::Render() {
 
         DrawText(line.c_str(), padding, feedBaseY - ((int)m_feed.size() - 1 - i) * feedLineH, feedFontSize, color);
     }
+    int lobbyMins = (int)(m_lobbyTime / 60);
+    int lobbySeconds = (int)m_lobbyTime % 60;
+    std::string lobbyTime = "Time: " + std::to_string(lobbyMins) + ":" + std::to_string(lobbySeconds);
+    utils::DrawTextCentered(lobbyTime.c_str(), screenW * 0.5, 1 + padding, fontSize, RAYWHITE);
 }
 
 } // namespace UI

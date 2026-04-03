@@ -28,6 +28,8 @@ class GameSimulation {
     void CreatePlayer(uint32_t playerId, Character::CharacterId characterId);
     void RemovePlayer(uint32_t playerId);
 
+    float GetLobbyTime() const;
+
     System::BulletSystem<state::BulletState> &GetBulletSystem();
     Map::WallManager &GetWallManager();
     const Map::WallManager &GetWallManager() const;
@@ -37,6 +39,7 @@ class GameSimulation {
     bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:
+    float m_lobbyTime = 60 * 10;
     Map::MapData m_map;
     EventBus *m_eventBus = nullptr;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;

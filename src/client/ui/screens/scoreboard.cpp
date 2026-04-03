@@ -1,4 +1,5 @@
 #include "scoreboard.hpp"
+#include "../../utils/text_utils.hpp"
 #include "state/player_state.hpp"
 #include <algorithm>
 #include <string.h>
@@ -61,11 +62,6 @@ void Scoreboard::SortPlayerArray(state::PlayerState *sorted) {
               [](const state::PlayerState &a, const state::PlayerState &b) { return a.score.kills > b.score.kills; });
 }
 
-void Scoreboard::DrawTextCentered(const char *text, float cx, float y, int fontSize, Color color) {
-    int w = MeasureText(text, fontSize);
-    DrawText(text, (int)(cx - w * 0.5f), (int)y, fontSize, color);
-}
-
 void Scoreboard::DrawPanelBackground(float totalH, float panelX, float panelY) {
     DrawRectangleRounded({panelX, panelY, PANEL_W, totalH}, 0.04f, 8, C_PANEL_BG);
     DrawRectangleRoundedLines({panelX, panelY, PANEL_W, totalH}, 0.04f, 8, C_DIVIDER);
@@ -74,14 +70,14 @@ void Scoreboard::DrawPanelBackground(float totalH, float panelX, float panelY) {
 void Scoreboard::DrawTitleBar(float panelX, float panelY) {
     DrawRectangleRounded({panelX, panelY, PANEL_W, (float)TITLE_H}, 0.08f, 8, C_TITLE_BG);
     DrawRectangle((int)panelX, (int)(panelY + TITLE_H * 0.5f), (int)PANEL_W, TITLE_H / 2, C_TITLE_BG); // flatten bottom
-    DrawTextCentered("SCOREBOARD", panelX + PANEL_W * 0.5f, panelY + (TITLE_H - 14) * 0.5f, 14, C_TEXT_MAIN);
+    utils::DrawTextCentered("SCOREBOARD", panelX + PANEL_W * 0.5f, panelY + (TITLE_H - 14) * 0.5f, 14, C_TEXT_MAIN);
 }
 
 void Scoreboard::DrawHeaderRow(float panelX, float panelY, float headerY, float divY) {
     DrawRectangle((int)panelX, (int)headerY, (int)PANEL_W, HEADER_H, C_HEADER_BG);
     DrawText("PLAYER", (int)(panelX + COL_NAME_X), (int)(headerY + 10), 12, C_TEXT_HEAD);
-    DrawTextCentered("KILLS", panelX + COL_KILLS_X, headerY + 10, 12, C_TEXT_HEAD);
-    DrawTextCentered("DEATHS", panelX + COL_DEATHS_X, headerY + 10, 12, C_TEXT_HEAD);
+    utils::DrawTextCentered("KILLS", panelX + COL_KILLS_X, headerY + 10, 12, C_TEXT_HEAD);
+    utils::DrawTextCentered("DEATHS", panelX + COL_DEATHS_X, headerY + 10, 12, C_TEXT_HEAD);
     DrawLine((int)panelX, (int)divY, (int)(panelX + PANEL_W), (int)divY, C_DIVIDER);
 }
 
@@ -103,8 +99,9 @@ void Scoreboard::DrawPlayerRows(float panelX, float divY, state::PlayerState *so
             DrawText(sorted[i].name, (int)(panelX + COL_NAME_X), (int)textY, 13, nameColor);
 
             // Kills / Deaths
-            DrawTextCentered(TextFormat("%d", sorted[i].score.kills), panelX + COL_KILLS_X, textY, 13, C_KILLS);
-            DrawTextCentered(TextFormat("%d", sorted[i].score.deaths), panelX + COL_DEATHS_X, textY, 13, C_DEATHS);
+            utils::DrawTextCentered(TextFormat("%d", sorted[i].score.kills), panelX + COL_KILLS_X, textY, 13, C_KILLS);
+            utils::DrawTextCentered(TextFormat("%d", sorted[i].score.deaths), panelX + COL_DEATHS_X, textY, 13,
+                                    C_DEATHS);
         } else {
             // Empty slot
             DrawText("-", (int)(panelX + COL_NAME_X), (int)textY, 13, C_TEXT_RANK);

@@ -66,6 +66,7 @@ struct InputPacket {
 struct StatePacket {
     PacketHeader header;
     uint32_t tick; // server tick number
+    uint32_t currentLobbyTime;
     uint16_t playerCount;
     state::PlayerState players[MAX_PLAYERS];
 };

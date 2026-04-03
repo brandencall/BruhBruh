@@ -19,7 +19,6 @@ class Scoreboard : public UIScreen {
 
   private:
     void SortPlayerArray(state::PlayerState *sorted);
-    void DrawTextCentered(const char *text, float cx, float y, int fontSize, Color color);
     void DrawPanelBackground(float totalH, float panelX, float panelY);
     void DrawTitleBar(float panelX, float panelY);
     void DrawHeaderRow(float panelX, float panelY, float headerY, float divY);
