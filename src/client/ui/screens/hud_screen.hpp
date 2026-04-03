@@ -9,7 +9,7 @@ namespace UI {
 class HudScreen : public UIScreen {
   public:
     explicit HudScreen(const state::PlayerState &localPlayer, const std::vector<System::Feed> &feed,
-                       const float &lobbyTime);
+                       const float &gameTime);
 
     void Update(float dt) override {}
     void Render() override;
@@ -19,7 +19,7 @@ class HudScreen : public UIScreen {
   private:
     const state::PlayerState &m_localPlayer;
     const std::vector<System::Feed> &m_feed;
-    const float &m_lobbyTime;
+    const float &m_gameTime;
 };
 
 } // namespace UI

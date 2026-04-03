@@ -70,7 +70,6 @@ void GameSimulation::SetupWallManager() {
 }
 
 void GameSimulation::Update(float tickRate) {
-
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
     for (auto &player : m_players) {
         if (!player.active)
@@ -93,7 +92,7 @@ void GameSimulation::Update(float tickRate) {
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
-    m_lobbyTime -= tickRate;
+    m_gameTime -= tickRate;
 }
 
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {
@@ -191,4 +190,4 @@ void GameSimulation::RemovePlayer(uint32_t playerId) {
     player.active = false;
 }
 
-float GameSimulation::GetLobbyTime() const { return m_lobbyTime; }
+float GameSimulation::GetGameTime() const { return m_gameTime; }

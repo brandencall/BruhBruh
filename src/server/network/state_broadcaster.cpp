@@ -92,7 +92,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
 void StateBroadcaster::BuildStatePacket(const GameSimulation &sim, network::StatePacket &statePacket) {
     statePacket.header.type = network::PacketType::State;
     statePacket.tick = m_tick;
-    statePacket.currentLobbyTime = sim.GetLobbyTime();
+    statePacket.currentGameTime = sim.GetGameTime();
     statePacket.playerCount = BuildPlayerState(sim, statePacket.players);
 }
 
