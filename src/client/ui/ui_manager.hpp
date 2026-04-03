@@ -22,6 +22,14 @@ class UIManager {
     void Pop();
     void Clear();
 
+    template <typename T> bool HasScreenOfType() const {
+        for (const auto &screen : m_stack) {
+            if (dynamic_cast<const T *>(screen.get()) != nullptr)
+                return true;
+        }
+        return false;
+    }
+
     void Update(float dt);
     void Render();
 

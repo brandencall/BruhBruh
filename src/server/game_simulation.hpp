@@ -18,6 +18,7 @@ class GameSimulation {
     GameSimulation() = default;
     void Initialize(EventBus &eventBus);
     void SetupBulletSystem();
+    void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId);
     void SetupWallManager();
     void Update(float tickRate);
     void RespawnPlayer(state::PlayerState &player);

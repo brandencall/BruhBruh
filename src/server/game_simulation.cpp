@@ -8,7 +8,6 @@
 #include "raylib.h"
 #include "state/player_state.hpp"
 #include <cstdint>
-#include <iostream>
 #include <sys/types.h>
 
 void GameSimulation::Initialize(EventBus &eventBus) {
@@ -31,10 +30,7 @@ void GameSimulation::SetupBulletSystem() {
         auto &player = m_players[playerId];
         player.health -= damage;
         if (player.health <= 0.0f) {
-            player.health = 0.0f;
-            player.respawnTimer = RESPAWN_TIME;
-            auto &killer = m_players[shooterId];
-            m_eventBus->publish(event::PlayerDiedEvent{player, killer});
+            HandlePlayerDied(player, shooterId);
             return;
         }
         m_eventBus->publish(event::PlayerDamagedEvent{player.id, player.health});
@@ -46,6 +42,15 @@ void GameSimulation::SetupBulletSystem() {
     });
     m_bulletSystem.SetOnBulletDestroyed(
         [this](uint32_t bulletId) { m_eventBus->publish(event::BulletDestroyedEvent{bulletId}); });
+}
+
+void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {
+    player.health = 0.0f;
+    player.respawnTimer = RESPAWN_TIME;
+    auto &killer = m_players[shooterId];
+    player.score.deaths++;
+    killer.score.kills++;
+    m_eventBus->publish(event::PlayerDiedEvent{player, killer});
 }
 
 void GameSimulation::SetupWallManager() {

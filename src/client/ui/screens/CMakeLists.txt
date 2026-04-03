@@ -1,6 +1,7 @@
 add_library(screens
     death_screen.cpp
     hud_screen.cpp
+    scoreboard.cpp
 )
 
 target_include_directories(screens

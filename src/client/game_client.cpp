@@ -5,6 +5,7 @@
 #include "client_transport.hpp"
 #include "hud_screen.hpp"
 #include "raylib.h"
+#include "scoreboard.hpp"
 #include "state/player_state.hpp"
 #include "ui/screens/death_screen.hpp"
 #include <iostream>
@@ -119,8 +120,18 @@ void GameClient::Update() {
         }
         m_sendAccumulator -= m_sendInterval;
     }
+    HandleScoreboardInput();
 
     Render();
+}
+
+void GameClient::HandleScoreboardInput() {
+    bool tabDown = IsKeyDown(KEY_TAB);
+    bool scoreboardVisible = m_ui.HasScreenOfType<UI::Scoreboard>();
+
+    if (tabDown && !scoreboardVisible) {
+        m_ui.Push(std::make_unique<UI::Scoreboard>(m_worldState.m_players));
+    }
 }
 
 void GameClient::Sync(float dt) {

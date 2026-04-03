@@ -6,6 +6,12 @@
 #include <stdint.h>
 
 namespace state {
+
+struct PlayerScore {
+    uint8_t kills = 0;
+    uint8_t deaths = 0;
+};
+
 struct PlayerInput {
     float moveX;
     float moveY;
@@ -23,6 +29,7 @@ struct PlayerState {
     float speed = 300.0f;
     float health = 100;
     component::Hurtbox hurtbox;
+    PlayerScore score;
     PlayerInput currentInput;
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;

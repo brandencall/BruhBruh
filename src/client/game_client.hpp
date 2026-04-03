@@ -34,6 +34,7 @@ class GameClient {
     void Connect(const char *ip, int port);
     void SendJoin();
     void Update();
+    void HandleScoreboardInput();
     void Sync(float dt);
     void Render();
 
