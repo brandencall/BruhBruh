@@ -157,11 +157,9 @@ void GameClient::Sync(float dt) {
         return;
     }
 
-    Vector2 smoothed = Vector2Lerp(m_camera.target, smoothedPos, 5.0f * dt);
-    m_camera.target = {
-        std::round(smoothed.x),
-        std::round(smoothed.y),
-    };
+    float smoothFactor = 1.0f - std::exp(-5.0f * dt);
+    Vector2 smoothed = Vector2Lerp(m_camera.target, smoothedPos, smoothFactor);
+    m_camera.target = smoothed;
 }
 
 void GameClient::SetGameRunning(bool runningState) { m_running = runningState; }
@@ -271,10 +269,13 @@ void GameClient::HandleDestroyWall(const char *buffer) {
 
 void GameClient::Render() {
     BeginDrawing();
-    ClearBackground(DARKGRAY);
-    BeginMode2D(m_camera);
 
-    // DrawDebugGrid();
+    ClearBackground(DARKGRAY);
+    Camera2D renderCam = m_camera;
+    renderCam.target = {std::round(m_camera.target.x), std::round(m_camera.target.y)};
+    renderCam.offset = {std::round(m_camera.offset.x), std::round(m_camera.offset.y)};
+    BeginMode2D(renderCam);
+
     DrawMap(m_worldState.m_map);
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
 
@@ -321,22 +322,6 @@ void GameClient::Render() {
     DrawText(fpsText.c_str(), 1280 - textWidth - 10, 10, 20, GREEN);
 
     EndDrawing();
-}
-
-void GameClient::DrawDebugGrid() {
-    const int gridSize = 64;
-    const int gridCount = 50;
-
-    for (int x = -gridCount; x <= gridCount; x++) {
-        DrawLine(x * gridSize, -gridCount * gridSize, x * gridSize, gridCount * gridSize, Fade(LIGHTGRAY, 0.3f));
-    }
-
-    for (int y = -gridCount; y <= gridCount; y++) {
-        DrawLine(-gridCount * gridSize, y * gridSize, gridCount * gridSize, y * gridSize, Fade(LIGHTGRAY, 0.3f));
-    }
-
-    // Origin marker
-    DrawCircle(0, 0, 10, RED);
 }
 
 network::InputPacket GameClient::CollectInput() {

@@ -5,6 +5,7 @@
 
 namespace System {
 
+// Could add an emblem for each killer
 struct Feed {
     std::string killer;
     std::string victim;
