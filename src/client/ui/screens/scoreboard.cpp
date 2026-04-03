@@ -2,7 +2,6 @@
 #include "state/player_state.hpp"
 #include <algorithm>
 #include <string.h>
-#include <string>
 
 namespace UI {
 
@@ -101,8 +100,7 @@ void Scoreboard::DrawPlayerRows(float panelX, float divY, state::PlayerState *so
 
             // Name
             Color nameColor = (i == 0) ? C_TEXT_MAIN : C_TEXT_DIM;
-            // TODO: Update this to be the players name
-            DrawText(std::to_string(sorted[i].id).c_str(), (int)(panelX + COL_NAME_X), (int)textY, 13, nameColor);
+            DrawText(sorted[i].name, (int)(panelX + COL_NAME_X), (int)textY, 13, nameColor);
 
             // Kills / Deaths
             DrawTextCentered(TextFormat("%d", sorted[i].score.kills), panelX + COL_KILLS_X, textY, 13, C_KILLS);

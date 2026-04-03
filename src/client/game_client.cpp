@@ -110,6 +110,7 @@ void GameClient::Update() {
 
     Sync(dt);
     m_bulletSystem.Update(dt);
+    m_killFeed.Update(dt);
     m_ui.Update(dt);
 
     m_sendAccumulator += dt;
@@ -185,7 +186,7 @@ void GameClient::HandleJoinResponse(const char *buffer) {
     auto *response = (network::JoinResponsePacket *)buffer;
     m_characterId = response->characterId;
     m_worldState.m_currentPlayerId = response->playerId;
-    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[response->playerId]));
+    m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[response->playerId], m_killFeed.GetFeed()));
     m_joined = true;
     m_cameraReady = false;
     std::cout << "Assigned Player ID: " << response->playerId << "\n";
@@ -242,13 +243,13 @@ void GameClient::HandlePlayerDamaged(const char *buffer) {
 
 void GameClient::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
-    if (pkt->deadPlayer.id == m_worldState.m_currentPlayerId) {
-        const state::PlayerState &currentPlayer = m_worldState.m_players[pkt->deadPlayer.id];
+    if (pkt->victim.id == m_worldState.m_currentPlayerId) {
+        const state::PlayerState &currentPlayer = m_worldState.m_players[pkt->victim.id];
         m_ui.Push(std::make_unique<UI::DeathScreen>(currentPlayer));
     }
     // TODO: spawn death effect
-    m_worldState.m_players[pkt->deadPlayer.id] = pkt->deadPlayer;
-    std::cout << "Player " << pkt->deadPlayer.id << " has died. Killed by: " << pkt->killer.id << std::endl;
+    m_worldState.m_players[pkt->victim.id] = pkt->victim;
+    m_killFeed.Push(pkt->killer.name, pkt->victim.name);
 }
 
 void GameClient::HandlePlaceWall(const char *buffer) {

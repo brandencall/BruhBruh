@@ -111,7 +111,8 @@ struct PlayerDamagedPacket {
 
 struct PlayerDiedPacket {
     PacketHeader header;
-    state::PlayerState deadPlayer;
+    // Change this to victim
+    state::PlayerState victim;
     state::PlayerState killer;
 };
 

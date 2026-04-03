@@ -1,5 +1,6 @@
 add_library(client_systems
     client_bullet_system.cpp
+    kill_feed.cpp
 )
 
 target_include_directories(client_systems

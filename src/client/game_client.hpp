@@ -4,6 +4,7 @@
 #include "../state/world_state.hpp"
 #include "characters/character_types.hpp"
 #include "client_bullet_system.hpp"
+#include "kill_feed.hpp"
 #include "map/dynamic_walls/wall_manager.hpp"
 #include "map/map_types.hpp"
 #include "renderers/character_renderer.hpp"
@@ -81,6 +82,7 @@ class GameClient {
     Camera2D m_camera;
     bool m_cameraReady;
     System::ClientBulletSystem m_bulletSystem;
+    System::KillFeed m_killFeed;
     Map::WallManager m_wallManager;
     Render::TilemapRenderer m_tilemapRenderer;
     Render::CharacterRenderer m_characterRender;

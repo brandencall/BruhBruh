@@ -30,7 +30,7 @@ struct PlayerDamagedEvent {
 };
 
 struct PlayerDiedEvent {
-    state::PlayerState deadPlayer;
+    state::PlayerState victim;
     state::PlayerState killer;
 };
 

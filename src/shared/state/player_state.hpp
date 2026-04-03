@@ -1,4 +1,5 @@
 #pragma once
+#include "../../config.hpp"
 #include "../characters/character_types.hpp"
 #include "../components/hurtbox.hpp"
 #include "raylib.h"
@@ -24,6 +25,7 @@ struct PlayerInput {
 struct PlayerState {
     uint32_t id = UINT32_MAX;
     Character::CharacterId characterId = Character::CharacterId::None;
+    char name[MAX_PLAYER_NAME_LEN] = {};
     Vector2 position = {0, 0};
     Vector2 velocity = {0, 0};
     float speed = 300.0f;

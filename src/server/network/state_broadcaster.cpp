@@ -60,7 +60,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
     eventBus.DrainPlayerDeath([&](const event::PlayerDiedEvent &e) {
         network::PlayerDiedPacket pkt{};
         pkt.header.type = network::PacketType::PlayerDied;
-        pkt.deadPlayer = e.deadPlayer;
+        pkt.victim = e.victim;
         pkt.killer = e.killer;
         BroadcastAll(&pkt, sizeof(pkt));
     });

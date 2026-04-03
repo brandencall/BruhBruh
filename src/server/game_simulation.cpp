@@ -166,14 +166,19 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
         return;
     const Character::CharacterDef &charDef = GetCharacterDef(characterId);
     Vector2 spawn = m_map.spawnPoints[playerId];
+    const auto &def = GetCharacterDef(characterId);
     state::PlayerState player = {.id = playerId,
                                  .characterId = characterId,
                                  .position = spawn,
+                                 .speed = def.moveSpeed,
+                                 .health = def.maxHealth,
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,
                                  .respawnTimer = 0.0f,
                                  .currentAvaliableWalls = 5,
                                  .active = true};
+    // TODO: Take in the NAME on creation
+    snprintf(player.name, sizeof(player.name), "player[%u]", playerId);
     m_players[playerId] = player;
 }
 
