@@ -6,7 +6,6 @@
 #include "../ui/screens/hud_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
-#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler)
     : m_events(events), m_transport(transport), m_handler(handler) {}
@@ -238,7 +237,7 @@ void GameScene::DrawMap(const Map::MapData &map) {
 
 void GameScene::Render() {
 
-    if (!m_joined) {
+    if (!m_joined || !m_initialSnapDone) {
         RenderConnecting();
         return;
     }
