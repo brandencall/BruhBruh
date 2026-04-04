@@ -11,6 +11,7 @@ target_include_directories(screens
 
 target_link_libraries(screens
     PUBLIC
+        client_systems
         shared
         raylib
 )

@@ -4,7 +4,6 @@
 #include "../shared/map/dynamic_walls/dynamic_wall.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/state/player_state.hpp"
-#include "map/grid.hpp"
 #include <stdint.h>
 
 namespace network {

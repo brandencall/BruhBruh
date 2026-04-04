@@ -3,6 +3,7 @@ add_library(client
 )
 
 add_subdirectory(entities)
+add_subdirectory(scenes)
 add_subdirectory(systems)
 add_subdirectory(renderers)
 add_subdirectory(ui)
@@ -15,6 +16,7 @@ target_include_directories(client
 target_link_libraries(client
     PUBLIC
         entities
+        scenes
         client_systems
         renderers
         ui

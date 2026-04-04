@@ -5,9 +5,15 @@
 
 namespace UI {
 
-HudScreen::HudScreen(const state::PlayerState &localPlayer, const std::vector<System::Feed> &feed,
-                     const float &gameTime)
-    : m_localPlayer(localPlayer), m_feed(feed), m_gameTime(gameTime) {}
+HudScreen::HudScreen(const state::PlayerState &localPlayer, const float &gameTime, Client::EventHub &events)
+    : m_localPlayer(localPlayer), m_gameTime(gameTime), m_events(events) {
+    m_diedToken = events.playerDied.Subscribe(
+        [this](const event::PlayerDiedEvent &e) { m_killFeed.Push(e.killer.name, e.victim.name); });
+}
+
+HudScreen::~HudScreen() { m_events.playerDied.Unsubscribe(m_diedToken); }
+
+void HudScreen::Update(float dt) { m_killFeed.Update(dt); }
 
 void HudScreen::Render() {
     int screenH = GetScreenHeight();
@@ -30,16 +36,18 @@ void HudScreen::Render() {
     int feedLineH = feedFontSize + 6; // line height with a little breathing room
     int feedBaseY = screenH - fontSize - padding * 2 - feedLineH;
 
-    for (int i = (int)m_feed.size() - 1; i >= 0; i--) {
-        const auto &entry = m_feed[i];
+    const std::vector<System::Feed> feed = m_killFeed.GetFeed();
+
+    for (int i = (int)feed.size() - 1; i >= 0; i--) {
+        const auto &entry = feed[i];
         std::string line = entry.killer + " > " + entry.victim;
 
         // Fade older entries: newest = full white, oldest = ~40% opacity
-        float t = (m_feed.size() > 1) ? (float)(m_feed.size() - 1 - i) / (float)(m_feed.size() - 1) : 0.0f;
+        float t = (feed.size() > 1) ? (float)(feed.size() - 1 - i) / (float)(feed.size() - 1) : 0.0f;
         unsigned char alpha = (unsigned char)(255 - t * 150);
         Color color = {255, 255, 255, alpha};
 
-        DrawText(line.c_str(), padding, feedBaseY - ((int)m_feed.size() - 1 - i) * feedLineH, feedFontSize, color);
+        DrawText(line.c_str(), padding, feedBaseY - ((int)feed.size() - 1 - i) * feedLineH, feedFontSize, color);
     }
     int lobbyMins = (int)(m_gameTime / 60);
     int lobbySeconds = (int)m_gameTime % 60;

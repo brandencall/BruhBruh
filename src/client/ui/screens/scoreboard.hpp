@@ -1,6 +1,5 @@
 #pragma once
 #include "../../../shared/state/player_state.hpp"
-#include "../config.hpp"
 #include "../ui_manager.hpp"
 #include "raylib.h"
 #include <array>
