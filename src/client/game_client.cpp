@@ -1,4 +1,5 @@
 #include "game_client.hpp"
+#include "scenes/lobby_scene.hpp"
 
 void GameClient::Initialize() {
     InitWindow(1280, 720, "BruhBruh");
@@ -9,7 +10,15 @@ void GameClient::Initialize() {
         SetTargetFPS(monitorHz > 0 ? monitorHz : 60);
     }
 
-    m_gameScene.OnEnter();
+    m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_transport, m_handler, m_sceneManager));
+}
+
+void GameClient::Start(const char *ip, int port) {
+    Connect(ip, port);
+    m_running = true;
+    while (m_running) {
+        Update();
+    }
 }
 
 void GameClient::Update() {
@@ -23,22 +32,14 @@ void GameClient::Update() {
     while (m_transport.recv(pkt))
         m_handler.Dispatch(pkt.data, pkt.size);
 
-    m_gameScene.Update(dt);
-    m_gameScene.Render();
-}
-
-void GameClient::Start(const char *ip, int port) {
-    Connect(ip, port);
-    m_running = true;
-    while (m_running) {
-        Update();
-    }
+    m_sceneManager.Update(dt);
+    m_sceneManager.Render();
 }
 
 void GameClient::Disconnect() {
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
-    packet.playerId = m_gameScene.GetCurrentPlayerId(); // expose a getter
+    // packet.playerId = m_gameScene.GetCurrentPlayerId(); // expose a getter
     m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 

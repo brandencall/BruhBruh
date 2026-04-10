@@ -2,7 +2,6 @@
 #include "../network/packet.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
-#include <iostream>
 
 namespace network {
 
@@ -10,8 +9,8 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
     auto *header = reinterpret_cast<network::PacketHeader *>(buffer);
 
     switch (header->type) {
-    case network::PacketType::Join:
-        OnJoin(from);
+    case network::PacketType::JoinLobby:
+        OnJoinLobby(buffer, bytes, from);
         break;
     case network::PacketType::Input:
         OnInput(buffer, bytes, from);
@@ -24,25 +23,30 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
     }
 }
 
-void PacketHandler::OnJoin(network::PeerId from) {
-    // Peer already connected — resend their join response (handles duplicate join packets)
+void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from) {
+    // Only allow joins during lobby phase
     auto *existing = m_registry.FindByPeer(from);
+    if (m_phase != ServerPhase::LOBBY) {
+        SendJoinResponse(from, existing->playerId, existing->characterId);
+        return;
+    }
+
+    // Duplicate join — already in lobby
     if (existing) {
         SendJoinResponse(from, existing->playerId, existing->characterId);
         return;
     }
 
-    // TODO: character will come from client connection when joinning from loby
-    auto *client = m_registry.AddClient(from, Character::CharacterId::Tonts);
-    if (!client) {
-        std::cout << "Server full\n";
+    auto *pkt = reinterpret_cast<network::JoinPacket *>(buffer);
+    int slot = m_lobby.AddPlayer(from, pkt->name);
+    if (slot == -1) {
+        // Lobby full
         return;
     }
-
-    m_simulation.CreatePlayer(client->playerId, client->characterId);
+    auto *client = m_registry.AddClient(from, Character::CharacterId::None);
     SendJoinResponse(from, client->playerId, client->characterId);
-    m_broadcaster.SendCurrentWorldState(from, m_simulation);
-    // m_broadcaster.SendFullSnapshot(from, m_simulation);
+
+    m_broadcaster.BroadcastPlayerJoined(pkt->name, client);
 }
 
 void PacketHandler::OnDisconnect(char *buffer, network::PeerId from) {

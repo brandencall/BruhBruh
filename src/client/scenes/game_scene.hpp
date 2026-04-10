@@ -6,15 +6,16 @@
 #include "../renderers/tilemap_renderer.hpp"
 #include "../state/world_state.hpp"
 #include "../systems/client_bullet_system.hpp"
-#include "../systems/kill_feed.hpp"
 #include "../ui/ui_manager.hpp"
 #include "raylib.h"
 #include "scene.hpp"
+#include "scene_manager.hpp"
 #include <cstdint>
 
 class GameScene : public Scene {
   public:
-    GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler);
+    GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
+              SceneManager &sceneManager);
 
     void OnEnter() override;
     void OnExit() override;
@@ -47,6 +48,7 @@ class GameScene : public Scene {
     Client::EventHub &m_events;
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;
+    SceneManager &m_sceneManager;
 
     // Scene-owned state
     ClientWorldState m_worldState;

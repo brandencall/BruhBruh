@@ -3,6 +3,7 @@
 #include "../shared/characters/character_types.hpp"
 #include "../shared/map/dynamic_walls/dynamic_wall.hpp"
 #include "../shared/map/grid.hpp"
+#include "../shared/state/lobby_slot_state.hpp"
 #include "../shared/state/player_state.hpp"
 #include <stdint.h>
 
@@ -10,8 +11,15 @@ namespace network {
 
 enum class PacketType : uint8_t {
     Join,
-    Disconnect,
     JoinResponse,
+    Disconnect,
+    PlayerJoined,
+    StartGame,
+
+    JoinLobby,
+    PlayerReady,
+    LobbyState,
+
     Input,
     State,
     CurrentWorldState,
@@ -34,6 +42,14 @@ struct PacketHeader {
 
 struct JoinPacket {
     PacketHeader header;
+    char name[32];
+};
+
+struct JoinResponsePacket {
+    PacketHeader header;
+    uint32_t playerId;
+    Character::CharacterId characterId;
+    char name[32];
 };
 
 struct DisconnectPacket {
@@ -41,10 +57,33 @@ struct DisconnectPacket {
     uint32_t playerId;
 };
 
-struct JoinResponsePacket {
+struct PlayerJoinedPacket {
     PacketHeader header;
     uint32_t playerId;
     Character::CharacterId characterId;
+    char name[32];
+};
+
+struct PlayerReadyPacket {
+    PacketHeader header;
+    uint32_t playerId;
+    Character::CharacterId characterId;
+};
+
+struct StartGamePacket {
+    PacketHeader header;
+    // Maybe add the lobby info
+};
+
+struct JoinLobbyPacket {
+    PacketHeader header;
+    // Maybe have name here on join
+};
+
+struct LobbyStatePacket {
+    PacketHeader header;
+    // Need to send the clients playerId
+    state::LobbySlotState lobby[MAX_PLAYERS];
 };
 
 struct InputPacket {

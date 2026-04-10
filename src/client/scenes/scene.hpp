@@ -1,5 +1,6 @@
 #pragma once
 #include "../event_bus.hpp"
+#include "scene_manager_fwd.hpp"
 #include <functional>
 #include <vector>
 

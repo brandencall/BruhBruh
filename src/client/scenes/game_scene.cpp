@@ -7,8 +7,9 @@
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 
-GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler)
-    : m_events(events), m_transport(transport), m_handler(handler) {}
+GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
+                     SceneManager &sceneManager)
+    : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager) {}
 
 void GameScene::OnEnter() {
     // Register packet handlers
@@ -46,6 +47,7 @@ void GameScene::OnEnter() {
 void GameScene::OnExit() {
     // Unregister packet handlers
     using PT = network::PacketType;
+    // TODO: Move Join Response to Lobby
     m_handler.Unregister(PT::JoinResponse);
     m_handler.Unregister(PT::State);
     m_handler.Unregister(PT::CurrentWorldState);
@@ -67,6 +69,7 @@ void GameScene::OnExit() {
 uint32_t GameScene::GetCurrentPlayerId() const { return m_worldState.m_currentPlayerId; }
 
 void GameScene::Update(float dt) {
+    // TODO: Move Joining request to Lobby
     if (!m_joined) {
         m_joinRetryAccumulator += dt;
         if (m_joinRetryAccumulator >= 1.0f) {

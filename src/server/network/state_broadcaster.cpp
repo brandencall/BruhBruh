@@ -1,6 +1,7 @@
 #include "state_broadcaster.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 namespace network {
 
@@ -13,7 +14,26 @@ void StateBroadcaster::BroadcastState(const GameSimulation &sim) {
         [&](network::ClientConnection &client) { m_transport.send(client.peerId, &statePacket, sendSize); });
 }
 
-void StateBroadcaster::SendCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
+void StateBroadcaster::BroadcastLobbyState(const ServerLobby &lobby) {
+    network::LobbyStatePacket pkt{};
+    pkt.header.type = network::PacketType::LobbyState;
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
+        memcpy(&pkt.lobby[i], &lobby.Slots()[i].lobbySlot, sizeof(lobby.Slots()[i].lobbySlot));
+    }
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
+
+void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection *client) {
+    network::PlayerJoinedPacket pkt{};
+    pkt.header.type = network::PacketType::PlayerJoined;
+    strncpy(pkt.name, name, sizeof(pkt.name) - 1);
+    pkt.name[sizeof(pkt.name) - 1] = '\0';
+    pkt.playerId = client->playerId;
+    pkt.characterId = client->characterId;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
+
+void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
     network::CurrentWorldStatePacket worldStatePacket{};
     BuildCurrentWorldStatePacket(sim, worldStatePacket);
     size_t sendSize =

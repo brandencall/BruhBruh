@@ -3,7 +3,9 @@
 #include "../game_simulation.hpp"
 #include "../network/packet.hpp"
 #include "../server/server_transport.hpp"
+#include "../server_lobby.hpp"
 #include "client_registry.hpp"
+#include "network/ITransport.hpp"
 #include "state/player_state.hpp"
 #include <cstdint>
 
@@ -14,8 +16,10 @@ class StateBroadcaster {
     StateBroadcaster(network::ServerTransport &transport, ClientRegistry &registry, int &tick)
         : m_transport(transport), m_registry(registry), m_tick(tick) {}
 
+    void BroadcastPlayerJoined(const char *name, ClientConnection *client);
     void BroadcastState(const GameSimulation &sim);
-    void SendCurrentWorldState(network::PeerId peer, const GameSimulation &sim);
+    void BroadcastLobbyState(const ServerLobby &lobby);
+    void BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim);
     void DrainAndBroadcast(EventBus &eventBus);
     void BroadcastAll(const void *data, size_t size);
 

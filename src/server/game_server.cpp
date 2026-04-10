@@ -1,20 +1,81 @@
 #include "game_server.hpp"
 #include <chrono>
+#include <thread>
 
 GameServer::GameServer()
     : m_broadcaster(m_transport, m_registry, m_tick),
-      m_packetHandler(m_transport, m_registry, m_simulation, m_broadcaster) {}
+      m_packetHandler(m_transport, m_registry, m_simulation, m_broadcaster, m_phase, m_lobby) {}
 
 void GameServer::Start(int port) { m_running = m_transport.start(static_cast<uint16_t>(port)); }
 
 bool GameServer::IsRunning() { return m_running; }
 
 void GameServer::RunServer() {
+    m_simulation.Initialize(m_eventBus);
+
+    while (m_running) {
+        switch (m_phase) {
+        case ServerPhase::LOBBY:
+            TickLobby();
+            break;
+        case ServerPhase::STARTING:
+            TickStarting();
+            break;
+        case ServerPhase::GAMEPLAY:
+            TickGameplay();
+            break;
+        case ServerPhase::ENDED:
+            m_running = false;
+            break;
+        }
+    }
+}
+
+void GameServer::TickLobby() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+
+    Receive();
+    // Broadcast the lobby state
+    m_broadcaster.BroadcastLobbyState(m_lobby);
+
+    if (m_lobby.AllReady() && m_lobby.PlayerCount() >= 2) {
+        // BroadcastStartGame();
+        m_phase = ServerPhase::STARTING;
+        m_startTimer = 3.0f; // 3 second countdown
+    }
+}
+
+void GameServer::TickStarting() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    Receive();
+
+    m_startTimer -= 0.016f;
+    // BroadcastCountdown(m_startTimer);
+
+    if (m_startTimer <= 0.0f) {
+        SpawnPlayersIntoSimulation();
+        m_phase = ServerPhase::GAMEPLAY;
+    }
+}
+
+void GameServer::SpawnPlayersIntoSimulation() {
+    for (auto &slot : m_lobby.Slots()) {
+        if (!slot.lobbySlot.occupied)
+            continue;
+
+        // auto *client = m_registry.AddClient(slot.peerId, slot.lobbySlot.characterId);
+        auto *client = m_registry.FindByPeer(slot.peerId);
+        m_simulation.CreatePlayer(client->playerId, client->characterId);
+        // SendJoinResponse(slot.peerId, client->playerId, client->characterId);
+    }
+    m_broadcaster.BroadcastState(m_simulation);
+}
+
+void GameServer::TickGameplay() {
     const float tickRate = 1.0f / 30.0f;
     float accumulator = 0.0f;
 
     auto previousTime = std::chrono::steady_clock::now();
-    m_simulation.Initialize(m_eventBus);
 
     while (m_running) {
         auto now = std::chrono::steady_clock::now();

@@ -1,6 +1,7 @@
 add_library(server
     game_server.cpp
     game_simulation.cpp
+    server_lobby.cpp
 )
 
 add_subdirectory(network)
