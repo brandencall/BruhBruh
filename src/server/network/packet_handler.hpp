@@ -19,6 +19,7 @@ class PacketHandler {
 
   private:
     void OnJoinLobby(char *buffer, size_t size, network::PeerId from);
+    void OnPlayerReady(char *buffer, size_t size, network::PeerId from);
     void OnDisconnect(char *buffer, network::PeerId from);
     void OnInput(char *buffer, size_t bytes, network::PeerId from);
 

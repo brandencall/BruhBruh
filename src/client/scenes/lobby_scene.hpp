@@ -22,9 +22,13 @@ class LobbyScene : public Scene {
     void HandleLobbyState(const char *buf);
     void HandleGameStarting(const char *buf);
 
+    void SendJoin();
     void SendReady();
     void RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y);
 
+  private:
+    bool m_joined = false;
+    float m_joinRetryAccumulator = 0.0f;
     Client::EventHub &m_events;
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;

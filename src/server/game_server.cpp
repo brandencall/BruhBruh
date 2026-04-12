@@ -1,5 +1,6 @@
 #include "game_server.hpp"
 #include <chrono>
+#include <iostream>
 #include <thread>
 
 GameServer::GameServer()

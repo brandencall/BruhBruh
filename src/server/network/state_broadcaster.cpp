@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 
 namespace network {
 
@@ -30,6 +31,7 @@ void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection 
     pkt.name[sizeof(pkt.name) - 1] = '\0';
     pkt.playerId = client->playerId;
     pkt.characterId = client->characterId;
+    std::cout << "Broadcasting player joined: " << name << std::endl;
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 

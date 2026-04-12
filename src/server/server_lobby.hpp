@@ -12,6 +12,7 @@ class ServerLobby {
   public:
     // Returns assigned slot index, or -1 if full
     int AddPlayer(network::PeerId peer, const char *name);
+    int AddPlayer(network::PeerId peer);
     void RemovePlayer(network::PeerId peer);
     void SetReady(network::PeerId peer, bool ready);
 

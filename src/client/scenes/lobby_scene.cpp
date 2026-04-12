@@ -14,11 +14,6 @@ void LobbyScene::OnEnter() {
     m_handler.Register(PT::PlayerJoined, [this](const char *b) { HandlePlayerJoined(b); });
     m_handler.Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
     m_handler.Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
-
-    // Tell the server we've entered the lobby
-    network::JoinLobbyPacket pkt{};
-    pkt.header.type = network::PacketType::JoinLobby;
-    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::OnExit() {
@@ -32,10 +27,24 @@ void LobbyScene::OnExit() {
 }
 
 void LobbyScene::Update(float dt) {
+    if (!m_joined) {
+        m_joinRetryAccumulator += dt;
+        if (m_joinRetryAccumulator >= 1.0f) {
+            SendJoin();
+            m_joinRetryAccumulator = 0.0f;
+        }
+        return;
+    }
     if (IsKeyPressed(KEY_SPACE) && !m_ready) {
         SendReady();
         m_ready = true;
     }
+}
+
+void LobbyScene::SendJoin() {
+    network::JoinLobbyPacket pkt{};
+    pkt.header.type = network::PacketType::JoinLobby;
+    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::HandleJoinResponse(const char *buf) {
@@ -43,6 +52,7 @@ void LobbyScene::HandleJoinResponse(const char *buf) {
     m_localPlayerId = pkt->playerId;
     m_players[m_localPlayerId].id = pkt->playerId;
     m_players[m_localPlayerId].characterId = pkt->characterId;
+    m_joined = true;
     strcpy(m_players[m_localPlayerId].name, pkt->name);
 }
 
@@ -101,8 +111,7 @@ void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player,
         return;
     }
 
-    // std::string name = player.name.empty() ? "Player " + std::to_string(player.id) : player.name;
-    std::string name = "Player " + std::to_string(player.id);
+    std::string name = player.name;
     DrawText(name.c_str(), x + 10, y + 20, 18, WHITE);
 
     if (player.ready) {
