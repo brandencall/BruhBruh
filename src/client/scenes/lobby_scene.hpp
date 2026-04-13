@@ -4,6 +4,7 @@
 #include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"
 #include "scene.hpp"
+#include <array>
 
 class LobbyScene : public Scene {
   public:
