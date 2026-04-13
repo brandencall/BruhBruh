@@ -40,9 +40,9 @@ void GameServer::TickLobby() {
     m_broadcaster.BroadcastLobbyState(m_lobby);
 
     if (m_lobby.AllReady() && m_lobby.PlayerCount() >= 2) {
-        // BroadcastStartGame();
         m_phase = ServerPhase::STARTING;
         m_startTimer = 3.0f; // 3 second countdown
+        m_broadcaster.BroadcastStartGame(m_startTimer);
     }
 }
 
@@ -51,11 +51,12 @@ void GameServer::TickStarting() {
     Receive();
 
     m_startTimer -= 0.016f;
-    // BroadcastCountdown(m_startTimer);
+    m_broadcaster.BroadcastStartGame(m_startTimer);
 
     if (m_startTimer <= 0.0f) {
         SpawnPlayersIntoSimulation();
         m_phase = ServerPhase::GAMEPLAY;
+        m_broadcaster.BroadcastGameBegin();
     }
 }
 
@@ -64,12 +65,9 @@ void GameServer::SpawnPlayersIntoSimulation() {
         if (!slot.lobbySlot.occupied)
             continue;
 
-        // auto *client = m_registry.AddClient(slot.peerId, slot.lobbySlot.characterId);
         auto *client = m_registry.FindByPeer(slot.peerId);
         m_simulation.CreatePlayer(client->playerId, client->characterId);
-        // SendJoinResponse(slot.peerId, client->playerId, client->characterId);
     }
-    m_broadcaster.BroadcastState(m_simulation);
 }
 
 void GameServer::TickGameplay() {

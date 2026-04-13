@@ -3,6 +3,7 @@
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "packet_header.hpp"
+#include <cstdint>
 
 namespace network {
 
@@ -48,6 +49,7 @@ struct DisconnectPacket {
 struct StartGamePacket {
     PacketHeader header;
     // Maybe add the lobby info
+    uint32_t countdown;
 };
 
 } // namespace network

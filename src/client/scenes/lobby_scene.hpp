@@ -5,6 +5,7 @@
 #include "../network/network_message_handler.hpp"
 #include "scene.hpp"
 #include <array>
+#include <cstdint>
 
 class LobbyScene : public Scene {
   public:
@@ -22,6 +23,7 @@ class LobbyScene : public Scene {
     void HandlePlayerJoined(const char *buf);
     void HandleLobbyState(const char *buf);
     void HandleGameStarting(const char *buf);
+    void HandleGameBegin(const char *buf);
 
     void SendJoin();
     void SendReady();
@@ -30,6 +32,7 @@ class LobbyScene : public Scene {
   private:
     bool m_joined = false;
     float m_joinRetryAccumulator = 0.0f;
+    uint32_t m_countdownTimer = 0.0f;
     Client::EventHub &m_events;
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;

@@ -3,9 +3,21 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 
 namespace network {
+
+void StateBroadcaster::BroadcastStartGame(uint32_t countdown) {
+    network::StartGamePacket pkt{};
+    pkt.header.type = network::PacketType::StartGame;
+    pkt.countdown = countdown;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
+
+void StateBroadcaster::BroadcastGameBegin() {
+    network::GameBeginPacket pkt{};
+    pkt.header.type = network::PacketType::GameBegin;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
 
 void StateBroadcaster::BroadcastState(const GameSimulation &sim) {
     network::StatePacket statePacket{};

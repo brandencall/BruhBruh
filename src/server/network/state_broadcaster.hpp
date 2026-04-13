@@ -16,6 +16,8 @@ class StateBroadcaster {
     StateBroadcaster(network::ServerTransport &transport, ClientRegistry &registry, int &tick)
         : m_transport(transport), m_registry(registry), m_tick(tick) {}
 
+    void BroadcastStartGame(uint32_t countdown);
+    void BroadcastGameBegin();
     void BroadcastPlayerJoined(const char *name, ClientConnection *client);
     void BroadcastState(const GameSimulation &sim);
     void BroadcastLobbyState(const ServerLobby &lobby);

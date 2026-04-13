@@ -3,6 +3,7 @@
 #include "../scenes/game_scene.hpp"
 #include "raylib.h"
 #include <cstring>
+#include <iostream>
 #include <string>
 
 LobbyScene::LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
@@ -15,6 +16,7 @@ void LobbyScene::OnEnter() {
     m_handler.Register(PT::PlayerJoined, [this](const char *b) { HandlePlayerJoined(b); });
     m_handler.Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
     m_handler.Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
+    m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
 }
 
 void LobbyScene::OnExit() {
@@ -23,6 +25,7 @@ void LobbyScene::OnExit() {
     m_handler.Unregister(PT::PlayerJoined);
     m_handler.Unregister(PT::LobbyState);
     m_handler.Unregister(PT::StartGame);
+    m_handler.Unregister(PT::GameBegin);
 
     Scene::OnExit();
 }
@@ -77,6 +80,13 @@ void LobbyScene::HandleLobbyState(const char *buf) {
 
 void LobbyScene::HandleGameStarting(const char *buf) {
     // Server says everyone is ready — transition to game
+    // m_sceneManager.Replace(std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager));
+    auto *pkt = reinterpret_cast<const network::StartGamePacket *>(buf);
+    m_countdownTimer = pkt->countdown;
+}
+
+void LobbyScene::HandleGameBegin(const char *buf) {
+    // Server says everyone is ready — transition to game
     m_sceneManager.Replace(std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager));
 }
 
@@ -98,6 +108,13 @@ void LobbyScene::Render() {
         int x = 160 + (i * 260);
         int y = 200;
         RenderPlayerSlot(i, m_players[i], x, y);
+    }
+
+    if (m_countdownTimer > 0) {
+        const char *countdownText = TextFormat("%u", m_countdownTimer);
+        int fontSize = 128;
+        int textWidth = MeasureText(countdownText, fontSize);
+        DrawText(countdownText, (1280 - textWidth) / 2, (720 / 2) - (fontSize / 2), fontSize, YELLOW);
     }
 
     EndDrawing();
@@ -122,6 +139,7 @@ void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player,
     }
 
     // Highlight local player slot
+    // TODO: this is bugged
     if (player.id == m_localPlayerId) {
         DrawRectangleLines(x - 2, y - 2, 224, 304, YELLOW);
     }

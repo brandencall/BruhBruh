@@ -9,6 +9,9 @@
 namespace network {
 
 // TODO: Add GameBeginPacket
+struct GameBeginPacket {
+    PacketHeader header;
+};
 // TODO: Add GameEndPacket
 
 struct InputPacket {
