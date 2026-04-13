@@ -1,4 +1,5 @@
 #pragma once
+#include "../../network/packets/gameplay_packets.hpp"
 #include "../client_transport.hpp"
 #include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"

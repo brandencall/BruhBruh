@@ -1,4 +1,5 @@
 #include "game_client.hpp"
+#include "../network/packets/lobby_packets.hpp"
 #include "scenes/lobby_scene.hpp"
 
 void GameClient::Initialize() {

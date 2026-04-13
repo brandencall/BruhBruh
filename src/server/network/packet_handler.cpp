@@ -1,5 +1,6 @@
 #include "packet_handler.hpp"
-#include "../network/packet.hpp"
+#include "../network/packets/gameplay_packets.hpp"
+#include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
 #include <iostream>
@@ -58,7 +59,6 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
 
 void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId from) {
     auto *pkt = reinterpret_cast<network::PlayerReadyPacket *>(buffer);
-    std::cout << "The player: " << pkt->playerId << " is ready!" << std::endl;
     m_lobby.SetReady(from, true);
 }
 

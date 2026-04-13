@@ -1,90 +1,15 @@
 #pragma once
-#include "../config.hpp"
-#include "../shared/characters/character_types.hpp"
-#include "../shared/map/dynamic_walls/dynamic_wall.hpp"
-#include "../shared/map/grid.hpp"
-#include "../shared/state/lobby_slot_state.hpp"
-#include "../shared/state/player_state.hpp"
-#include <stdint.h>
+#include "../../config.hpp"
+#include "../../shared/characters/character_types.hpp"
+#include "../../shared/map/dynamic_walls/dynamic_wall.hpp"
+#include "../../shared/map/grid.hpp"
+#include "../../shared/state/player_state.hpp"
+#include "packet_header.hpp"
 
 namespace network {
 
-enum class PacketType : uint8_t {
-    Join,
-    JoinResponse,
-    Disconnect,
-    PlayerJoined,
-    StartGame,
-
-    JoinLobby,
-    PlayerReady,
-    LobbyState,
-
-    Input,
-    State,
-    CurrentWorldState,
-
-    BulletSpawn,
-    BulletDestroyed,
-
-    PlayerRespawned,
-    PlayerDamaged,
-    PlayerDied,
-
-    PlaceWall,
-    WallDamaged,
-    WallDestroyed
-};
-
-struct PacketHeader {
-    PacketType type;
-};
-
-struct JoinPacket {
-    PacketHeader header;
-    char name[32];
-};
-
-struct JoinResponsePacket {
-    PacketHeader header;
-    uint32_t playerId;
-    Character::CharacterId characterId;
-    char name[32];
-};
-
-struct DisconnectPacket {
-    PacketHeader header;
-    uint32_t playerId;
-};
-
-struct PlayerJoinedPacket {
-    PacketHeader header;
-    uint32_t playerId;
-    Character::CharacterId characterId;
-    char name[32];
-};
-
-struct PlayerReadyPacket {
-    PacketHeader header;
-    uint32_t playerId;
-    Character::CharacterId characterId;
-};
-
-struct StartGamePacket {
-    PacketHeader header;
-    // Maybe add the lobby info
-};
-
-struct JoinLobbyPacket {
-    PacketHeader header;
-    // Maybe have name here on join
-};
-
-struct LobbyStatePacket {
-    PacketHeader header;
-    // Need to send the clients playerId
-    state::LobbySlotState lobby[MAX_PLAYERS];
-};
+// TODO: Add GameBeginPacket
+// TODO: Add GameEndPacket
 
 struct InputPacket {
     PacketHeader header;

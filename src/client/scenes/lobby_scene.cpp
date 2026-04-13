@@ -1,4 +1,5 @@
 #include "lobby_scene.hpp"
+#include "../../network/packets/lobby_packets.hpp"
 #include "../scenes/game_scene.hpp"
 #include "raylib.h"
 #include <cstring>

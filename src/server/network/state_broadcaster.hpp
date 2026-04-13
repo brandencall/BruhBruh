@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../game_simulation.hpp"
-#include "../network/packet.hpp"
+#include "../network/packets/gameplay_packets.hpp"
 #include "../server/server_transport.hpp"
 #include "../server_lobby.hpp"
 #include "client_registry.hpp"

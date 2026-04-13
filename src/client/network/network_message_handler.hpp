@@ -1,5 +1,5 @@
 #pragma once
-#include "../../network/packet.hpp"
+#include "../../network/packets/packet_header.hpp"
 #include <functional>
 #include <unordered_map>
 
@@ -20,7 +20,6 @@ class NetworkMessageHandler {
         auto it = m_handlers.find(header->type);
         if (it != m_handlers.end())
             it->second(buf);
-        // No handler registered = silent drop (Option B from earlier)
     }
 
   private:

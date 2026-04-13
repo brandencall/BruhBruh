@@ -1,4 +1,5 @@
 #include "game_scene.hpp"
+#include "../../network/packets/lobby_packets.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
@@ -70,16 +71,16 @@ uint32_t GameScene::GetCurrentPlayerId() const { return m_worldState.m_currentPl
 
 void GameScene::Update(float dt) {
     // TODO: Move Joining request to Lobby
-    if (!m_joined) {
-        m_joinRetryAccumulator += dt;
-        if (m_joinRetryAccumulator >= 1.0f) {
-            network::JoinPacket pkt{};
-            pkt.header.type = network::PacketType::Join;
-            m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
-            m_joinRetryAccumulator = 0.0f;
-        }
-        return;
-    }
+    // if (!m_joined) {
+    //    m_joinRetryAccumulator += dt;
+    //    if (m_joinRetryAccumulator >= 1.0f) {
+    //        network::JoinPacket pkt{};
+    //        pkt.header.type = network::PacketType::Join;
+    //        m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+    //        m_joinRetryAccumulator = 0.0f;
+    //    }
+    //    return;
+    //}
 
     Sync(dt);
     m_bulletSystem.Update(dt);
@@ -149,6 +150,7 @@ void GameScene::HandleScoreboardInput() {
     }
 }
 
+// TODO: Change logic since this is moved to lobby
 void GameScene::HandleJoinResponse(const char *buffer) {
     auto *pkt = (network::JoinResponsePacket *)buffer;
     m_characterId = pkt->characterId;
