@@ -3,7 +3,6 @@
 #include "../scenes/game_scene.hpp"
 #include "raylib.h"
 #include <cstring>
-#include <iostream>
 #include <string>
 
 LobbyScene::LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
@@ -64,16 +63,16 @@ void LobbyScene::HandlePlayerJoined(const char *buf) {
     auto *pkt = reinterpret_cast<const network::PlayerJoinedPacket *>(buf);
     m_players[pkt->playerId].id = pkt->playerId;
     m_players[pkt->playerId].characterId = pkt->characterId;
-    strcpy(m_players[m_localPlayerId].name, pkt->name);
+    strcpy(m_players[pkt->playerId].name, pkt->name);
 }
 
 void LobbyScene::HandleLobbyState(const char *buf) {
     auto *pkt = reinterpret_cast<const network::LobbyStatePacket *>(buf);
-    // m_localPlayerId = pkt->yourPlayerId;
 
     for (uint8_t i = 0; i < MAX_PLAYERS; ++i) {
         m_players[i].id = pkt->lobby[i].id;
         m_players[i].ready = pkt->lobby[i].ready;
+        m_players[i].characterId = pkt->lobby[i].characterId;
         strcpy(m_players[i].name, pkt->lobby[i].name);
     }
 }
@@ -87,7 +86,8 @@ void LobbyScene::HandleGameStarting(const char *buf) {
 
 void LobbyScene::HandleGameBegin(const char *buf) {
     // Server says everyone is ready — transition to game
-    m_sceneManager.Replace(std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager));
+    m_sceneManager.Replace(
+        std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager, m_localPlayerId));
 }
 
 void LobbyScene::SendReady() {
@@ -111,7 +111,7 @@ void LobbyScene::Render() {
     }
 
     if (m_countdownTimer > 0) {
-        const char *countdownText = TextFormat("%u", m_countdownTimer);
+        const char *countdownText = TextFormat("%d", (int)std::ceil(m_countdownTimer));
         int fontSize = 128;
         int textWidth = MeasureText(countdownText, fontSize);
         DrawText(countdownText, (1280 - textWidth) / 2, (720 / 2) - (fontSize / 2), fontSize, YELLOW);

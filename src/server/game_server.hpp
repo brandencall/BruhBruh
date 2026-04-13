@@ -32,6 +32,7 @@ class GameServer {
     bool m_running = false;
     int m_tick = 0;
     float m_startTimer = 0.0f;
+    float m_gameBeginTimer = 0.0f;
 
     network::ServerTransport m_transport;
     network::ClientRegistry m_registry;

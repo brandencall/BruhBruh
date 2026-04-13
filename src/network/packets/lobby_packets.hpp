@@ -49,7 +49,7 @@ struct DisconnectPacket {
 struct StartGamePacket {
     PacketHeader header;
     // Maybe add the lobby info
-    uint32_t countdown;
+    float countdown;
 };
 
 } // namespace network

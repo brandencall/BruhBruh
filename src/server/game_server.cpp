@@ -56,7 +56,8 @@ void GameServer::TickStarting() {
     if (m_startTimer <= 0.0f) {
         SpawnPlayersIntoSimulation();
         m_phase = ServerPhase::GAMEPLAY;
-        m_broadcaster.BroadcastGameBegin();
+        m_gameBeginTimer = 5.0f;
+        m_broadcaster.BroadcastGameBegin(m_gameBeginTimer, m_simulation);
     }
 }
 
@@ -80,10 +81,18 @@ void GameServer::TickGameplay() {
         auto now = std::chrono::steady_clock::now();
         float dt = std::chrono::duration<float>(now - previousTime).count();
         previousTime = now;
-
-        accumulator += dt;
+        dt = std::min(dt, 0.25f);
 
         Receive();
+
+        if (m_gameBeginTimer > 0.0) {
+            m_gameBeginTimer -= dt;
+            m_broadcaster.BroadcastGameBegin(m_gameBeginTimer, m_simulation);
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+            continue;
+        }
+
+        accumulator += dt;
 
         while (accumulator >= tickRate) {
             UpdateSimulation(tickRate);

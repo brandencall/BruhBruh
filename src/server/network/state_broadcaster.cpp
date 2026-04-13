@@ -6,17 +6,21 @@
 
 namespace network {
 
-void StateBroadcaster::BroadcastStartGame(uint32_t countdown) {
+void StateBroadcaster::BroadcastStartGame(float countdown) {
     network::StartGamePacket pkt{};
     pkt.header.type = network::PacketType::StartGame;
     pkt.countdown = countdown;
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
-void StateBroadcaster::BroadcastGameBegin() {
+void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation &sim) {
     network::GameBeginPacket pkt{};
     pkt.header.type = network::PacketType::GameBegin;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    pkt.countdown = countdown;
+    pkt.playerCount = BuildPlayerState(sim, pkt.players);
+    size_t sendSize = offsetof(network::StatePacket, players) + pkt.playerCount * sizeof(state::PlayerState);
+
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
 }
 
 void StateBroadcaster::BroadcastState(const GameSimulation &sim) {

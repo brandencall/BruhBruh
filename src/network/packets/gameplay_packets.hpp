@@ -5,12 +5,15 @@
 #include "../../shared/map/grid.hpp"
 #include "../../shared/state/player_state.hpp"
 #include "packet_header.hpp"
+#include <cstdint>
 
 namespace network {
 
-// TODO: Add GameBeginPacket
 struct GameBeginPacket {
     PacketHeader header;
+    float countdown;
+    uint16_t playerCount;
+    state::PlayerState players[MAX_PLAYERS];
 };
 // TODO: Add GameEndPacket
 

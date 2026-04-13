@@ -16,7 +16,7 @@
 class GameScene : public Scene {
   public:
     GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-              SceneManager &sceneManager);
+              SceneManager &sceneManager, uint32_t currentPlayerId);
 
     void OnEnter() override;
     void OnExit() override;
@@ -28,7 +28,7 @@ class GameScene : public Scene {
     void Sync(float dt);
     void HandleScoreboardInput();
     // Packet handlers — registered with NetworkMessageHandler
-    void HandleJoinResponse(const char *buf);
+    void HandleGameBegin(const char *buf);
     void HandleStateResponse(const char *buf);
     void HandleCurrentWorldState(const char *buf);
     void HandleBulletSpawn(const char *buf);
@@ -50,6 +50,7 @@ class GameScene : public Scene {
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;
     SceneManager &m_sceneManager;
+    uint32_t m_currentPlayerId;
 
     // Scene-owned state
     ClientWorldState m_worldState;
@@ -64,9 +65,9 @@ class GameScene : public Scene {
     uint8_t m_lastButtons = 0;
     float m_sendAccumulator = 0.0f;
     float m_sendInterval = 1.0f / 60.0f;
-    float m_joinRetryAccumulator = 0.0f;
 
     bool m_joined = false;
+    float m_gameBeginTimer = 0.0f;
     bool m_cameraReady = false;
     bool m_initialSnapDone = false;
 

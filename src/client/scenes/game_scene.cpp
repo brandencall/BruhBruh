@@ -1,5 +1,4 @@
 #include "game_scene.hpp"
-#include "../../network/packets/lobby_packets.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
@@ -7,15 +6,18 @@
 #include "../ui/screens/hud_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
+#include <cstdint>
+#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-                     SceneManager &sceneManager)
-    : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager) {}
+                     SceneManager &sceneManager, uint32_t currentPlayerId)
+    : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager),
+      m_currentPlayerId(currentPlayerId) {}
 
 void GameScene::OnEnter() {
     // Register packet handlers
     using PT = network::PacketType;
-    m_handler.Register(PT::JoinResponse, [this](const char *b) { HandleJoinResponse(b); });
+    m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
     m_handler.Register(PT::State, [this](const char *b) { HandleStateResponse(b); });
     m_handler.Register(PT::CurrentWorldState, [this](const char *b) { HandleCurrentWorldState(b); });
     m_handler.Register(PT::BulletSpawn, [this](const char *b) { HandleBulletSpawn(b); });
@@ -48,8 +50,7 @@ void GameScene::OnEnter() {
 void GameScene::OnExit() {
     // Unregister packet handlers
     using PT = network::PacketType;
-    // TODO: Move Join Response to Lobby
-    m_handler.Unregister(PT::JoinResponse);
+    m_handler.Unregister(PT::GameBegin);
     m_handler.Unregister(PT::State);
     m_handler.Unregister(PT::CurrentWorldState);
     m_handler.Unregister(PT::BulletSpawn);
@@ -70,18 +71,6 @@ void GameScene::OnExit() {
 uint32_t GameScene::GetCurrentPlayerId() const { return m_worldState.m_currentPlayerId; }
 
 void GameScene::Update(float dt) {
-    // TODO: Move Joining request to Lobby
-    // if (!m_joined) {
-    //    m_joinRetryAccumulator += dt;
-    //    if (m_joinRetryAccumulator >= 1.0f) {
-    //        network::JoinPacket pkt{};
-    //        pkt.header.type = network::PacketType::Join;
-    //        m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
-    //        m_joinRetryAccumulator = 0.0f;
-    //    }
-    //    return;
-    //}
-
     Sync(dt);
     m_bulletSystem.Update(dt);
     m_ui.Update(dt);
@@ -107,7 +96,8 @@ void GameScene::Sync(float dt) {
 
     if (!m_joined)
         return;
-    // Sync Camera
+
+    //  Sync Camera
 
     if (m_worldState.m_currentPlayerId == -1)
         return;
@@ -150,14 +140,19 @@ void GameScene::HandleScoreboardInput() {
     }
 }
 
-// TODO: Change logic since this is moved to lobby
-void GameScene::HandleJoinResponse(const char *buffer) {
-    auto *pkt = (network::JoinResponsePacket *)buffer;
-    m_characterId = pkt->characterId;
-    m_worldState.m_currentPlayerId = pkt->playerId;
-    m_joined = true;
-    m_ui.Push(
-        std::make_unique<UI::HudScreen>(m_worldState.m_players[pkt->playerId], m_worldState.m_gameTime, m_events));
+void GameScene::HandleGameBegin(const char *buffer) {
+    auto *pkt = (network::GameBeginPacket *)buffer;
+    m_gameBeginTimer = pkt->countdown;
+    if (!m_joined) {
+        // TODO: Need to send this with the packet (might need to send whole lobby info)
+        m_characterId = Character::CharacterId::Tonts;
+        m_worldState.m_currentPlayerId = m_currentPlayerId;
+        m_joined = true;
+        for (uint16_t i = 0; i < pkt->playerCount; ++i)
+            m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
+        m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
+                                                  m_events));
+    }
 }
 
 void GameScene::HandleStateResponse(const char *buffer) {
@@ -270,7 +265,6 @@ void GameScene::Render() {
         DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
         DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
     }
-
     for (const auto &bullet : m_bulletSystem.GetBullets()) {
         if (!bullet.active)
             continue;
@@ -294,6 +288,13 @@ void GameScene::Render() {
     EndMode2D();
 
     m_ui.Render();
+
+    if (m_gameBeginTimer > 0) {
+        const char *countdownText = TextFormat("%d", (int)std::ceil(m_gameBeginTimer));
+        int fontSize = 128;
+        int textWidth = MeasureText(countdownText, fontSize);
+        DrawText(countdownText, (1280 - textWidth) / 2, (720 / 2) - (fontSize / 2), fontSize, YELLOW);
+    }
 
     int fps = (int)(1.0f / GetFrameTime());
     std::string fpsText = std::to_string(fps) + " fps";

@@ -32,7 +32,7 @@ class LobbyScene : public Scene {
   private:
     bool m_joined = false;
     float m_joinRetryAccumulator = 0.0f;
-    uint32_t m_countdownTimer = 0.0f;
+    float m_countdownTimer = 0.0f;
     Client::EventHub &m_events;
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;
