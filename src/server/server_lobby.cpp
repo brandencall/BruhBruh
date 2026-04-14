@@ -39,6 +39,17 @@ void ServerLobby::RemovePlayer(network::PeerId peer) {
     }
 }
 
+bool ServerLobby::TrySetCharacter(network::PeerId peer, Character::CharacterId characterId) {
+    for (auto &slot : m_slots) {
+        if (slot.lobbySlot.occupied && slot.peerId == peer) {
+            // TODO: add check to see if that character is already taken
+            slot.lobbySlot.characterId = characterId;
+            return true;
+        }
+    }
+    return false;
+}
+
 void ServerLobby::SetReady(network::PeerId peer, bool ready) {
     for (auto &slot : m_slots) {
         if (slot.lobbySlot.occupied && slot.peerId == peer) {

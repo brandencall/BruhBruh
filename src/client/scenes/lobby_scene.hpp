@@ -5,7 +5,7 @@
 #include "../network/network_message_handler.hpp"
 #include "scene.hpp"
 #include <array>
-#include <cstdint>
+#include <map>
 
 class LobbyScene : public Scene {
   public:
@@ -21,13 +21,17 @@ class LobbyScene : public Scene {
     // Packet handlers
     void HandleJoinResponse(const char *buf);
     void HandlePlayerJoined(const char *buf);
+    void HandleCharacterSelected(const char *buf);
     void HandleLobbyState(const char *buf);
     void HandleGameStarting(const char *buf);
     void HandleGameBegin(const char *buf);
 
     void SendJoin();
     void SendReady();
-    void RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y);
+
+    void OnCharacterSelected(const Character::CharacterId &character);
+
+    void RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW, int screenH);
 
   private:
     bool m_joined = false;
@@ -39,6 +43,7 @@ class LobbyScene : public Scene {
     SceneManager &m_sceneManager;
 
     std::array<state::LobbySlotState, MAX_PLAYERS> m_players{};
+    std::map<Character::CharacterId, Texture2D> m_icons;
     int m_localPlayerId = -1;
     bool m_ready = false;
 };

@@ -23,6 +23,14 @@ void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation 
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
 }
 
+void StateBroadcaster::BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId) {
+    network::CharacterSelectedPacket pkt;
+    pkt.header.type = network::PacketType::CharacterSelected;
+    pkt.playerId = playerId;
+    pkt.characterId = characterId;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
+
 void StateBroadcaster::BroadcastState(const GameSimulation &sim) {
     network::StatePacket statePacket{};
     BuildStatePacket(sim, statePacket);

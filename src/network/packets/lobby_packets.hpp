@@ -52,4 +52,12 @@ struct StartGamePacket {
     float countdown;
 };
 
+// Client Request: Sends the selected characterId;
+// Server Response: Sends the selected characterId if valid, else sends CharacterId::None if selection is denied.
+struct CharacterSelectedPacket {
+    PacketHeader header;
+    uint32_t playerId;
+    Character::CharacterId characterId;
+};
+
 } // namespace network

@@ -4,6 +4,7 @@
 #include "../network/packets/gameplay_packets.hpp"
 #include "../server/server_transport.hpp"
 #include "../server_lobby.hpp"
+#include "characters/character_types.hpp"
 #include "client_registry.hpp"
 #include "network/ITransport.hpp"
 #include "state/player_state.hpp"
@@ -17,6 +18,7 @@ class StateBroadcaster {
         : m_transport(transport), m_registry(registry), m_tick(tick) {}
 
     void BroadcastStartGame(float countdown);
+    void BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId);
     void BroadcastGameBegin(float countdown, const GameSimulation &sim);
     void BroadcastPlayerJoined(const char *name, ClientConnection *client);
     void BroadcastState(const GameSimulation &sim);

@@ -2,6 +2,7 @@
 #include "../config.hpp"
 #include "../shared/network/ITransport.hpp"
 #include "../shared/state/lobby_slot_state.hpp"
+#include "characters/character_types.hpp"
 
 struct LobbySlot {
     network::PeerId peerId;
@@ -14,6 +15,7 @@ class ServerLobby {
     int AddPlayer(network::PeerId peer, const char *name);
     int AddPlayer(network::PeerId peer);
     void RemovePlayer(network::PeerId peer);
+    bool TrySetCharacter(network::PeerId peer, Character::CharacterId characterId);
     void SetReady(network::PeerId peer, bool ready);
 
     bool AllReady() const;
