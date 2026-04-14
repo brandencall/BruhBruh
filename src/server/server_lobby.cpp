@@ -1,11 +1,15 @@
 #include "server_lobby.hpp"
+#include "characters/character_types.hpp"
+#include "network/ITransport.hpp"
+#include <cstdint>
 #include <string.h>
 #include <string>
 
-int ServerLobby::AddPlayer(network::PeerId peer, const char *name) {
+int ServerLobby::AddPlayer(network::PeerId peer, const char *name, uint32_t playerId) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (!m_slots[i].lobbySlot.occupied) {
             m_slots[i].peerId = peer;
+            m_slots[i].lobbySlot.id = playerId;
             m_slots[i].lobbySlot.ready = false;
             m_slots[i].lobbySlot.occupied = true;
             strncpy(m_slots[i].lobbySlot.name, name, sizeof(m_slots[i].lobbySlot.name) - 1);
@@ -16,10 +20,11 @@ int ServerLobby::AddPlayer(network::PeerId peer, const char *name) {
     return -1; // full
 }
 
-int ServerLobby::AddPlayer(network::PeerId peer) {
+int ServerLobby::AddPlayer(network::PeerId peer, uint32_t playerId) {
     for (int i = 0; i < MAX_PLAYERS; i++) {
         if (!m_slots[i].lobbySlot.occupied) {
             m_slots[i].peerId = peer;
+            m_slots[i].lobbySlot.id = playerId;
             m_slots[i].lobbySlot.ready = false;
             m_slots[i].lobbySlot.occupied = true;
             std::string name = "Player[" + std::to_string(i) + "]";
@@ -41,9 +46,17 @@ void ServerLobby::RemovePlayer(network::PeerId peer) {
 
 bool ServerLobby::TrySetCharacter(network::PeerId peer, Character::CharacterId characterId) {
     for (auto &slot : m_slots) {
-        if (slot.lobbySlot.occupied && slot.peerId == peer) {
-            // TODO: add check to see if that character is already taken
+        if (slot.lobbySlot.occupied && slot.peerId == peer && !CharacterTaken(slot.lobbySlot.id, characterId)) {
             slot.lobbySlot.characterId = characterId;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ServerLobby::CharacterTaken(uint32_t playerId, const Character::CharacterId characterId) {
+    for (const auto &slot : m_slots) {
+        if (slot.lobbySlot.id != playerId && slot.lobbySlot.characterId == characterId) {
             return true;
         }
     }

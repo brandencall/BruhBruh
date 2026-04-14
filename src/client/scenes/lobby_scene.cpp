@@ -160,7 +160,6 @@ void LobbyScene::Render() {
         DrawRectangleLinesEx(iconRect, 2, hovered ? YELLOW : GRAY);
 
         if (hovered && mouseClicked) {
-            printf("Character selected: %d\n", icon.first);
             OnCharacterSelected(icon.first);
         }
         ++iconPos;

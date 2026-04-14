@@ -3,6 +3,7 @@
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
+#include <iostream>
 #include <string>
 
 namespace network {
@@ -46,14 +47,13 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
     }
 
     auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
-    int slot = m_lobby.AddPlayer(from);
-    if (slot == -1) {
+    auto *client = m_registry.AddClient(from, Character::CharacterId::None);
+    if (!client) {
         // TODO: Send a lobby full packet so that the client knows that it is getting denied
         return;
     }
-    // TODO: change back to None when character selection is in
-    // auto *client = m_registry.AddClient(from, Character::CharacterId::None);
-    auto *client = m_registry.AddClient(from, Character::CharacterId::Tonts);
+
+    int slot = m_lobby.AddPlayer(from, client->playerId);
     SendJoinResponse(from, client->playerId, client->characterId);
 
     // m_broadcaster.BroadcastPlayerJoined(pkt->name, client);
