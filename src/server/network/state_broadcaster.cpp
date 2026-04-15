@@ -1,5 +1,6 @@
 #include "state_broadcaster.hpp"
 #include "../network/packets/lobby_packets.hpp"
+#include "characters/character_types.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -55,7 +56,7 @@ void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection 
     strncpy(pkt.name, name, sizeof(pkt.name) - 1);
     pkt.name[sizeof(pkt.name) - 1] = '\0';
     pkt.playerId = client->playerId;
-    pkt.characterId = client->characterId;
+    pkt.characterId = Character::CharacterId::None;
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 

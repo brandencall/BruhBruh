@@ -34,26 +34,18 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
 void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from) {
     // Only allow joins during lobby phase
     auto *existing = m_registry.FindByPeer(from);
-    if (m_phase != ServerPhase::LOBBY) {
-        SendJoinResponse(from, existing->playerId, existing->characterId);
+    if (m_phase != ServerPhase::LOBBY || existing)
         return;
-    }
-
-    // Duplicate join — already in lobby
-    if (existing) {
-        SendJoinResponse(from, existing->playerId, existing->characterId);
-        return;
-    }
 
     auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
-    auto *client = m_registry.AddClient(from, Character::CharacterId::None);
+    auto *client = m_registry.AddClient(from);
     if (!client) {
         // TODO: Send a lobby full packet so that the client knows that it is getting denied
         return;
     }
 
     int slot = m_lobby.AddPlayer(from, client->playerId);
-    SendJoinResponse(from, client->playerId, client->characterId);
+    SendJoinResponse(from, client->playerId);
 
     // m_broadcaster.BroadcastPlayerJoined(pkt->name, client);
     std::string name = "Player[" + std::to_string(slot) + "]";
@@ -111,11 +103,11 @@ void PacketHandler::OnInput(char *buffer, size_t size, network::PeerId from) {
                             });
 }
 
-void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId, Character::CharacterId charId) {
+void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId) {
     network::JoinResponsePacket response{};
     response.header.type = network::PacketType::JoinResponse;
     response.playerId = playerId;
-    response.characterId = charId;
+    response.characterId = Character::CharacterId::None;
     m_transport.send(to, &response, sizeof(response));
 }
 } // namespace network

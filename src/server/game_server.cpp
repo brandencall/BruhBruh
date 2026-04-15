@@ -1,6 +1,5 @@
 #include "game_server.hpp"
 #include <chrono>
-#include <iostream>
 #include <thread>
 
 GameServer::GameServer()
@@ -67,7 +66,7 @@ void GameServer::SpawnPlayersIntoSimulation() {
             continue;
 
         auto *client = m_registry.FindByPeer(slot.peerId);
-        m_simulation.CreatePlayer(client->playerId, client->characterId);
+        m_simulation.CreatePlayer(slot.lobbySlot.id, slot.lobbySlot.characterId);
     }
 }
 

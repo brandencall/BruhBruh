@@ -2,14 +2,13 @@
 
 #include "../config.hpp"
 #include "../network/client.hpp"
-#include "../shared/characters/character_types.hpp"
 #include <array>
 
 namespace network {
 class ClientRegistry {
   public:
     network::ClientConnection *FindByPeer(network::PeerId id);
-    network::ClientConnection *AddClient(network::PeerId id, Character::CharacterId character);
+    network::ClientConnection *AddClient(network::PeerId id);
     void RemoveClient(network::PeerId id);
 
     template <typename F> void ForEach(F &&fn) {

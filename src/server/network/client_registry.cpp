@@ -10,13 +10,12 @@ network::ClientConnection *ClientRegistry::FindByPeer(network::PeerId id) {
     return nullptr;
 }
 
-network::ClientConnection *ClientRegistry::AddClient(network::PeerId id, Character::CharacterId character) {
+network::ClientConnection *ClientRegistry::AddClient(network::PeerId id) {
     for (int i = 0; i < m_clients.size(); ++i) {
         if (!m_clients[i].active) {
             m_clients[i].active = true;
             m_clients[i].peerId = id;
             m_clients[i].playerId = i;
-            m_clients[i].characterId = character;
             return &m_clients[i];
         }
     }
