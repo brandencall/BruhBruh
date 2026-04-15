@@ -3,6 +3,18 @@
 
 namespace System {
 
+void ClientBulletSystem::Load() {
+    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
+    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
+    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
+    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
+}
+
+void ClientBulletSystem::Unload() {
+    for (auto &[id, tex] : m_textures)
+        UnloadTexture(tex);
+}
+
 void ClientBulletSystem::Update(float dt) {
     for (auto &bullet : m_bullets) {
         if (!bullet.active)
@@ -19,8 +31,18 @@ void ClientBulletSystem::Update(float dt) {
     }
 }
 
-void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos) {
+void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
+    auto it = m_textures.find(bullet.characterId);
+    if (it == m_textures.end())
+        return;
+    // Draw centered on player position
+    DrawTextureV(it->second, bullet.hitbox.circle.center, WHITE);
+}
+
+void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,
+                                 Character::CharacterId characterId) {
     bullet.serverPosition = spawnPos;
+    bullet.characterId = characterId;
 }
 
 void ClientBulletSystem::AssignId(int slot, uint32_t id) {

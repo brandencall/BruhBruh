@@ -18,7 +18,7 @@ template <typename TBulletState> class BulletSystem {
   public:
     BulletSystem() = default;
 
-    virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, Character::CharacterDef character) {
+    virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, const Character::CharacterDef &character) {
 
         if (Vector2LengthSqr(direction) < 0.0001f)
             return -1;
@@ -30,7 +30,7 @@ template <typename TBulletState> class BulletSystem {
             uint16_t gen = ++m_generations[i];
             uint32_t id = MakeId(i, gen);
             Vector2 velocity = Vector2Scale(Vector2Normalize(direction), character.bullet.speed);
-            InitBulletSlot(i, id, ownerId, position, velocity, character.bullet);
+            InitBulletSlot(i, id, ownerId, position, velocity, character);
 
             OnBulletSpawn(m_bullets[i].id, ownerId, character.id, position, m_bullets[i].velocity);
             return i;
@@ -39,30 +39,30 @@ template <typename TBulletState> class BulletSystem {
     }
 
     virtual int SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                                     Character::BulletDef bulletDef) {
+                                     const Character::CharacterDef &character) {
         int slot = GetSlot(serverId);
         if (slot < 0 || slot >= MAX_BULLETS)
             return -1;
 
-        InitBulletSlot(slot, serverId, ownerId, position, velocity, bulletDef);
+        InitBulletSlot(slot, serverId, ownerId, position, velocity, character);
 
         return slot;
     }
 
     void InitBulletSlot(int slot, uint32_t id, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                        Character::BulletDef bulletDef) {
+                        const Character::CharacterDef &character) {
         component::Hitbox hitbox = {
-            .circle = {.center = {position.x, position.y}, .radius = bulletDef.radius},
-            .damage = bulletDef.damage,
+            .circle = {.center = {position.x, position.y}, .radius = character.bullet.radius},
+            .damage = character.bullet.damage,
         };
         m_bullets[slot] = TBulletState{};
         m_bullets[slot].id = id;
         m_bullets[slot].ownerId = ownerId;
         m_bullets[slot].velocity = velocity;
-        m_bullets[slot].lifetime = bulletDef.lifetime;
+        m_bullets[slot].lifetime = character.bullet.lifetime;
         m_bullets[slot].hitbox = hitbox;
         m_bullets[slot].active = true;
-        OnSpawn(m_bullets[slot], position);
+        OnSpawn(m_bullets[slot], position, character.id);
     }
 
     void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
@@ -133,7 +133,7 @@ template <typename TBulletState> class BulletSystem {
     virtual void OnBulletDestroyed(uint32_t bulletId) {}
 
   protected:
-    virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos) {}
+    virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos, Character::CharacterId characterId) {}
 
     static uint32_t MakeId(int slot, uint16_t generation) {
         return (static_cast<uint32_t>(generation) << 16) | static_cast<uint32_t>(slot);

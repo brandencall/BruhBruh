@@ -7,7 +7,6 @@
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 #include <cstdint>
-#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                      SceneManager &sceneManager, uint32_t currentPlayerId)
@@ -34,7 +33,9 @@ void GameScene::OnEnter() {
     m_worldState.m_map = mapData;
     m_worldState.m_tileMap = mapData.tileMap;
     m_tilemapRenderer.Load(ACTIVE_MAP.tileset);
+    // TODO: Optimize loading so that we don't load all textures and just the ones that are needed
     m_characterRender.Load();
+    m_bulletSystem.Load();
 
     m_camera.offset = {std::round(1280 / 2.0f), std::round(720 / 2.0f)};
     m_camera.rotation = 0.0f;
@@ -63,6 +64,7 @@ void GameScene::OnExit() {
     m_handler.Unregister(PT::WallDestroyed);
 
     m_characterRender.Unload();
+    m_bulletSystem.Unload();
 
     // Base Scene::OnExit unsubscribes any EventBus subscriptions
     Scene::OnExit();
@@ -102,7 +104,6 @@ void GameScene::Sync(float dt) {
     if (m_worldState.m_currentPlayerId == -1)
         return;
 
-    // TODO: First frame is off and looks terrible
     if (!m_initialSnapDone) {
         const auto &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];
         if (lp.position.x == 0.0f && lp.position.y == 0.0f)
@@ -177,8 +178,8 @@ void GameScene::HandleCurrentWorldState(const char *buffer) {
 
 void GameScene::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
-    Character::BulletDef bullet = Character::GetCharacterDef(pkt->characterId).bullet;
-    m_bulletSystem.SpawnFromServerEvent(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, bullet);
+    Character::CharacterDef character = Character::GetCharacterDef(pkt->characterId);
+    m_bulletSystem.SpawnFromServerEvent(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, character);
 }
 
 void GameScene::HandleBulletDestroyed(const char *buffer) {
@@ -268,7 +269,7 @@ void GameScene::Render() {
     for (const auto &bullet : m_bulletSystem.GetBullets()) {
         if (!bullet.active)
             continue;
-        DrawCircleV(bullet.hitbox.circle.center, 4.0f, YELLOW);
+        m_bulletSystem.Draw(bullet);
     }
     for (const auto &[gridPos, wall] : m_wallManager.GetAllWalls()) {
         if (!wall.active)
