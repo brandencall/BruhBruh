@@ -64,13 +64,17 @@ bool ServerLobby::CharacterTakenByOther(uint32_t playerId, const Character::Char
     return false;
 }
 
-void ServerLobby::SetReady(network::PeerId peer, bool ready) {
+// Returns the ready state if in eligible state. If not in eligible state, then returns false;
+// Ready state can be either true or false (true: player is ready, false: player is not ready)
+bool ServerLobby::TrySetReady(network::PeerId peer, bool ready) {
     for (auto &slot : m_slots) {
-        if (slot.lobbySlot.occupied && slot.peerId == peer) {
+        if (slot.lobbySlot.occupied && slot.peerId == peer &&
+            slot.lobbySlot.characterId != Character::CharacterId::None) {
             slot.lobbySlot.ready = ready;
-            return;
+            return ready;
         }
     }
+    return false;
 }
 
 bool ServerLobby::AllReady() const {

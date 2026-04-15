@@ -5,8 +5,6 @@
 #include "raylib.h"
 #include <cstdint>
 #include <cstring>
-#include <iostream>
-#include <ostream>
 #include <unordered_map>
 
 LobbyScene::LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
@@ -17,6 +15,7 @@ void LobbyScene::OnEnter() {
     using PT = network::PacketType;
     m_handler.Register(PT::JoinResponse, [this](const char *b) { HandleJoinResponse(b); });
     m_handler.Register(PT::PlayerJoined, [this](const char *b) { HandlePlayerJoined(b); });
+    m_handler.Register(PT::PlayerReady, [this](const char *b) { HandlePlayerReady(b); });
     m_handler.Register(PT::CharacterSelected, [this](const char *b) { HandleCharacterSelected(b); });
     m_handler.Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
     m_handler.Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
@@ -33,6 +32,7 @@ void LobbyScene::OnExit() {
     using PT = network::PacketType;
     m_handler.Unregister(PT::JoinResponse);
     m_handler.Unregister(PT::PlayerJoined);
+    m_handler.Unregister(PT::PlayerReady);
     m_handler.Unregister(PT::CharacterSelected);
     m_handler.Unregister(PT::LobbyState);
     m_handler.Unregister(PT::StartGame);
@@ -50,9 +50,9 @@ void LobbyScene::Update(float dt) {
         }
         return;
     }
-    if (IsKeyPressed(KEY_SPACE) && !m_ready) {
-        SendReady();
-        m_ready = true;
+    // Once the game has started counting down, players can't un ready up
+    if (IsKeyPressed(KEY_SPACE) && !m_gameStarting) {
+        FlipReadyState();
     }
 }
 
@@ -78,10 +78,16 @@ void LobbyScene::HandlePlayerJoined(const char *buf) {
     strcpy(m_players[pkt->playerId].name, pkt->name);
 }
 
+void LobbyScene::HandlePlayerReady(const char *buf) {
+    auto *pkt = reinterpret_cast<const network::PlayerReadyPacket *>(buf);
+    if (pkt->playerId == m_localPlayerId) {
+        m_ready = pkt->playerReady;
+    }
+}
+
 void LobbyScene::HandleCharacterSelected(const char *buf) {
     auto *pkt = reinterpret_cast<const network::CharacterSelectedPacket *>(buf);
     m_players[pkt->playerId].characterId = pkt->characterId;
-    std::cout << "The player " << pkt->playerId << " selected the character: " << (int)pkt->characterId << std::endl;
 }
 
 void LobbyScene::HandleLobbyState(const char *buf) {
@@ -96,10 +102,9 @@ void LobbyScene::HandleLobbyState(const char *buf) {
 }
 
 void LobbyScene::HandleGameStarting(const char *buf) {
-    // Server says everyone is ready — transition to game
-    // m_sceneManager.Replace(std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager));
     auto *pkt = reinterpret_cast<const network::StartGamePacket *>(buf);
     m_countdownTimer = pkt->countdown;
+    m_gameStarting = true;
 }
 
 void LobbyScene::HandleGameBegin(const char *buf) {
@@ -108,10 +113,11 @@ void LobbyScene::HandleGameBegin(const char *buf) {
         std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager, m_localPlayerId));
 }
 
-void LobbyScene::SendReady() {
+void LobbyScene::FlipReadyState() {
     network::PlayerReadyPacket pkt{};
     pkt.header.type = network::PacketType::PlayerReady;
     pkt.playerId = m_localPlayerId;
+    pkt.playerReady = !m_ready;
     m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
@@ -162,13 +168,13 @@ void LobbyScene::Render() {
                            0.0f, WHITE);
             DrawRectangleLinesEx(iconRect, 2, hovered ? YELLOW : GRAY);
 
-            if (hovered && mouseClicked)
+            if (hovered && mouseClicked && !m_ready)
                 OnCharacterSelected(icon.first);
         }
         ++iconPos;
     }
 
-    if (m_countdownTimer > 0) {
+    if (m_gameStarting) {
         const char *countdownText = TextFormat("%d", (int)std::ceil(m_countdownTimer));
         int fontSize = screenH * 0.177f;
         utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize, YELLOW);

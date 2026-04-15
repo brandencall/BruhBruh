@@ -21,13 +21,14 @@ class LobbyScene : public Scene {
     // Packet handlers
     void HandleJoinResponse(const char *buf);
     void HandlePlayerJoined(const char *buf);
+    void HandlePlayerReady(const char *buf);
     void HandleCharacterSelected(const char *buf);
     void HandleLobbyState(const char *buf);
     void HandleGameStarting(const char *buf);
     void HandleGameBegin(const char *buf);
 
     void SendJoin();
-    void SendReady();
+    void FlipReadyState();
 
     void OnCharacterSelected(const Character::CharacterId &character);
 
@@ -38,6 +39,7 @@ class LobbyScene : public Scene {
     bool m_joined = false;
     float m_joinRetryAccumulator = 0.0f;
     float m_countdownTimer = 0.0f;
+    bool m_gameStarting = false;
     Client::EventHub &m_events;
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;

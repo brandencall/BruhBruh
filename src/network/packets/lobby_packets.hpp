@@ -33,6 +33,7 @@ struct PlayerReadyPacket {
     PacketHeader header;
     uint32_t playerId;
     Character::CharacterId characterId;
+    bool playerReady;
 };
 
 struct LobbyStatePacket {

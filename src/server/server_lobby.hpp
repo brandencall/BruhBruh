@@ -18,7 +18,7 @@ class ServerLobby {
     void RemovePlayer(network::PeerId peer);
     bool TrySetCharacter(network::PeerId peer, Character::CharacterId characterId);
     bool CharacterTakenByOther(uint32_t playerId, const Character::CharacterId characterId);
-    void SetReady(network::PeerId peer, bool ready);
+    bool TrySetReady(network::PeerId peer, bool ready);
 
     bool AllReady() const;
     int PlayerCount() const;

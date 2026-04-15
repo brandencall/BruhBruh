@@ -62,7 +62,14 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
 
 void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId from) {
     auto *pkt = reinterpret_cast<network::PlayerReadyPacket *>(buffer);
-    m_lobby.SetReady(from, true);
+    bool setReady = m_lobby.TrySetReady(from, pkt->playerReady);
+
+    network::PlayerReadyPacket returnPacket{};
+    returnPacket.header.type = network::PacketType::PlayerReady;
+    returnPacket.playerReady = setReady;
+    returnPacket.playerId = pkt->playerId;
+    returnPacket.characterId = pkt->characterId;
+    m_transport.send(from, &returnPacket, sizeof(returnPacket));
 }
 
 void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::PeerId from) {
