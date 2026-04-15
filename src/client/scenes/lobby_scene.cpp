@@ -3,9 +3,11 @@
 #include "../scenes/game_scene.hpp"
 #include "../utils/text_utils.hpp"
 #include "raylib.h"
+#include <cstdint>
 #include <cstring>
 #include <iostream>
 #include <ostream>
+#include <unordered_map>
 
 LobbyScene::LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                        SceneManager &sceneManager)
@@ -78,15 +80,8 @@ void LobbyScene::HandlePlayerJoined(const char *buf) {
 
 void LobbyScene::HandleCharacterSelected(const char *buf) {
     auto *pkt = reinterpret_cast<const network::CharacterSelectedPacket *>(buf);
-    // Character selection was denied
-    if (pkt->playerId == m_localPlayerId && pkt->characterId == Character::CharacterId::None) {
-        // TODO: Need to render a denied text
-        std::cout << "The player selection was denied" << std::endl;
-    } else {
-        m_players[pkt->playerId].characterId = pkt->characterId;
-        std::cout << "The player " << pkt->playerId << " selected the character: " << (int)pkt->characterId
-                  << std::endl;
-    }
+    m_players[pkt->playerId].characterId = pkt->characterId;
+    std::cout << "The player " << pkt->playerId << " selected the character: " << (int)pkt->characterId << std::endl;
 }
 
 void LobbyScene::HandleLobbyState(const char *buf) {
@@ -122,16 +117,19 @@ void LobbyScene::SendReady() {
 
 void LobbyScene::Render() {
     int screenW = GetScreenWidth();
-    int screenH = GetScreenHeight(); // was GetScreenWidth() — likely a bug
+    int screenH = GetScreenHeight();
     BeginDrawing();
     ClearBackground(BLACK);
     utils::DrawTextCentered("LOBBY", screenW * 0.5f, 60, 32, WHITE);
     utils::DrawTextCentered("Press SPACE when ready", screenW * 0.5f, screenH * 0.916f, 20, GRAY);
 
-    for (int i = 0; i < 4; ++i) {
+    std::unordered_map<Character::CharacterId, uint32_t> takenCharacters;
+    for (int i = 0; i < MAX_PLAYERS; ++i) {
         int x = screenW * 0.125f + (i * screenW * 0.203f);
         int y = screenH * 0.2;
         RenderPlayerSlot(i, m_players[i], x, y, screenW, screenH);
+        if (m_players[i].id != -1 && m_players[i].characterId != Character::CharacterId::None)
+            takenCharacters[m_players[i].characterId] = m_players[i].id;
     }
 
     utils::DrawTextCentered("Select Character:", screenW * 0.5f, screenH * 0.667f, 20, WHITE);
@@ -149,18 +147,23 @@ void LobbyScene::Render() {
         int y = screenH * 0.708f;
 
         Rectangle iconRect = {(float)x, (float)y, (float)iconSize, (float)iconSize};
+        auto it = takenCharacters.find(icon.first);
         bool hovered = CheckCollisionPointRec(mousePos, iconRect);
 
-        if (hovered)
-            DrawRectangleRec(iconRect, ColorAlpha(WHITE, 0.2f));
+        if (it != takenCharacters.end() && it->second != m_localPlayerId) {
+            DrawTexturePro(icon.second, {0, 0, (float)icon.second.width, (float)icon.second.height}, iconRect, {0, 0},
+                           0.0f, DARKGRAY);
+            DrawRectangleLinesEx(iconRect, 2, DARKGRAY);
+        } else {
+            if (hovered)
+                DrawRectangleRec(iconRect, ColorAlpha(WHITE, 0.2f));
 
-        DrawTexturePro(icon.second, {0, 0, (float)icon.second.width, (float)icon.second.height}, iconRect, {0, 0}, 0.0f,
-                       WHITE);
+            DrawTexturePro(icon.second, {0, 0, (float)icon.second.width, (float)icon.second.height}, iconRect, {0, 0},
+                           0.0f, WHITE);
+            DrawRectangleLinesEx(iconRect, 2, hovered ? YELLOW : GRAY);
 
-        DrawRectangleLinesEx(iconRect, 2, hovered ? YELLOW : GRAY);
-
-        if (hovered && mouseClicked) {
-            OnCharacterSelected(icon.first);
+            if (hovered && mouseClicked)
+                OnCharacterSelected(icon.first);
         }
         ++iconPos;
     }
@@ -197,14 +200,29 @@ void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player,
 
     DrawText(player.name, x + slotW * 0.045f, y + slotH * 0.066f, 18, WHITE);
 
+    RenderSelectedCharacter(player, slotW, slotH, x, y);
+
     if (player.ready) {
         utils::DrawTextCentered("READY", x + slotW * 0.5f, y + slotH * 0.8f, 20, GREEN);
     } else {
         utils::DrawTextCentered("NOT READY", x + slotW * 0.5f, y + slotH * 0.8f, 20, RED);
     }
 
-    // TODO: This is bugged
     if (player.id == m_localPlayerId) {
         DrawRectangleLines(x - 2, y - 2, slotW + 4, slotH + 4, YELLOW);
+    }
+}
+
+void LobbyScene::RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y) {
+    auto it = m_icons.find(player.characterId);
+    if (it != m_icons.end() || it->first != Character::CharacterId::None) {
+        int iconSize = slotW * 0.6f;
+        int iconX = x + (slotW - iconSize) * 0.5f;
+        int iconY = y + slotH * 0.2f;
+        Rectangle iconRect = {(float)iconX, (float)iconY, (float)iconSize, (float)iconSize};
+        DrawTexturePro(it->second, {0, 0, (float)it->second.width, (float)it->second.height}, iconRect, {0, 0}, 0.0f,
+                       WHITE);
+    } else {
+        utils::DrawTextCentered("No character", x + slotW * 0.5f, y + slotH * 0.4f, 14, DARKGRAY);
     }
 }

@@ -3,7 +3,6 @@
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
-#include <iostream>
 #include <string>
 
 namespace network {
@@ -68,16 +67,7 @@ void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId fro
 
 void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::PeerId from) {
     auto *pkt = reinterpret_cast<network::CharacterSelectedPacket *>(buffer);
-    bool characterSet = m_lobby.TrySetCharacter(from, pkt->characterId);
-    if (!characterSet) {
-        network::CharacterSelectedPacket deniedPacket;
-        deniedPacket.header.type = network::PacketType::CharacterSelected;
-        deniedPacket.playerId = pkt->playerId;
-        deniedPacket.characterId = Character::CharacterId::None;
-        m_transport.send(from, &deniedPacket, sizeof(deniedPacket));
-        return;
-    }
-
+    m_lobby.TrySetCharacter(from, pkt->characterId);
     m_broadcaster.BroadcastCharacterSelected(pkt->playerId, pkt->characterId);
 }
 

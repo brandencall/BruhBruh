@@ -46,15 +46,16 @@ void ServerLobby::RemovePlayer(network::PeerId peer) {
 
 bool ServerLobby::TrySetCharacter(network::PeerId peer, Character::CharacterId characterId) {
     for (auto &slot : m_slots) {
-        if (slot.lobbySlot.occupied && slot.peerId == peer && !CharacterTaken(slot.lobbySlot.id, characterId)) {
-            slot.lobbySlot.characterId = characterId;
+        if (slot.lobbySlot.occupied && slot.peerId == peer && !CharacterTakenByOther(slot.lobbySlot.id, characterId)) {
+            slot.lobbySlot.characterId =
+                slot.lobbySlot.characterId == characterId ? Character::CharacterId::None : characterId;
             return true;
         }
     }
     return false;
 }
 
-bool ServerLobby::CharacterTaken(uint32_t playerId, const Character::CharacterId characterId) {
+bool ServerLobby::CharacterTakenByOther(uint32_t playerId, const Character::CharacterId characterId) {
     for (const auto &slot : m_slots) {
         if (slot.lobbySlot.id != playerId && slot.lobbySlot.characterId == characterId) {
             return true;

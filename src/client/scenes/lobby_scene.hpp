@@ -32,6 +32,7 @@ class LobbyScene : public Scene {
     void OnCharacterSelected(const Character::CharacterId &character);
 
     void RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW, int screenH);
+    void RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y);
 
   private:
     bool m_joined = false;
