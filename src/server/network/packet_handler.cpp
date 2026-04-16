@@ -44,12 +44,12 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
         return;
     }
 
+    // TODO: need to pass in the name when the client joins
+    // int slot = m_lobby.AddPlayer(from, name, client->playerId);
     int slot = m_lobby.AddPlayer(from, client->playerId);
     SendJoinResponse(from, client->playerId);
 
-    // m_broadcaster.BroadcastPlayerJoined(pkt->name, client);
-    std::string name = "Player[" + std::to_string(slot) + "]";
-    m_broadcaster.BroadcastPlayerJoined(name.c_str(), client);
+    m_broadcaster.BroadcastPlayerJoined(m_lobby.Slots()[slot].lobbySlot.name, client);
 }
 
 void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId from) {

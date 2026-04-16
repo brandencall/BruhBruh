@@ -25,7 +25,7 @@ class GameSimulation {
     void ApplyInput(uint32_t playerId, Character::CharacterId characterId, const state::PlayerInput &input);
     const std::array<state::PlayerState, MAX_PLAYERS> &GetPlayers() const;
     const std::array<state::BulletState, MAX_BULLETS> &GetBullets();
-    void CreatePlayer(uint32_t playerId, Character::CharacterId characterId);
+    void CreatePlayer(uint32_t playerId, Character::CharacterId characterId, const char *name);
     void RemovePlayer(uint32_t playerId);
 
     float GetGameTime() const;

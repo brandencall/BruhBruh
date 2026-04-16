@@ -8,6 +8,7 @@
 #include "raylib.h"
 #include "state/player_state.hpp"
 #include <cstdint>
+#include <string.h>
 #include <sys/types.h>
 
 void GameSimulation::Initialize(EventBus &eventBus) {
@@ -161,7 +162,7 @@ bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i grid
 
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() const { return m_players; }
 
-void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId) {
+void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId characterId, const char *name) {
     if (playerId > MAX_PLAYERS)
         return;
     const Character::CharacterDef &charDef = GetCharacterDef(characterId);
@@ -177,8 +178,8 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                  .respawnTimer = 0.0f,
                                  .currentAvaliableWalls = 5,
                                  .active = true};
-    // TODO: Take in the NAME on creation
-    snprintf(player.name, sizeof(player.name), "player[%u]", playerId);
+    strncpy(player.name, name, sizeof(player.name) - 1);
+    player.name[sizeof(player.name) - 1] = '\0';
     m_players[playerId] = player;
 }
 

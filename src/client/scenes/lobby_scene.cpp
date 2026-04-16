@@ -110,7 +110,7 @@ void LobbyScene::HandleGameStarting(const char *buf) {
 void LobbyScene::HandleGameBegin(const char *buf) {
     // Server says everyone is ready — transition to game
     m_sceneManager.Replace(
-        std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager, m_localPlayerId));
+        std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager, m_players[m_localPlayerId]));
 }
 
 void LobbyScene::FlipReadyState() {

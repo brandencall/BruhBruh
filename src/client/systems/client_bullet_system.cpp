@@ -35,8 +35,14 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     auto it = m_textures.find(bullet.characterId);
     if (it == m_textures.end())
         return;
-    // Draw centered on player position
-    DrawTextureV(it->second, bullet.hitbox.circle.center, WHITE);
+
+    const Texture2D &tex = it->second;
+    Vector2 origin = {bullet.hitbox.circle.center.x - tex.width * 0.5f,
+                      bullet.hitbox.circle.center.y - tex.height * 0.5f};
+
+    DrawTextureV(tex, origin, WHITE);
+    DrawCircleV(bullet.hitbox.circle.center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
+    DrawCircleLinesV(bullet.hitbox.circle.center, bullet.hitbox.circle.radius, RED);
 }
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,

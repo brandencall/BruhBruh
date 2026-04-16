@@ -66,7 +66,7 @@ void GameServer::SpawnPlayersIntoSimulation() {
             continue;
 
         auto *client = m_registry.FindByPeer(slot.peerId);
-        m_simulation.CreatePlayer(slot.lobbySlot.id, slot.lobbySlot.characterId);
+        m_simulation.CreatePlayer(slot.lobbySlot.id, slot.lobbySlot.characterId, slot.lobbySlot.name);
     }
 }
 

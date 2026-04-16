@@ -1,5 +1,6 @@
 #pragma once
 #include "../../network/packets/gameplay_packets.hpp"
+#include "../../shared/state/lobby_slot_state.hpp"
 #include "../client_transport.hpp"
 #include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"
@@ -16,7 +17,7 @@
 class GameScene : public Scene {
   public:
     GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-              SceneManager &sceneManager, uint32_t currentPlayerId);
+              SceneManager &sceneManager, state::LobbySlotState currentPlayerState);
 
     void OnEnter() override;
     void OnExit() override;
@@ -50,7 +51,8 @@ class GameScene : public Scene {
     network::ClientTransport &m_transport;
     NetworkMessageHandler &m_handler;
     SceneManager &m_sceneManager;
-    uint32_t m_currentPlayerId;
+    uint32_t m_currentPlayerId = UINT32_MAX;
+    Character::CharacterId m_currenCharacterId = Character::CharacterId::None;
 
     // Scene-owned state
     ClientWorldState m_worldState;
@@ -60,7 +62,6 @@ class GameScene : public Scene {
     Render::CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
 
-    Character::CharacterId m_characterId{};
     uint16_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
     float m_sendAccumulator = 0.0f;

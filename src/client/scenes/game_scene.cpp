@@ -9,9 +9,9 @@
 #include <cstdint>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-                     SceneManager &sceneManager, uint32_t currentPlayerId)
+                     SceneManager &sceneManager, state::LobbySlotState currentPlayerState)
     : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager),
-      m_currentPlayerId(currentPlayerId) {}
+      m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
     // Register packet handlers
@@ -145,8 +145,6 @@ void GameScene::HandleGameBegin(const char *buffer) {
     auto *pkt = (network::GameBeginPacket *)buffer;
     m_gameBeginTimer = pkt->countdown;
     if (!m_joined) {
-        // TODO: Need to send this with the packet (might need to send whole lobby info)
-        m_characterId = Character::CharacterId::Tonts;
         m_worldState.m_currentPlayerId = m_currentPlayerId;
         m_joined = true;
         for (uint16_t i = 0; i < pkt->playerCount; ++i)
@@ -319,7 +317,7 @@ network::InputPacket GameScene::CollectInput() {
 
     packet.header.type = network::PacketType::Input;
     packet.playerId = m_worldState.m_currentPlayerId;
-    packet.characterId = m_characterId;
+    packet.characterId = m_currenCharacterId;
 
     float x = 0.0f;
     float y = 0.0f;
