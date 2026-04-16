@@ -26,6 +26,7 @@ struct InputPacket {
     float moveY;
     float aimX;
     float aimY;
+    float facingAngle;
     // bitmask (shoot, place_wall, etc.)
     uint8_t buttons;
 

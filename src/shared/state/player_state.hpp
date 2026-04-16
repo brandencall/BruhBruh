@@ -18,6 +18,7 @@ struct PlayerInput {
     float moveY;
     float aimX;
     float aimY;
+    float angle = 0.0;
     // bitmask (shoot, place_wall, etc.)
     uint8_t buttons;
 };
@@ -28,11 +29,11 @@ struct PlayerState {
     char name[MAX_PLAYER_NAME_LEN] = {};
     Vector2 position = {0, 0};
     Vector2 velocity = {0, 0};
-    float speed = 300.0f;
     float health = 100;
     component::Hurtbox hurtbox;
     PlayerScore score;
     PlayerInput currentInput;
+
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
     float respawnTimer = 0.0f;

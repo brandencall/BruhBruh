@@ -350,6 +350,7 @@ network::InputPacket GameScene::CollectInput() {
         // Use server position for aim calculation to match where server will spawn bullet
         const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
         Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
+        packet.facingAngle = atan2f(mouseWorld.y - playerPos.y, mouseWorld.x - playerPos.x);
 
         if (buttons & (1 << 0)) {
             // Send aim direction for shooting

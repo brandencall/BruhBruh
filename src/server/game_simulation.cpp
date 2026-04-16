@@ -86,7 +86,8 @@ void GameSimulation::Update(float tickRate) {
         }
 
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
-        player.velocity = Vector2Scale(dir, player.speed);
+        const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
+        player.velocity = Vector2Scale(dir, charDef.moveSpeed);
         player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
         Collision::Circle circle = {player.position, player.hurtbox.radius};
         player.position = Collision::resolveCircleAABBList(circle, m_map.walls, dynamicColliders);
@@ -171,7 +172,6 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
     state::PlayerState player = {.id = playerId,
                                  .characterId = characterId,
                                  .position = spawn,
-                                 .speed = def.moveSpeed,
                                  .health = def.maxHealth,
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,

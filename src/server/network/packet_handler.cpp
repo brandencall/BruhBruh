@@ -3,7 +3,6 @@
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
-#include <string>
 
 namespace network {
 
@@ -99,6 +98,7 @@ void PacketHandler::OnInput(char *buffer, size_t size, network::PeerId from) {
                                 .moveY = packet->moveY,
                                 .aimX = packet->aimX,
                                 .aimY = packet->aimY,
+                                .angle = packet->facingAngle,
                                 .buttons = packet->buttons,
                             });
 }

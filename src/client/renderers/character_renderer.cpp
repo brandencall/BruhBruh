@@ -32,11 +32,21 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
     auto it = m_textures.find(player.characterId);
     if (it == m_textures.end())
         return;
-    // Draw centered on player position
-    DrawTextureV(
-        it->second,
-        {m_positions[player.id].x - it->second.width * 0.5f, m_positions[player.id].y - it->second.height * 0.5f},
-        WHITE);
+
+    Texture2D &tex = it->second;
+
+    Vector2 position = m_positions[player.id];
+
+    Rectangle src = {0, 0, (float)tex.width, (float)tex.height};
+
+    Rectangle dst = {position.x, position.y, (float)tex.width, (float)tex.height};
+
+    // rotate around the center
+    Vector2 origin = {tex.width * 0.5f, tex.height * 0.5f};
+
+    float rotationDegrees = player.currentInput.angle * RAD2DEG;
+
+    DrawTexturePro(tex, src, dst, origin, rotationDegrees, WHITE);
 }
 
 void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {
