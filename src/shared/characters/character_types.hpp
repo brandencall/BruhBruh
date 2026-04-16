@@ -16,6 +16,7 @@ struct BulletDef {
     float radius;
     float damage;
     float lifetime;
+    float spinSpeed;
 };
 
 struct CharacterDef {

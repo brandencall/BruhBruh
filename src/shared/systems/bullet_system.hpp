@@ -1,5 +1,6 @@
 #pragma once
 #include "../../config.hpp"
+#include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_types.hpp"
 #include "../components/collision.hpp"
@@ -58,8 +59,10 @@ template <typename TBulletState> class BulletSystem {
         m_bullets[slot] = TBulletState{};
         m_bullets[slot].id = id;
         m_bullets[slot].ownerId = ownerId;
+        m_bullets[slot].characterId = character.id;
         m_bullets[slot].velocity = velocity;
         m_bullets[slot].lifetime = character.bullet.lifetime;
+        m_bullets[slot].rotation = 0.0f;
         m_bullets[slot].hitbox = hitbox;
         m_bullets[slot].active = true;
         OnSpawn(m_bullets[slot], position, character.id);
@@ -71,8 +74,11 @@ template <typename TBulletState> class BulletSystem {
             if (!bullet.active)
                 continue;
 
+            const auto &def = Character::GetCharacterDef(bullet.characterId);
+
             bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
             bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
+            bullet.rotation += def.bullet.spinSpeed * dt;
             bullet.lifetime -= dt;
 
             if (bullet.lifetime <= 0.0f) {

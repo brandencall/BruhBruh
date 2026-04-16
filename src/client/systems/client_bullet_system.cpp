@@ -20,8 +20,10 @@ void ClientBulletSystem::Update(float dt) {
         if (!bullet.active)
             continue;
 
+        const auto &def = Character::GetCharacterDef(bullet.characterId);
         bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
         bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
+        bullet.rotation += def.bullet.spinSpeed * dt;
         bullet.lifetime -= dt;
 
         if (bullet.lifetime <= 0.0f) {
@@ -37,12 +39,17 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
         return;
 
     const Texture2D &tex = it->second;
-    Vector2 origin = {bullet.hitbox.circle.center.x - tex.width * 0.5f,
-                      bullet.hitbox.circle.center.y - tex.height * 0.5f};
+    const Vector2 &center = bullet.hitbox.circle.center;
 
-    DrawTextureV(tex, origin, WHITE);
-    DrawCircleV(bullet.hitbox.circle.center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
-    DrawCircleLinesV(bullet.hitbox.circle.center, bullet.hitbox.circle.radius, RED);
+    Rectangle source = {0, 0, (float)tex.width, (float)tex.height};
+    Rectangle dest = {center.x, center.y, (float)tex.width, (float)tex.height};
+    Vector2 origin = {tex.width * 0.5f, tex.height * 0.5f};
+
+    DrawTexturePro(tex, source, dest, origin, bullet.rotation, WHITE);
+
+    // debug hitbox
+    DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
+    DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
 }
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,
