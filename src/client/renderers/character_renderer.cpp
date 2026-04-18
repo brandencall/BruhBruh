@@ -5,10 +5,10 @@
 namespace Render {
 
 void CharacterRenderer::Load() {
-    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/Tonts.png");
-    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/tmp/Chavz.png");
-    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/Hodge.png");
-    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/Big_J.png");
+    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/characters/Tonts-Sheet.png");
+    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/Chavz-Sheet.png");
+    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/characters/Hodges-Sheet.png");
+    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/characters/Jontiy-Sheet.png");
 }
 
 void CharacterRenderer::Unload() {
@@ -35,18 +35,25 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
 
     Texture2D &tex = it->second;
 
+    float angle = player.currentInput.angle; // radians
+    // Normalize to 0 → 2π
+    if (angle < 0)
+        angle += 2 * PI;
+
+    int direction = (int)round(angle / (2 * PI) * m_numberOfDirections) % m_numberOfDirections;
+
+    int frameWidth = tex.width / m_numberOfFrames;
+    int frameHeight = tex.height / m_numberOfDirections;
+
     Vector2 position = m_positions[player.id];
+    // TODO: pull frame from player instead of hard coding the 1st frame
+    int frame = 0;
+    Rectangle src = {(float)frame * frameWidth, (float)direction * frameHeight, (float)frameWidth, (float)frameHeight};
+    Rectangle dst = {position.x, position.y, (float)frameWidth, (float)frameHeight};
 
-    Rectangle src = {0, 0, (float)tex.width, (float)tex.height};
+    Vector2 origin = {frameWidth * 0.5f, frameHeight * 0.5f};
 
-    Rectangle dst = {position.x, position.y, (float)tex.width, (float)tex.height};
-
-    // rotate around the center
-    Vector2 origin = {tex.width * 0.5f, tex.height * 0.5f};
-
-    float rotationDegrees = player.currentInput.angle * RAD2DEG;
-
-    DrawTexturePro(tex, src, dst, origin, rotationDegrees, WHITE);
+    DrawTexturePro(tex, src, dst, origin, 0.0f, WHITE);
 }
 
 void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {
