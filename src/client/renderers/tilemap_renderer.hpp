@@ -8,7 +8,10 @@ namespace Render {
 
 class TilemapRenderer {
   public:
-    void Load(const Map::TilesetDef &def) { m_tileset.Load(def); }
+    void Load(const Map::TilesetDef &def) {
+        m_tileset.Load(def);
+        SetTextureFilter(m_tileset.GetTexture(), TEXTURE_FILTER_POINT);
+    }
     void Unload() { m_tileset.Unload(); }
 
     void Draw(const Map::TileMap &map) const {

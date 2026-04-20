@@ -3,13 +3,27 @@
 #include "scenes/lobby_scene.hpp"
 
 void GameClient::Initialize() {
-    InitWindow(1280, 720, "BruhBruh");
+    int monitor = GetCurrentMonitor(); // or pick manually later
+
+    int width = GetMonitorWidth(monitor);
+    int height = GetMonitorHeight(monitor);
+
+    InitWindow(width, height, "BruhBruh");
+
+    // Borderless fullscreen
+    SetWindowState(FLAG_WINDOW_UNDECORATED);
+
+    Vector2 pos = GetMonitorPosition(monitor);
+    SetWindowPosition((int)pos.x, (int)pos.y);
+
     SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
     SetWindowState(FLAG_VSYNC_HINT);
-    if (GetFPS() == 0) {
-        int monitorHz = GetMonitorRefreshRate(GetCurrentMonitor());
-        SetTargetFPS(monitorHz > 0 ? monitorHz : 60);
-    }
+
+    int hz = GetMonitorRefreshRate(monitor);
+    if (hz < 30 || hz > 360)
+        hz = 60;
+
+    SetTargetFPS(hz);
 
     m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_transport, m_handler, m_sceneManager));
 }

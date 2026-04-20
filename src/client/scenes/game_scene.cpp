@@ -37,9 +37,11 @@ void GameScene::OnEnter() {
     m_characterRender.Load();
     m_bulletSystem.Load();
 
-    m_camera.offset = {std::round(1280 / 2.0f), std::round(720 / 2.0f)};
+    int screenW = GetScreenWidth();
+    int screenH = GetScreenHeight();
+    m_camera.offset = {std::round(screenW / 2.0f), std::round(screenH / 2.0f)};
     m_camera.rotation = 0.0f;
-    m_camera.zoom = 1.0f;
+    m_camera.zoom = 1.5f;
 
     Subscribe(m_events.playerDied, [this](const event::PlayerDiedEvent &e) {
         if (e.victim.id == m_worldState.m_currentPlayerId) {
@@ -129,7 +131,7 @@ void GameScene::Sync(float dt) {
 
     float smoothFactor = 1.0f - std::exp(-5.0f * dt);
     Vector2 smoothed = Vector2Lerp(m_camera.target, smoothedPos, smoothFactor);
-    m_camera.target = smoothed;
+    m_camera.target = {std::round(smoothed.x), std::round(smoothed.y)};
 }
 
 void GameScene::HandleScoreboardInput() {
@@ -189,7 +191,11 @@ void GameScene::HandlePlayerRespawned(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerRespawnedPacket *>(buffer);
     m_worldState.m_players[pkt->player.id] = pkt->player;
     m_characterRender.SnapToPosition(pkt->player);
-    m_cameraReady = false;
+
+    // only snap camera for the local player
+    if (pkt->player.id == m_worldState.m_currentPlayerId) {
+        m_cameraReady = false;
+    }
 
     m_events.playerRespawned.Publish({pkt->player});
 }
@@ -226,11 +232,9 @@ void GameScene::HandleDestroyWall(const char *buffer) {
 
 void GameScene::DrawMap(const Map::MapData &map) {
     for (const auto &wall : map.walls) {
-        float w = wall.max.x - wall.min.x;
-        float h = wall.max.y - wall.min.y;
-        DrawRectangle(wall.min.x, wall.min.y, w, h, DARKBLUE);
-
-        DrawRectangleLines(wall.min.x, wall.min.y, w, h, BLUE);
+        Rectangle rect = {wall.min.x, wall.min.y, wall.max.x - wall.min.x, wall.max.y - wall.min.y};
+        DrawRectangleRec(rect, DARKBLUE);
+        DrawRectangleLinesEx(rect, 1.0f, BLUE);
     }
 }
 
@@ -244,10 +248,10 @@ void GameScene::Render() {
     BeginDrawing();
 
     ClearBackground(DARKGRAY);
-    Camera2D renderCam = m_camera;
-    renderCam.target = {std::round(m_camera.target.x), std::round(m_camera.target.y)};
-    renderCam.offset = {std::round(m_camera.offset.x), std::round(m_camera.offset.y)};
-    BeginMode2D(renderCam);
+    // Camera2D renderCam = m_camera;
+    // renderCam.target = {std::round(m_camera.target.x), std::round(m_camera.target.y)};
+    // renderCam.offset = {std::round(m_camera.offset.x), std::round(m_camera.offset.y)};
+    BeginMode2D(m_camera);
 
     DrawMap(m_worldState.m_map);
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
@@ -289,17 +293,20 @@ void GameScene::Render() {
 
     m_ui.Render();
 
+    int screenW = GetScreenWidth();
+    int screenH = GetScreenHeight();
+
     if (m_gameBeginTimer > 0) {
         const char *countdownText = TextFormat("%d", (int)std::ceil(m_gameBeginTimer));
         int fontSize = 128;
         int textWidth = MeasureText(countdownText, fontSize);
-        DrawText(countdownText, (1280 - textWidth) / 2, (720 / 2) - (fontSize / 2), fontSize, YELLOW);
+        DrawText(countdownText, (screenW - textWidth) / 2, (screenH / 2) - (fontSize / 2), fontSize, YELLOW);
     }
 
     int fps = (int)(1.0f / GetFrameTime());
     std::string fpsText = std::to_string(fps) + " fps";
     int textWidth = MeasureText(fpsText.c_str(), 20);
-    DrawText(fpsText.c_str(), 1280 - textWidth - 10, 10, 20, GREEN);
+    DrawText(fpsText.c_str(), screenW - textWidth - 10, 10, 20, GREEN);
 
     EndDrawing();
 }

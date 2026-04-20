@@ -23,7 +23,7 @@ void CharacterRenderer::Sync(const state::PlayerState &state, float dt) {
         return;
     }
 
-    float smoothing = 15.0f; // lower is smoother, higher is snappier
+    float smoothing = 10.0f; // lower is smoother, higher is snappier
     Vector2 &current = m_positions[state.id];
     current = Vector2Lerp(current, state.position, smoothing * dt);
 }
