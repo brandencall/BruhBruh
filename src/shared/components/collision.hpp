@@ -40,7 +40,7 @@ inline bool Overlap(const Circle &circle, const AABB &aabb) {
     return dx * dx + dy * dy <= circle.radius * circle.radius;
 }
 
-inline Circle GetHurtBox(state::PlayerState &player) {
+inline Circle GetHurtBox(const state::PlayerState &player) {
     return {player.position.x, player.position.y, player.hurtbox.radius};
 }
 

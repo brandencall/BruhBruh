@@ -129,7 +129,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     bool shootPrev = player.lastButtons & (1 << 0);
     if (shootNow && !shootPrev) {
         Vector2 aimDir = {input.aimX, input.aimY};
-        m_bulletSystem.Spawn(player.id, player.position, aimDir, charDef);
+        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef});
     }
     bool placeNow = input.buttons & (1 << 1);
     bool placePrev = player.lastButtons & (1 << 1);

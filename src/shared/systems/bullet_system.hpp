@@ -11,17 +11,26 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
+#include <ostream>
 #include <unordered_map>
 
 namespace System {
+
+struct BulletSpawnDef {
+    uint32_t ownerId;
+    Vector2 position;
+    Vector2 direction;
+    const Character::CharacterDef &character;
+};
 
 template <typename TBulletState> class BulletSystem {
   public:
     BulletSystem() = default;
 
-    virtual int Spawn(uint32_t ownerId, Vector2 position, Vector2 direction, const Character::CharacterDef &character) {
+    virtual int Spawn(const BulletSpawnDef &bulletDef) {
 
-        if (Vector2LengthSqr(direction) < 0.0001f)
+        if (Vector2LengthSqr(bulletDef.direction) < 0.0001f)
             return -1;
 
         for (int i = 0; i < MAX_BULLETS; i++) {
@@ -30,10 +39,11 @@ template <typename TBulletState> class BulletSystem {
 
             uint16_t gen = ++m_generations[i];
             uint32_t id = MakeId(i, gen);
-            Vector2 velocity = Vector2Scale(Vector2Normalize(direction), character.bullet.speed);
-            InitBulletSlot(i, id, ownerId, position, velocity, character);
+            Vector2 velocity = Vector2Scale(Vector2Normalize(bulletDef.direction), bulletDef.character.bullet.speed);
+            InitBulletSlot(i, id, bulletDef.ownerId, bulletDef.position, velocity, bulletDef.character);
 
-            OnBulletSpawn(m_bullets[i].id, ownerId, character.id, position, m_bullets[i].velocity);
+            OnBulletSpawn(m_bullets[i].id, bulletDef.ownerId, bulletDef.character.id, bulletDef.position,
+                          m_bullets[i].velocity);
             return i;
         }
         return -1;
@@ -62,7 +72,7 @@ template <typename TBulletState> class BulletSystem {
         m_bullets[slot].characterId = character.id;
         m_bullets[slot].velocity = velocity;
         m_bullets[slot].lifetime = character.bullet.lifetime;
-        m_bullets[slot].rotation = 0.0f;
+        m_bullets[slot].rotation = atan2f(velocity.y, velocity.x) * RAD2DEG;
         m_bullets[slot].hitbox = hitbox;
         m_bullets[slot].active = true;
         OnSpawn(m_bullets[slot], position, character.id);
@@ -74,41 +84,53 @@ template <typename TBulletState> class BulletSystem {
             if (!bullet.active)
                 continue;
 
-            const auto &def = Character::GetCharacterDef(bullet.characterId);
-
-            bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
-            bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
-            bullet.rotation += def.bullet.spinSpeed * dt;
-            bullet.lifetime -= dt;
+            UpdateBulletKinematics(bullet, dt);
 
             if (bullet.lifetime <= 0.0f) {
                 Deactivate(bullet.id);
                 continue;
             }
 
-            if (m_map) {
-                for (auto &wall : m_map->walls) {
-                    if (Collision::Overlap(bullet.hitbox.circle, wall)) {
-                        Deactivate(bullet.id);
-                        break;
-                    }
-                }
-            }
-            for (auto &[_, wall] : dynamicWalls) {
-                if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
-                    Deactivate(bullet.id);
-                    OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
-                    break;
-                }
-            }
+            HandleCollisions(bullet, players, dynamicWalls);
+        }
+    }
 
-            for (auto &player : players) {
-                if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id &&
-                    Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
+    void UpdateBulletKinematics(TBulletState &bullet, float dt) {
+        const auto &def = Character::GetCharacterDef(bullet.characterId);
+
+        bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
+        bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
+
+        float dir = (bullet.velocity.x >= 0.0f) ? 1.0f : -1.0f;
+        bullet.rotation += dir * def.bullet.spinSpeed * dt;
+
+        bullet.lifetime -= dt;
+    }
+
+    void HandleCollisions(TBulletState &bullet, const std::array<state::PlayerState, MAX_PLAYERS> &players,
+                          const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
+        if (m_map) {
+            for (auto &wall : m_map->walls) {
+                if (Collision::Overlap(bullet.hitbox.circle, wall)) {
                     Deactivate(bullet.id);
-                    OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
                     break;
                 }
+            }
+        }
+        for (auto &[_, wall] : dynamicWalls) {
+            if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
+                Deactivate(bullet.id);
+                OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
+                break;
+            }
+        }
+
+        for (auto &player : players) {
+            if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id &&
+                Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
+                Deactivate(bullet.id);
+                OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+                break;
             }
         }
     }

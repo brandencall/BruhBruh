@@ -4,10 +4,10 @@
 namespace System {
 
 void ClientBulletSystem::Load() {
-    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
-    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
-    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
-    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/bottle_tonts.png");
+    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/items/bottle_tonts.png");
+    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/items/meatball_hodges.png");
+    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/items/steak_raff.png");
+    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/items/needle_j.png");
 }
 
 void ClientBulletSystem::Unload() {
@@ -20,11 +20,7 @@ void ClientBulletSystem::Update(float dt) {
         if (!bullet.active)
             continue;
 
-        const auto &def = Character::GetCharacterDef(bullet.characterId);
-        bullet.hitbox.circle.center.x += bullet.velocity.x * dt;
-        bullet.hitbox.circle.center.y += bullet.velocity.y * dt;
-        bullet.rotation += def.bullet.spinSpeed * dt;
-        bullet.lifetime -= dt;
+        UpdateBulletKinematics(bullet, dt);
 
         if (bullet.lifetime <= 0.0f) {
             bullet.active = false;
