@@ -253,6 +253,7 @@ void GameScene::Render() {
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
 
     for (const auto &player : m_worldState.m_players) {
+        // TODO: Instead of not drawing the dead player, draw the dead players death frames
         if (player.respawnTimer > 0.0f)
             continue;
 

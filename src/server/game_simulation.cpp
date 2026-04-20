@@ -7,6 +7,7 @@
 #include "events.hpp"
 #include "raylib.h"
 #include "state/player_state.hpp"
+#include "systems/spawn_system.hpp"
 #include <cstdint>
 #include <string.h>
 #include <sys/types.h>
@@ -102,7 +103,7 @@ void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     player.health = def.maxHealth;
     // TODO: Create a better respawn position based on other players positions and map bounds
     // player.position = m_map.spawnPoints[player.id];
-    player.position = m_map.initialSpawns[player.id];
+    player.position = System::Spawn(m_map.spawnPoints, m_players);
     player.velocity = {0, 0};
     player.respawnTimer = 0.0f;
     m_eventBus->publish(event::PlayerRespawnEvent{player});
@@ -168,7 +169,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
     if (playerId > MAX_PLAYERS)
         return;
     const Character::CharacterDef &charDef = GetCharacterDef(characterId);
-    Vector2 spawn = m_map.initialSpawns[playerId];
+    Vector2 spawn = System::InitSpawn(m_map.spawnPoints, playerId);
     const auto &def = GetCharacterDef(characterId);
     state::PlayerState player = {.id = playerId,
                                  .characterId = characterId,

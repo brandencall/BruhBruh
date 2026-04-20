@@ -5,6 +5,7 @@ add_library(server
 )
 
 add_subdirectory(network)
+add_subdirectory(systems)
 
 target_include_directories(server
     PUBLIC
@@ -14,5 +15,6 @@ target_include_directories(server
 target_link_libraries(server
     PUBLIC 
        server_network
+       server_systems
        shared
 )

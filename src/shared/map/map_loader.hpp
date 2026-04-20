@@ -18,14 +18,14 @@ inline MapData LoadMap(const MapDef &def) {
             TileType &t = data.tileMap.tiles[y * data.tileMap.width + x];
 
             // World-space centre of this tile
-            // Assumes TILE_SIZE is your tile pixel size, e.g. 32
             Vector2 worldPos = {(x + 0.5f) * GRID_CELL_SIZE, (y + 0.5f) * GRID_CELL_SIZE};
 
-            if (t == TileType::Spawn) {
+            if (t == TileType::InitialSpawn) {
+                data.initialSpawns.push_back(worldPos);
                 data.spawnPoints.push_back(worldPos);
                 t = TileType::Empty; // strip so collision/render ignore it
-            } else if (t == TileType::InitialSpawn) {
-                data.initialSpawns.push_back(worldPos);
+            } else if (t == TileType::Spawn) {
+                data.spawnPoints.push_back(worldPos);
                 t = TileType::Empty;
             }
         }
