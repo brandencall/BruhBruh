@@ -49,6 +49,13 @@ void HudScreen::Render() {
 
         DrawText(line.c_str(), padding, feedBaseY - ((int)feed.size() - 1 - i) * feedLineH, feedFontSize, color);
     }
+    RenderGameTime(screenW, padding, fontSize);
+}
+
+void HudScreen::RenderGameTime(int screenW, int padding, int fontSize) {
+    if (m_gameTime < 0)
+        return;
+
     int lobbyMins = (int)(m_gameTime / 60);
     int lobbySeconds = (int)m_gameTime % 60;
     std::string lobbyTime = "Time: " + std::to_string(lobbyMins) + ":" + std::to_string(lobbySeconds);
