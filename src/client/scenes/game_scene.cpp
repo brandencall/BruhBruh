@@ -80,7 +80,7 @@ void GameScene::Update(float dt) {
 
     m_sendAccumulator += dt;
     if (m_sendAccumulator >= m_sendInterval) {
-        if (!m_ui.BlocksGameInput()) {
+        if (!m_ui.BlocksGameInput() && m_gameBeginTimer <= 0.0f) {
             auto input = CollectInput();
             m_transport.send(network::PEER_SERVER, &input, sizeof(input));
         }
