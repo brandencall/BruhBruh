@@ -1,5 +1,5 @@
 #pragma once
-#include "../../config.hpp"
+#include "grid.hpp"
 #include "map_def.hpp"
 #include "map_types.hpp"
 #include "rect_merger.hpp"
@@ -7,32 +7,32 @@
 
 namespace Map {
 
-// Spawn points are still declared in a header section above the grid:
-//   # SPAWN 0 x y
 inline MapData LoadMap(const MapDef &def) {
     TileMap tileMap = LoadTileMap(def);
 
     MapData data;
-    data.walls = MergeToRects(tileMap);
-    data.tileMap = std::move(tileMap); // kept for WallManager::CanPlaceWall and renderer
+    data.tileMap = std::move(tileMap);
 
-    // Parse spawn points from a header block in the same file
-    std::ifstream file(def.mapPath);
-    std::string line;
-    while (std::getline(file, line)) {
-        if (line.empty() || line[0] != '#')
-            continue;
-        std::istringstream ss(line.substr(1));
-        std::string token;
-        ss >> token;
-        if (token == "SPAWN") {
-            int idx;
-            float x, y;
-            ss >> idx >> x >> y;
-            if (idx < MAX_PLAYERS)
-                data.spawnPoints[idx] = {x, y};
+    for (int y = 0; y < data.tileMap.height; y++) {
+        for (int x = 0; x < data.tileMap.width; x++) {
+            TileType &t = data.tileMap.tiles[y * data.tileMap.width + x];
+
+            // World-space centre of this tile
+            // Assumes TILE_SIZE is your tile pixel size, e.g. 32
+            Vector2 worldPos = {(x + 0.5f) * GRID_CELL_SIZE, (y + 0.5f) * GRID_CELL_SIZE};
+
+            if (t == TileType::Spawn) {
+                data.spawnPoints.push_back(worldPos);
+                t = TileType::Empty; // strip so collision/render ignore it
+            } else if (t == TileType::InitialSpawn) {
+                data.initialSpawns.push_back(worldPos);
+                t = TileType::Empty;
+            }
         }
     }
+
+    data.walls = MergeToRects(data.tileMap);
+
     return data;
 }
 

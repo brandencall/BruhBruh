@@ -33,22 +33,46 @@ inline TileMap LoadTileMap(const MapDef &def) {
     map.tileset = &def.tileset;
 
     std::ifstream file(def.mapPath);
+    if (!file.is_open())
+        return map;
+
     std::string line;
     int row = 0;
 
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '#')
             continue;
+
+        int col = 0;
+        // Tokenize by whitespace so tile IDs and S/I tokens are handled uniformly
         std::istringstream ss(line);
-        int id, col = 0;
-        while (ss >> id) {
-            map.tiles.push_back(static_cast<TileType>(id));
+        std::string token;
+
+        while (ss >> token) {
+            TileType tile = TileType::Empty;
+
+            if (token == "S")
+                tile = TileType::Spawn;
+            else if (token == "I")
+                tile = TileType::InitialSpawn;
+            else {
+                int id = 0;
+                try {
+                    id = std::stoi(token);
+                } catch (...) {
+                }
+                tile = static_cast<TileType>(id);
+            }
+
+            map.tiles.push_back(tile);
             col++;
         }
+
         if (map.width == 0)
             map.width = col;
         row++;
     }
+
     map.height = row;
     return map;
 }
