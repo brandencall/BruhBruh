@@ -1,4 +1,6 @@
 #include "character_renderer.hpp"
+#include "../../shared/characters/character_roster.hpp"
+#include "raylib.h"
 #include "raymath.h"
 #include <cstdint>
 
@@ -54,6 +56,15 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
     Vector2 origin = {frameWidth * 0.5f, frameHeight * 0.5f};
 
     DrawTexturePro(tex, src, dst, origin, 0.0f, WHITE);
+}
+
+void CharacterRenderer::DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth,
+                                      int frameHeight) {
+    float healthPct = player.health / Character::GetCharacterDef(player.characterId).maxHealth;
+    float healthBarPosX = position.x - (float)frameWidth / 2;
+    float healthBarPosY = (position.y - (float)frameHeight / 2) - 4;
+    DrawRectangle(healthBarPosX, healthBarPosY, frameWidth * healthPct, 4, GREEN);
+    DrawRectangleLines(healthBarPosX, healthBarPosY, frameWidth, 4, BLACK);
 }
 
 void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {

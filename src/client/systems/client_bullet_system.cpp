@@ -44,8 +44,8 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     DrawTexturePro(tex, source, dest, origin, bullet.rotation, WHITE);
 
     // debug hitbox
-    DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
-    DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
+    // DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
+    // DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
 }
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,

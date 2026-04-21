@@ -252,9 +252,6 @@ void GameScene::Render() {
     BeginDrawing();
 
     ClearBackground(DARKGRAY);
-    // Camera2D renderCam = m_camera;
-    // renderCam.target = {std::round(m_camera.target.x), std::round(m_camera.target.y)};
-    // renderCam.offset = {std::round(m_camera.offset.x), std::round(m_camera.offset.y)};
     BeginMode2D(m_camera);
 
     DrawMap(m_worldState.m_map);
@@ -268,10 +265,10 @@ void GameScene::Render() {
         m_characterRender.Draw(player);
 
         // Use lerped position so hurtbox stays on the sprite
-        Vector2 renderPos = m_characterRender.GetPosition(player.id);
-        Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
-        DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
-        DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
+        // Vector2 renderPos = m_characterRender.GetPosition(player.id);
+        // Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+        // DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
+        // DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
     }
     for (const auto &bullet : m_bulletSystem.GetBullets()) {
         if (!bullet.active)

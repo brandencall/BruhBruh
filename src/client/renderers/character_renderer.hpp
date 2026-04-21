@@ -18,6 +18,9 @@ class CharacterRenderer {
     Vector2 GetPosition(uint32_t playerId);
 
   private:
+    void DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth, int frameHeight);
+
+  private:
     // Every Character has this many frames and directions (Could move this to be configured per character)
     int m_numberOfFrames = 4;
     int m_numberOfDirections = 4;
