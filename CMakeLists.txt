@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_definitions(SUPPORT_WINMM_HIGHRES_TIMER=0)
+
 # Add subdirectories
 add_subdirectory(external/raylib)
 add_subdirectory(src/server)
@@ -12,9 +14,6 @@ add_subdirectory(src/shared)
 add_subdirectory(src/network)
 add_subdirectory(src/client)
 
-target_compile_definitions(raylib PRIVATE SUPPORT_WINMM_HIGHRES_TIMER=0)
-
-target_compile_definitions(raylib PRIVATE SUPPORT_WINMM_HIGHRES_TIMER=0)
 
 # Main executable
 add_executable(BruhBruh src/main.cpp)
