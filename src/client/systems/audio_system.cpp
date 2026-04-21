@@ -10,6 +10,7 @@ void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::Event
     m_hitmarkerSound = LoadSound("assets/sounds/hitmarker.wav");
     SetSoundVolume(m_hitmarkerSound, 0.3);
     m_deathSound = LoadSound("assets/sounds/dramatic_death.wav");
+    m_killRewardSound = LoadSound("assets/sounds/kill_reward.wav");
 
     for (int i = 0; i < HITMARKER_POOL_SIZE; ++i) {
         m_hitmarkerAliases[i] = LoadSoundAlias(m_hitmarkerSound);
@@ -31,17 +32,14 @@ void AudioSystem::OnHit(const client::HitEvent &e) {
     if (e.attackerId == m_localPlayer.id) {
         PlayHitmarker();
     }
-
-    // optional: character-specific hit sounds
-    // PlayCharacterHitSound(e.attackerCharacter);
 }
 
 void AudioSystem::OnPlayerDied(const event::PlayerDiedEvent &e) {
     if (e.victim.id == m_localPlayer.id)
         return;
 
-    // Play a reward sound
-    // if (e.killer.id == m_localPlayer.id)
+    if (e.killer.id == m_localPlayer.id)
+        PlaySound(m_killRewardSound);
 
     PlaySpatialSound2D(m_deathSound, e.victim.position, 800.0);
 }

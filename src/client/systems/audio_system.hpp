@@ -33,5 +33,6 @@ class AudioSystem {
     int m_hitmarkerIndex = 0;
 
     Sound m_deathSound;
+    Sound m_killRewardSound;
 };
 } // namespace System
