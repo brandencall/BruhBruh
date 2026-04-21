@@ -29,5 +29,8 @@ target_link_libraries(BruhBruh
 )
 
 if(MSVC)
-    target_link_options(BruhBruh PRIVATE /NODEFAULTLIB:winmm.lib)
+    target_link_options(BruhBruh PRIVATE
+        /NODEFAULTLIB:winmm.lib
+        /FORCE:MULTIPLE
+    )
 endif()
