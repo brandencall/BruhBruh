@@ -12,6 +12,10 @@ add_subdirectory(src/shared)
 add_subdirectory(src/network)
 add_subdirectory(src/client)
 
+target_compile_definitions(raylib PRIVATE SUPPORT_WINMM_HIGHRES_TIMER=0)
+
+target_compile_definitions(raylib PRIVATE SUPPORT_WINMM_HIGHRES_TIMER=0)
+
 # Main executable
 add_executable(BruhBruh src/main.cpp)
 
