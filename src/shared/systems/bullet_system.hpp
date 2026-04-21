@@ -11,8 +11,6 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
-#include <iostream>
-#include <ostream>
 #include <unordered_map>
 
 namespace System {

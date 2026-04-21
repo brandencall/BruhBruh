@@ -35,7 +35,7 @@ void GameSimulation::SetupBulletSystem() {
             HandlePlayerDied(player, shooterId);
             return;
         }
-        m_eventBus->publish(event::PlayerDamagedEvent{player.id, player.health});
+        m_eventBus->publish(event::PlayerDamagedEvent{player.id, shooterId, player.health});
     });
 
     m_bulletSystem.SetOnBulletSpawn([this](uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,

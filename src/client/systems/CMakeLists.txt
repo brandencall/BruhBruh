@@ -1,4 +1,5 @@
 add_library(client_systems
+    audio_system.cpp
     client_bullet_system.cpp
     kill_feed.cpp
 )

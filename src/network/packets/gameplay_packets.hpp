@@ -76,7 +76,8 @@ struct PlayerRespawnedPacket {
 
 struct PlayerDamagedPacket {
     PacketHeader header;
-    uint32_t id;
+    uint32_t vitimId;
+    uint32_t attackerId;
     float currentHealth;
 };
 

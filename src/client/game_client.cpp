@@ -54,14 +54,12 @@ void GameClient::Update() {
 void GameClient::Disconnect() {
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
-    // packet.playerId = m_gameScene.GetCurrentPlayerId(); // expose a getter
     m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 GameClient::~GameClient() {
     Disconnect();
     CloseWindow();
-    // GameScene destructor handles its own Unload()
 }
 
 void GameClient::Connect(const char *ip, int port) { m_transport.connect(ip, port); }

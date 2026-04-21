@@ -25,7 +25,7 @@ void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation 
 }
 
 void StateBroadcaster::BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId) {
-    network::CharacterSelectedPacket pkt;
+    network::CharacterSelectedPacket pkt{};
     pkt.header.type = network::PacketType::CharacterSelected;
     pkt.playerId = playerId;
     pkt.characterId = characterId;
@@ -100,8 +100,9 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
     eventBus.DrainPlayerDamaged([&](const event::PlayerDamagedEvent &e) {
         network::PlayerDamagedPacket pkt{};
         pkt.header.type = network::PacketType::PlayerDamaged;
-        pkt.id = e.id;
+        pkt.vitimId = e.victimId;
         pkt.currentHealth = e.currentHealth;
+        pkt.attackerId = e.attackerId;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     eventBus.DrainPlayerDeath([&](const event::PlayerDiedEvent &e) {

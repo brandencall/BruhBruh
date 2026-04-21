@@ -48,6 +48,7 @@ void GameScene::OnEnter() {
             m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.victim.id]));
         }
     });
+    InitAudioDevice();
 }
 
 void GameScene::OnExit() {
@@ -67,6 +68,7 @@ void GameScene::OnExit() {
 
     m_characterRender.Unload();
     m_bulletSystem.Unload();
+    m_audioSystem->Unload();
 
     // Base Scene::OnExit unsubscribes any EventBus subscriptions
     Scene::OnExit();
@@ -151,8 +153,11 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_joined = true;
         for (uint16_t i = 0; i < pkt->playerCount; ++i)
             m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
+
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
+        m_audioSystem.emplace(m_worldState.m_players[m_currentPlayerId]);
+        m_audioSystem->Init(m_events.onHit, m_events.playerDied);
     }
 }
 
@@ -196,20 +201,19 @@ void GameScene::HandlePlayerRespawned(const char *buffer) {
     if (pkt->player.id == m_worldState.m_currentPlayerId) {
         m_cameraReady = false;
     }
-
-    m_events.playerRespawned.Publish({pkt->player});
 }
 
 void GameScene::HandlePlayerDamaged(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDamagedPacket *>(buffer);
-    m_worldState.m_players[pkt->id].health = pkt->currentHealth;
+    m_worldState.m_players[pkt->vitimId].health = pkt->currentHealth;
 
-    m_events.playerDamaged.Publish({pkt->id, pkt->currentHealth});
+    m_events.onHit.Publish({pkt->attackerId, pkt->vitimId, m_worldState.m_players[m_currentPlayerId].characterId});
 }
 
 void GameScene::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
     m_worldState.m_players[pkt->victim.id] = pkt->victim;
+    m_events.onHit.Publish({pkt->killer.id, pkt->victim.id, m_worldState.m_players[m_currentPlayerId].characterId});
     m_events.playerDied.Publish({pkt->victim, pkt->killer});
 }
 

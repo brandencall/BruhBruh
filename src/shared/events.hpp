@@ -25,7 +25,8 @@ struct PlayerRespawnEvent {
 };
 
 struct PlayerDamagedEvent {
-    uint32_t id;
+    uint32_t victimId;
+    uint32_t attackerId;
     float currentHealth;
 };
 

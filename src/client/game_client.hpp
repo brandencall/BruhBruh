@@ -20,7 +20,6 @@ class GameClient {
     network::ClientTransport m_transport;
     NetworkMessageHandler m_handler;
     SceneManager m_sceneManager;
-    // GameScene m_gameScene{m_events, m_transport, m_handler};
 
     bool m_running = false;
 };

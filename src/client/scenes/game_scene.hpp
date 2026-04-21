@@ -3,16 +3,19 @@
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../client_transport.hpp"
 #include "../event_hub.hpp"
+#include "../events.hpp"
 #include "../network/network_message_handler.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
 #include "../state/world_state.hpp"
+#include "../systems/audio_system.hpp"
 #include "../systems/client_bullet_system.hpp"
 #include "../ui/ui_manager.hpp"
 #include "raylib.h"
 #include "scene.hpp"
 #include "scene_manager.hpp"
 #include <cstdint>
+#include <optional>
 
 class GameScene : public Scene {
   public:
@@ -40,6 +43,7 @@ class GameScene : public Scene {
     void HandlePlaceWall(const char *buf);
     void HandleWallDamaged(const char *buf);
     void HandleDestroyWall(const char *buf);
+
     void DrawMap(const Map::MapData &map);
     void RenderConnecting();
 
@@ -61,6 +65,7 @@ class GameScene : public Scene {
     Render::TilemapRenderer m_tilemapRenderer;
     Render::CharacterRenderer m_characterRender;
     UI::UIManager m_ui;
+    std::optional<System::AudioSystem> m_audioSystem;
 
     uint16_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
