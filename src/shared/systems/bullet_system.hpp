@@ -124,7 +124,7 @@ template <typename TBulletState> class BulletSystem {
         }
 
         for (auto &player : players) {
-            if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id &&
+            if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active &&
                 Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
                 Deactivate(bullet.id);
                 OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);

@@ -186,10 +186,9 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
 }
 
 void GameSimulation::RemovePlayer(uint32_t playerId) {
-    if (playerId > MAX_PLAYERS)
+    if (playerId >= MAX_PLAYERS)
         return;
     state::PlayerState &player = m_players[playerId];
-    player.id = UINT32_MAX;
     player.active = false;
 }
 

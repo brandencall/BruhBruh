@@ -7,6 +7,7 @@
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 #include <cstdint>
+#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                      SceneManager &sceneManager, state::LobbySlotState currentPlayerState)
@@ -258,6 +259,9 @@ void GameScene::Render() {
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
 
     for (const auto &player : m_worldState.m_players) {
+        if (!player.active)
+            continue;
+
         // TODO: Instead of not drawing the dead player, draw the dead players death frames
         if (player.respawnTimer > 0.0f)
             continue;

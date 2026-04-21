@@ -60,6 +60,11 @@ void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection 
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
+void StateBroadcaster::BroadcastPlayerDisconnect(uint32_t playerId) {
+    network::DisconnectPacket pkt{};
+    pkt.header.type = network::PacketType::Disconnect;
+}
+
 void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
     network::CurrentWorldStatePacket worldStatePacket{};
     BuildCurrentWorldStatePacket(sim, worldStatePacket);
@@ -164,7 +169,7 @@ uint16_t StateBroadcaster::BuildPlayerState(const GameSimulation &sim, state::Pl
     const auto &currentPlayers = sim.GetPlayers();
 
     for (int i = 0; i < MAX_PLAYERS; ++i) {
-        if (!currentPlayers[i].active)
+        if (currentPlayers[i].id == UINT32_MAX || currentPlayers[i].id >= MAX_PLAYERS)
             continue;
 
         uint16_t slot = playerCount++;

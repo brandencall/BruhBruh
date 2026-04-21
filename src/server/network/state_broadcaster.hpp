@@ -21,6 +21,7 @@ class StateBroadcaster {
     void BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId);
     void BroadcastGameBegin(float countdown, const GameSimulation &sim);
     void BroadcastPlayerJoined(const char *name, ClientConnection *client);
+    void BroadcastPlayerDisconnect(uint32_t playerId);
     void BroadcastState(const GameSimulation &sim);
     void BroadcastLobbyState(const ServerLobby &lobby);
     void BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim);

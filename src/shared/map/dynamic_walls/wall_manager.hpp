@@ -45,7 +45,8 @@ class WallManager {
         }
         // Check position with players
         for (const auto &player : players) {
-            if (Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), newWallAABB)) {
+            if (player.active &&
+                Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), newWallAABB)) {
                 return false;
             }
         }
