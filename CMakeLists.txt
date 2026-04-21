@@ -27,3 +27,7 @@ target_link_libraries(BruhBruh
         network
         raylib
 )
+
+if(MSVC)
+    target_link_options(BruhBruh PRIVATE /NODEFAULTLIB:winmm.lib)
+endif()
