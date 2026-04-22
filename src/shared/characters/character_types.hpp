@@ -25,6 +25,7 @@ struct CharacterDef {
     float moveSpeed;
     float hurtboxRadius;
     float maxHealth;
+    float wallCooldown;
     BulletDef bullet;
 };
 

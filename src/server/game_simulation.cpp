@@ -89,6 +89,9 @@ void GameSimulation::Update(float tickRate) {
         if (player.shootTimer > 0.0f)
             player.shootTimer -= tickRate;
 
+        if (player.wallTimer > 0.0f)
+            player.wallTimer -= tickRate;
+
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
         const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
         player.velocity = Vector2Scale(dir, charDef.moveSpeed);
@@ -140,8 +143,11 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     }
     bool placeNow = input.buttons & (1 << 1);
     bool placePrev = player.lastButtons & (1 << 1);
-    if (placeNow && !placePrev) {
+
+    // Picking up and placing walls are on the same wall timer
+    if (placeNow && !placePrev && player.wallTimer <= 0.0f) {
         HandleWallInput(player, input);
+        player.wallTimer = charDef.wallCooldown;
     }
 
     player.currentInput = input;
@@ -182,7 +188,6 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                  .health = def.maxHealth,
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,
-                                 .respawnTimer = 0.0f,
                                  .currentAvaliableWalls = 5,
                                  .active = true};
     strncpy(player.name, name, sizeof(player.name) - 1);

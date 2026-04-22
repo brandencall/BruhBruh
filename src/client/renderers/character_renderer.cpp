@@ -79,6 +79,7 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
 
     Vector2 origin = {frameWidth * 0.5f, frameHeight * 0.5f};
 
+    DrawHealthBar(player, position, frameWidth, frameHeight);
     DrawTexturePro(tex, src, dst, origin, 0.0f, WHITE);
 }
 
