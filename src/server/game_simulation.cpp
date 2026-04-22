@@ -86,6 +86,9 @@ void GameSimulation::Update(float tickRate) {
             continue; // skip movement/input while dead
         }
 
+        if (player.shootTimer > 0.0f)
+            player.shootTimer -= tickRate;
+
         Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
         const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
         player.velocity = Vector2Scale(dir, charDef.moveSpeed);
@@ -106,6 +109,7 @@ void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     player.position = System::Spawn(m_map.spawnPoints, m_players);
     player.velocity = {0, 0};
     player.respawnTimer = 0.0f;
+    player.shootTimer = 0.0f;
     m_eventBus->publish(event::PlayerRespawnEvent{player});
 }
 
@@ -129,9 +133,10 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
     bool shootNow = input.buttons & (1 << 0);
     bool shootPrev = player.lastButtons & (1 << 0);
-    if (shootNow && !shootPrev) {
+    if (shootNow && !shootPrev && player.shootTimer <= 0.0f) {
         Vector2 aimDir = {input.aimX, input.aimY};
         m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef});
+        player.shootTimer = charDef.bullet.cooldown;
     }
     bool placeNow = input.buttons & (1 << 1);
     bool placePrev = player.lastButtons & (1 << 1);

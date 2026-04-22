@@ -17,6 +17,7 @@ struct BulletDef {
     float damage;
     float lifetime;
     float spinSpeed;
+    float cooldown;
 };
 
 struct CharacterDef {
@@ -24,7 +25,6 @@ struct CharacterDef {
     float moveSpeed;
     float hurtboxRadius;
     float maxHealth;
-    float fireRate;
     BulletDef bullet;
 };
 
