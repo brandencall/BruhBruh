@@ -17,6 +17,7 @@ class GameSimulation {
   public:
     GameSimulation() = default;
     void Initialize(EventBus &eventBus);
+    void Reset();
     void SetupBulletSystem();
     void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId);
     void SetupWallManager();
@@ -39,8 +40,7 @@ class GameSimulation {
     bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:
-    // TODO: Handle this game time differently when lobby scene is created server sends a "StartGamePacket"
-    float m_gameTime = 60 * 10;
+    float m_gameTime = MATCH_TIME;
     Map::MapData m_map;
     EventBus *m_eventBus = nullptr;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;

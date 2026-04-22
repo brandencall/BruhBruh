@@ -20,6 +20,13 @@ void GameSimulation::Initialize(EventBus &eventBus) {
     SetupWallManager();
 }
 
+void GameSimulation::Reset() {
+    m_gameTime = MATCH_TIME;
+    m_players.fill(state::PlayerState{});
+    m_bulletSystem.Reset();
+    m_wallManager.Reset();
+}
+
 void GameSimulation::SetupBulletSystem() {
     m_bulletSystem.Initialize(*m_eventBus);
     m_bulletSystem.SetMap(m_map);

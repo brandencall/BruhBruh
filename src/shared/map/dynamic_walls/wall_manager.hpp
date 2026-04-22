@@ -114,6 +114,8 @@ class WallManager {
         return colliders;
     }
 
+    void Reset() { m_walls.clear(); }
+
   protected:
     virtual void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) {}
     virtual void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {}

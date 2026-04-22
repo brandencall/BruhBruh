@@ -151,6 +151,11 @@ template <typename TBulletState> class BulletSystem {
         return &m_bullets[slot];
     }
 
+    void Reset() {
+        m_bullets.fill(TBulletState{});
+        m_generations.fill(0);
+    }
+
   protected:
     virtual void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) {}
     virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}

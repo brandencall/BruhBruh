@@ -20,10 +20,12 @@ class StateBroadcaster {
     void BroadcastStartGame(float countdown);
     void BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId);
     void BroadcastGameBegin(float countdown, const GameSimulation &sim);
+    void BroadcastGameEnd(float countdown, const GameSimulation &sim);
     void BroadcastPlayerJoined(const char *name, ClientConnection *client);
     void BroadcastPlayerDisconnect(uint32_t playerId);
     void BroadcastState(const GameSimulation &sim);
     void BroadcastLobbyState(const ServerLobby &lobby);
+    void BroadcastSwitchToLobby();
     void BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim);
     void DrainAndBroadcast(EventBus &eventBus);
     void BroadcastAll(const void *data, size_t size);

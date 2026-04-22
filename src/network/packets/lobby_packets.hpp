@@ -8,6 +8,9 @@
 namespace network {
 
 // TODO: Add LobbyBeginPacket
+struct SwitchToLobbyPacket {
+    PacketHeader header;
+};
 // TODO: Add LobbyEndPacket
 
 struct JoinLobbyPacket {

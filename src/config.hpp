@@ -1,5 +1,7 @@
 #pragma once
 
+constexpr const float MATCH_TIME = 60 * 10;
+
 constexpr const int MAX_PLAYERS = 4;
 constexpr const int MAX_PLAYER_NAME_LEN = 32;
 

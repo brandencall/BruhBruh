@@ -1,5 +1,7 @@
 #include "game_server.hpp"
+#include "server_phase.hpp"
 #include <chrono>
+#include <iostream>
 #include <thread>
 
 GameServer::GameServer()
@@ -23,6 +25,9 @@ void GameServer::RunServer() {
             break;
         case ServerPhase::GAMEPLAY:
             TickGameplay();
+            break;
+        case ServerPhase::POSTGAME:
+            TickPostGame();
             break;
         case ServerPhase::ENDED:
             m_running = false;
@@ -56,6 +61,7 @@ void GameServer::TickStarting() {
         SpawnPlayersIntoSimulation();
         m_phase = ServerPhase::GAMEPLAY;
         m_gameBeginTimer = 5.0f;
+        m_gameRunning = true;
         m_broadcaster.BroadcastGameBegin(m_gameBeginTimer, m_simulation);
     }
 }
@@ -76,7 +82,7 @@ void GameServer::TickGameplay() {
 
     auto previousTime = std::chrono::steady_clock::now();
 
-    while (m_running) {
+    while (m_gameRunning) {
         auto now = std::chrono::steady_clock::now();
         float dt = std::chrono::duration<float>(now - previousTime).count();
         previousTime = now;
@@ -95,9 +101,34 @@ void GameServer::TickGameplay() {
 
         while (accumulator >= tickRate) {
             UpdateSimulation(tickRate);
+
+            if (m_simulation.GetGameTime() <= 0.0f) {
+                m_phase = ServerPhase::POSTGAME;
+                m_gameEndTimer = 5.0f;
+                m_broadcaster.BroadcastGameEnd(m_gameEndTimer, m_simulation);
+                m_gameRunning = false;
+                break;
+            }
+
             m_broadcaster.BroadcastState(m_simulation);
             accumulator -= tickRate;
         }
+    }
+}
+
+void GameServer::TickPostGame() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    Receive();
+
+    m_gameEndTimer -= 0.016f;
+    m_broadcaster.BroadcastGameEnd(m_gameEndTimer, m_simulation);
+
+    // Switch to lobby
+    if (m_gameEndTimer <= 0.0f) {
+        m_lobby.ResetLobbyState();
+        m_simulation.Reset();
+        m_phase = ServerPhase::LOBBY;
+        m_broadcaster.BroadcastSwitchToLobby();
     }
 }
 

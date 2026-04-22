@@ -19,9 +19,17 @@ void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation 
     pkt.header.type = network::PacketType::GameBegin;
     pkt.countdown = countdown;
     pkt.playerCount = BuildPlayerState(sim, pkt.players);
+    pkt.gameTime = sim.GetGameTime();
     size_t sendSize = offsetof(network::StatePacket, players) + pkt.playerCount * sizeof(state::PlayerState);
 
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
+}
+
+void StateBroadcaster::BroadcastGameEnd(float countdown, const GameSimulation &sim) {
+    network::GameEndPacket pkt{};
+    pkt.header.type = network::PacketType::GameEnd;
+    pkt.countdown = countdown;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId) {
@@ -47,6 +55,12 @@ void StateBroadcaster::BroadcastLobbyState(const ServerLobby &lobby) {
     for (int i = 0; i < MAX_PLAYERS; ++i) {
         memcpy(&pkt.lobby[i], &lobby.Slots()[i].lobbySlot, sizeof(lobby.Slots()[i].lobbySlot));
     }
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+}
+
+void StateBroadcaster::BroadcastSwitchToLobby() {
+    network::SwitchToLobbyPacket pkt{};
+    pkt.header.type = network::PacketType::SwitchToLobby;
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
 }
 

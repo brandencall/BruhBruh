@@ -20,6 +20,8 @@ class ServerLobby {
     bool CharacterTakenByOther(uint32_t playerId, const Character::CharacterId characterId);
     bool TrySetReady(network::PeerId peer, bool ready);
 
+    void ResetLobbyState();
+
     bool AllReady() const;
     int PlayerCount() const;
 

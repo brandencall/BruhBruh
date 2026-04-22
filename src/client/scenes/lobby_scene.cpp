@@ -221,7 +221,7 @@ void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player,
 
 void LobbyScene::RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y) {
     auto it = m_icons.find(player.characterId);
-    if (it != m_icons.end() || it->first != Character::CharacterId::None) {
+    if (it != m_icons.end() && it->first != Character::CharacterId::None) {
         int iconSize = slotW * 0.6f;
         int iconX = x + (slotW - iconSize) * 0.5f;
         int iconY = y + slotH * 0.2f;

@@ -12,10 +12,16 @@ namespace network {
 struct GameBeginPacket {
     PacketHeader header;
     float countdown;
+    float gameTime;
     uint16_t playerCount;
     state::PlayerState players[MAX_PLAYERS];
 };
-// TODO: Add GameEndPacket
+
+struct GameEndPacket {
+    PacketHeader header;
+    float countdown;
+    // Send the player rankings
+};
 
 struct InputPacket {
     PacketHeader header;

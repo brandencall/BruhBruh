@@ -43,6 +43,8 @@ class GameScene : public Scene {
     void HandlePlaceWall(const char *buf);
     void HandleWallDamaged(const char *buf);
     void HandleDestroyWall(const char *buf);
+    void HandleGameEnd(const char *buf);
+    void HandleSwitchToLobby(const char *buf);
 
     void DrawMap(const Map::MapData &map);
     void RenderConnecting();

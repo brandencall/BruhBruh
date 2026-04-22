@@ -77,6 +77,15 @@ bool ServerLobby::TrySetReady(network::PeerId peer, bool ready) {
     return false;
 }
 
+void ServerLobby::ResetLobbyState() {
+    for (auto &slot : m_slots) {
+        if (slot.lobbySlot.occupied) {
+            slot.lobbySlot.ready = false;
+            slot.lobbySlot.characterId = Character::CharacterId::None;
+        }
+    }
+}
+
 bool ServerLobby::AllReady() const {
     for (const auto &slot : m_slots) {
         if (slot.lobbySlot.occupied && !slot.lobbySlot.ready)

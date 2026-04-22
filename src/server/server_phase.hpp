@@ -1,3 +1,3 @@
 #pragma once
 
-enum class ServerPhase { LOBBY, STARTING, GAMEPLAY, ENDED };
+enum class ServerPhase { LOBBY, STARTING, GAMEPLAY, POSTGAME, ENDED };

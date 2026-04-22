@@ -5,8 +5,10 @@
 #include "../ui/screens/death_screen.hpp"
 #include "../ui/screens/hud_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
+#include "lobby_scene.hpp"
 #include "raylib.h"
 #include <cstdint>
+#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                      SceneManager &sceneManager, state::LobbySlotState currentPlayerState)
@@ -27,6 +29,8 @@ void GameScene::OnEnter() {
     m_handler.Register(PT::PlaceWall, [this](const char *b) { HandlePlaceWall(b); });
     m_handler.Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
     m_handler.Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
+    m_handler.Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
+    m_handler.Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
 
     // Load map + assets
     Map::MapData mapData = Map::LoadMap(ACTIVE_MAP);
@@ -66,12 +70,16 @@ void GameScene::OnExit() {
     m_handler.Unregister(PT::PlaceWall);
     m_handler.Unregister(PT::WallDamaged);
     m_handler.Unregister(PT::WallDestroyed);
+    m_handler.Unregister(PT::GameEnd);
+    m_handler.Unregister(PT::SwitchToLobby);
 
+    m_tilemapRenderer.Unload();
     m_characterRender.Unload();
     m_wallRender.Unload();
     m_bulletSystem.Unload();
     m_audioSystem->Unload();
 
+    CloseAudioDevice();
     // Base Scene::OnExit unsubscribes any EventBus subscriptions
     Scene::OnExit();
 }
@@ -152,6 +160,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
     m_gameBeginTimer = pkt->countdown;
     if (!m_joined) {
         m_worldState.m_currentPlayerId = m_currentPlayerId;
+        m_worldState.m_gameTime = pkt->gameTime;
         m_joined = true;
         for (uint16_t i = 0; i < pkt->playerCount; ++i)
             m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
@@ -234,6 +243,15 @@ void GameScene::HandleDestroyWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
     m_wallManager.RemoveWall(pkt->gridPos, pkt->player.id);
     m_worldState.m_players[pkt->player.id] = pkt->player;
+}
+
+void GameScene::HandleGameEnd(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::GameEndPacket *>(buffer);
+    std::cout << "Game end time: " << pkt->countdown << std::endl;
+}
+
+void GameScene::HandleSwitchToLobby(const char *buf) {
+    m_sceneManager.Replace(std::make_unique<LobbyScene>(m_events, m_transport, m_handler, m_sceneManager));
 }
 
 void GameScene::DrawMap(const Map::MapData &map) {

@@ -33,8 +33,10 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
 void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from) {
     // Only allow joins during lobby phase
     auto *existing = m_registry.FindByPeer(from);
-    if (m_phase != ServerPhase::LOBBY || existing)
+    if (m_phase != ServerPhase::LOBBY || existing) {
+        SendJoinResponse(from, existing->playerId);
         return;
+    }
 
     auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
     auto *client = m_registry.AddClient(from);

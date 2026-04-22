@@ -20,12 +20,9 @@ void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::Event
 }
 
 void AudioSystem::Unload() {
-    for (int i = 0; i < HITMARKER_POOL_SIZE; i++) {
-        UnloadSound(m_hitmarkerAliases[i]);
-    }
-
     UnloadSound(m_hitmarkerSound);
-    CloseAudioDevice();
+    UnloadSound(m_deathSound);
+    UnloadSound(m_killRewardSound);
 }
 
 void AudioSystem::OnHit(const client::HitEvent &e) {

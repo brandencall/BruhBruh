@@ -32,7 +32,8 @@ enum class PacketType : uint8_t {
     PlaceWall,
     WallDamaged,
     WallDestroyed,
-    GameEnd
+    GameEnd,
+    SwitchToLobby
 };
 
 inline bool IsLobbyPacket(PacketType t) { return t > PacketType::LobbyBegin && t < PacketType::LobbyEnd; }

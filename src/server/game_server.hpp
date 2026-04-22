@@ -17,22 +17,21 @@ class GameServer {
 
   private:
     void TickLobby();
-    // May want to move this to broadcaster
-    // void BroadcastStartGame();
     void TickStarting();
     void SpawnPlayersIntoSimulation();
-    // May want to move this to broadcaster
-    // void BroadcastCountdown(float startTimer);
     void TickGameplay();
+    void TickPostGame();
     void UpdateSimulation(float tickRate);
     void Receive();
 
   private:
     ServerPhase m_phase = ServerPhase::LOBBY;
     bool m_running = false;
+    bool m_gameRunning = false;
     int m_tick = 0;
     float m_startTimer = 0.0f;
     float m_gameBeginTimer = 0.0f;
+    float m_gameEndTimer = 0.0f;
 
     network::ServerTransport m_transport;
     network::ClientRegistry m_registry;
