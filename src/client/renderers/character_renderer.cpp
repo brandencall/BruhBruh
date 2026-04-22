@@ -12,6 +12,10 @@ void CharacterRenderer::Load() {
     m_textures[Character::CharacterId::Raff] = LoadTexture("assets/characters/Chavz-Sheet.png");
     m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/characters/Hodges-Sheet.png");
     m_textures[Character::CharacterId::JJ] = LoadTexture("assets/characters/Jontiy-Sheet.png");
+
+    for (const auto &tex : m_textures) {
+        SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);
+    }
 }
 
 void CharacterRenderer::Unload() {

@@ -9,6 +9,10 @@ void ClientBulletSystem::Load() {
     m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/items/meatball_hodges.png");
     m_textures[Character::CharacterId::Raff] = LoadTexture("assets/items/steak_raff.png");
     m_textures[Character::CharacterId::JJ] = LoadTexture("assets/items/needle_j.png");
+
+    for (const auto &tex : m_textures) {
+        SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);
+    }
 }
 
 void ClientBulletSystem::Unload() {
