@@ -3,10 +3,10 @@
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../client_transport.hpp"
 #include "../event_hub.hpp"
-#include "../events.hpp"
 #include "../network/network_message_handler.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
+#include "../renderers/wall_renderer.hpp"
 #include "../state/world_state.hpp"
 #include "../systems/audio_system.hpp"
 #include "../systems/client_bullet_system.hpp"
@@ -64,6 +64,7 @@ class GameScene : public Scene {
     Map::WallManager m_wallManager;
     Render::TilemapRenderer m_tilemapRenderer;
     Render::CharacterRenderer m_characterRender;
+    Render::WallRenderer m_wallRender;
     UI::UIManager m_ui;
     std::optional<System::AudioSystem> m_audioSystem;
 

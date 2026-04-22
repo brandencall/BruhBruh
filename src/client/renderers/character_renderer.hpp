@@ -13,11 +13,12 @@ class CharacterRenderer {
     void Load();
     void Unload();
     void Sync(const state::PlayerState &state, float dt);
-    void Draw(const state::PlayerState &player);
+    void Draw(const std::array<state::PlayerState, MAX_PLAYERS> &players);
     void SnapToPosition(const state::PlayerState &state);
     Vector2 GetPosition(uint32_t playerId);
 
   private:
+    void Draw(const state::PlayerState &player);
     void DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth, int frameHeight);
 
   private:

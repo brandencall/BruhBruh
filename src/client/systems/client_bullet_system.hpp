@@ -11,6 +11,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
   public:
     void Load();
     void Unload();
+    void Draw(const std::array<state::ClientBulletState, MAX_BULLETS> &bullets);
     void Draw(const state::ClientBulletState &bullet);
     void AssignId(int slot, uint32_t id);
     void Update(float dt);

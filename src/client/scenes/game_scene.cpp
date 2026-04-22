@@ -7,7 +7,6 @@
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 #include <cstdint>
-#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                      SceneManager &sceneManager, state::LobbySlotState currentPlayerState)
@@ -36,6 +35,7 @@ void GameScene::OnEnter() {
     m_tilemapRenderer.Load(ACTIVE_MAP.tileset);
     // TODO: Optimize loading so that we don't load all textures and just the ones that are needed
     m_characterRender.Load();
+    m_wallRender.Load();
     m_bulletSystem.Load();
 
     int screenW = GetScreenWidth();
@@ -68,6 +68,7 @@ void GameScene::OnExit() {
     m_handler.Unregister(PT::WallDestroyed);
 
     m_characterRender.Unload();
+    m_wallRender.Unload();
     m_bulletSystem.Unload();
     m_audioSystem->Unload();
 
@@ -256,43 +257,11 @@ void GameScene::Render() {
     BeginMode2D(m_camera);
 
     DrawMap(m_worldState.m_map);
+
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
-
-    for (const auto &player : m_worldState.m_players) {
-        if (!player.active)
-            continue;
-
-        // TODO: Instead of not drawing the dead player, draw the dead players death frames
-        if (player.respawnTimer > 0.0f)
-            continue;
-
-        m_characterRender.Draw(player);
-
-        // Use lerped position so hurtbox stays on the sprite
-        // Vector2 renderPos = m_characterRender.GetPosition(player.id);
-        // Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
-        // DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
-        // DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
-    }
-    for (const auto &bullet : m_bulletSystem.GetBullets()) {
-        if (!bullet.active)
-            continue;
-        m_bulletSystem.Draw(bullet);
-    }
-    for (const auto &[gridPos, wall] : m_wallManager.GetAllWalls()) {
-        if (!wall.active)
-            continue;
-
-        float x = gridPos.x * Map::GRID_CELL_SIZE;
-        float y = gridPos.y * Map::GRID_CELL_SIZE;
-
-        DrawRectangle(x, y, Map::GRID_CELL_SIZE, Map::GRID_CELL_SIZE, BROWN);
-        DrawRectangleLines(x, y, Map::GRID_CELL_SIZE, Map::GRID_CELL_SIZE, DARKBROWN);
-
-        // Health bar
-        // float healthPct = wall.health / wall.maxHealth;
-        // DrawRectangle(x, y - 8, Map::GRID_CELL_SIZE * healthPct, 4, GREEN);
-    }
+    m_characterRender.Draw(m_worldState.m_players);
+    m_bulletSystem.Draw(m_bulletSystem.GetBullets());
+    m_wallRender.Draw(m_wallManager.GetAllWalls());
 
     EndMode2D();
 

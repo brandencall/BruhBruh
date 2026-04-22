@@ -2,6 +2,7 @@
 #include "../../shared/characters/character_roster.hpp"
 #include "raylib.h"
 #include "raymath.h"
+#include <array>
 #include <cstdint>
 
 namespace Render {
@@ -28,6 +29,25 @@ void CharacterRenderer::Sync(const state::PlayerState &state, float dt) {
     float smoothing = 10.0f; // lower is smoother, higher is snappier
     Vector2 &current = m_positions[state.id];
     current = Vector2Lerp(current, state.position, smoothing * dt);
+}
+
+void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &players) {
+    for (const auto &player : players) {
+        if (!player.active)
+            continue;
+
+        // TODO: Instead of not drawing the dead player, draw the dead players death frames
+        if (player.respawnTimer > 0.0f)
+            continue;
+
+        Draw(player);
+
+        // Use lerped position so hurtbox stays on the sprite
+        // Vector2 renderPos = m_characterRender.GetPosition(player.id);
+        // Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+        // DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
+        // DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
+    }
 }
 
 void CharacterRenderer::Draw(const state::PlayerState &player) {

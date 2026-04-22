@@ -1,5 +1,6 @@
 #include "client_bullet_system.hpp"
 #include "raylib.h"
+#include <array>
 
 namespace System {
 
@@ -26,6 +27,14 @@ void ClientBulletSystem::Update(float dt) {
             bullet.active = false;
             continue;
         }
+    }
+}
+
+void ClientBulletSystem::Draw(const std::array<state::ClientBulletState, MAX_BULLETS> &bullets) {
+    for (const auto &bullet : bullets) {
+        if (!bullet.active)
+            continue;
+        Draw(bullet);
     }
 }
 

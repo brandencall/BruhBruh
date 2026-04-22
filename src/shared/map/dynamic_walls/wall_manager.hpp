@@ -26,6 +26,7 @@ class WallManager {
                                        .health = health,
                                        .maxHealth = health,
                                        .ownerId = player.id,
+                                       .ownerCharacter = player.characterId,
                                        .collider = GridCellToAABB(gridPos),
                                        .active = true};
         OnWallPlaced(gridPos, health, player);

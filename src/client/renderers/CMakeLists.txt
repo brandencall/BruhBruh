@@ -1,5 +1,6 @@
 add_library(renderers
     character_renderer.cpp
+    wall_renderer.cpp
 )
 
 target_include_directories(renderers

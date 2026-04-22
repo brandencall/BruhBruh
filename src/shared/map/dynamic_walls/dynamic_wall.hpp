@@ -11,6 +11,7 @@ struct DynamicWall {
     float health;
     float maxHealth;
     uint32_t ownerId;
+    Character::CharacterId ownerCharacter;
     Collision::AABB collider;
     bool active = false;
 };
