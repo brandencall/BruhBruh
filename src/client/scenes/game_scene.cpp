@@ -9,7 +9,6 @@
 #include "lobby_scene.hpp"
 #include "raylib.h"
 #include <cstdint>
-#include <iostream>
 
 GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
                      SceneManager &sceneManager, state::LobbySlotState currentPlayerState)

@@ -81,13 +81,14 @@ class WallManager {
         return true;
     }
 
-    void RemoveWall(const Vector2i &gridPos, uint32_t ownerId) {
+    bool RemoveWall(const Vector2i &gridPos, uint32_t ownerId) {
         auto it = m_walls.find(gridPos);
         if (it == m_walls.end())
-            return;
+            return false;
 
         m_walls.erase(it);
         OnWallDestroyed(gridPos, ownerId);
+        return true;
     }
 
     int GetOwnerId(const Vector2i &gridPos) {

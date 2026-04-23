@@ -36,7 +36,8 @@ class GameSimulation {
     const Map::WallManager &GetWallManager() const;
 
   private:
-    void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input);
+    void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
+                         const Character::CharacterDef &charDef);
     bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:

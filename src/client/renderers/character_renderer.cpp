@@ -4,6 +4,7 @@
 #include "raymath.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 namespace Render {
 
@@ -48,8 +49,8 @@ void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &
             continue;
 
         // TODO: Instead of not drawing the dead player, draw the dead players death frames
-        if (player.respawnTimer > 0.0f)
-            continue;
+        // if (player.respawnTimer > 0.0f)
+        //    continue;
 
         Draw(player);
     }
@@ -69,38 +70,47 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
         return;
 
     Texture2D &tex = it->second;
-
+    int texRow = 0;
     float angle = player.currentInput.angle; // radians
-    // Normalize to 0 → 2π
+                                             // Normalize to 0 → 2π
     if (angle < 0)
         angle += 2 * PI;
 
-    int direction = (int)round(angle / (2 * PI) * m_numberOfDirections) % m_numberOfDirections;
+    int direction = (int)round(angle / (2 * PI) * DIR_COUNT) % DIR_COUNT;
+    Color base = WHITE;
 
-    int frameWidth = tex.width / m_numberOfFrames;
-    int frameHeight = tex.height / m_numberOfDirections;
+    switch (player.state) {
+    case state::State::Idle:
+        texRow = IDLE_ROW_OFFSET + direction;
+        break;
+    case state::State::Running:
+        texRow = RUN_ROW_OFFSET + direction;
+        break;
+    case state::State::Dead:
+        texRow = DEAD_ROW;
+        break;
+    }
+
+    int frameWidth = tex.width / FRAME_COUNT;
+    int frameHeight = tex.height / ROW_COUNT;
 
     Vector2 position = m_positions[player.id];
     // TODO: pull frame from player instead of hard coding the 1st frame
     int frame = 0;
-    Rectangle src = {(float)frame * frameWidth, (float)direction * frameHeight, (float)frameWidth, (float)frameHeight};
+    Rectangle src = {(float)frame * frameWidth, (float)texRow * frameHeight, (float)frameWidth, (float)frameHeight};
     Rectangle dst = {position.x, position.y, (float)frameWidth, (float)frameHeight};
 
     Vector2 origin = {frameWidth * 0.5f, frameHeight * 0.5f};
 
-    Color base = WHITE;
-
     if (player.invincibilityTimer > 0.0f) {
         float blinkTimer = m_blinkTimers[player.id];
         float t = sinf(blinkTimer * 20.0f) * 0.5f + 0.5f;
-
         base =
             Color{(unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))), (unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))),
                   (unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))), 255};
     }
 
     DrawTexturePro(tex, src, dst, origin, 0.0f, base);
-
     DrawHealthBar(player, position, frameWidth, frameHeight);
 }
 

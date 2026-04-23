@@ -23,8 +23,13 @@ class CharacterRenderer {
 
   private:
     // Every Character has this many frames and directions (Could move this to be configured per character)
-    int m_numberOfFrames = 4;
-    int m_numberOfDirections = 4;
+    static constexpr int DIR_COUNT = 4;
+    static constexpr int FRAME_COUNT = 4;
+    static constexpr int ROW_COUNT = 9;
+
+    static constexpr int IDLE_ROW_OFFSET = 0;
+    static constexpr int RUN_ROW_OFFSET = 4;
+    static constexpr int DEAD_ROW = 8;
 
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
     std::unordered_map<uint32_t, Vector2> m_positions;

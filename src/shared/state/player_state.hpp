@@ -8,6 +8,8 @@
 
 namespace state {
 
+enum class State { Idle, Running, Dead };
+
 struct PlayerScore {
     uint8_t kills = 0;
     uint8_t deaths = 0;
@@ -26,6 +28,7 @@ struct PlayerInput {
 struct PlayerState {
     uint32_t id = UINT32_MAX;
     Character::CharacterId characterId = Character::CharacterId::None;
+    State state = State::Idle;
     char name[MAX_PLAYER_NAME_LEN] = {};
     Vector2 position = {0, 0};
     Vector2 velocity = {0, 0};

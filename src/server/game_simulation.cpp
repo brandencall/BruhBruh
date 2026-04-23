@@ -58,6 +58,7 @@ void GameSimulation::SetupBulletSystem() {
 }
 
 void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {
+    player.state = state::State::Dead;
     player.health = 0.0f;
     player.respawnTimer = RESPAWN_TIME;
     auto &killer = m_players[shooterId];
@@ -146,6 +147,15 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     if (!player.active || player.respawnTimer > 0.0f)
         return;
 
+    Vector2 moveInput = {player.currentInput.moveX, player.currentInput.moveY};
+    bool isMoving = (moveInput.x * moveInput.x + moveInput.y * moveInput.y) > 0.0001f;
+
+    if (isMoving) {
+        player.state = state::State::Running;
+    } else {
+        player.state = state::State::Idle;
+    }
+
     const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
     bool shootNow = input.buttons & (1 << 0);
     bool shootPrev = player.lastButtons & (1 << 0);
@@ -159,22 +169,24 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
 
     // Picking up and placing walls are on the same wall timer
     if (placeNow && !placePrev && player.wallTimer <= 0.0f) {
-        HandleWallInput(player, input);
-        player.wallTimer = charDef.wallCooldown;
+        HandleWallInput(player, input, charDef);
     }
 
     player.currentInput = input;
     player.lastButtons = input.buttons;
 }
 
-void GameSimulation::HandleWallInput(state::PlayerState &player, const state::PlayerInput &input) {
-    Vector2 worldPos = {input.aimX, input.aimY};
-    Map::Vector2i gridPos = Map::WorldToGrid(worldPos);
-    if (!TryPlaceWall(player, gridPos)) {
-        int wallOwnerId = m_wallManager.GetOwnerId(gridPos);
-        if (wallOwnerId == player.id) {
-            m_wallManager.RemoveWall(gridPos, player.id);
-        }
+void GameSimulation::HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
+                                     const Character::CharacterDef &charDef) {
+    const Map::Vector2i gridPos = Map::WorldToGrid({input.aimX, input.aimY});
+    if (TryPlaceWall(player, gridPos)) {
+        player.wallTimer = charDef.wallCooldown;
+        return;
+    }
+
+    const int wallOwnerId = m_wallManager.GetOwnerId(gridPos);
+    if (wallOwnerId == player.id && m_wallManager.RemoveWall(gridPos, player.id)) {
+        player.wallTimer = charDef.wallCooldown;
     }
 }
 
