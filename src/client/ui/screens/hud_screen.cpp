@@ -7,11 +7,9 @@ namespace UI {
 
 HudScreen::HudScreen(const state::PlayerState &localPlayer, const float &gameTime, Client::EventHub &events)
     : m_localPlayer(localPlayer), m_gameTime(gameTime), m_events(events) {
-    m_diedToken = events.playerDied.Subscribe(
-        [this](const event::PlayerDiedEvent &e) { m_killFeed.Push(e.killer.name, e.victim.name); });
+    m_deathSub = events.playerDied.Subscribe(
+        [this](const client::PlayerDiedEvent &e) { m_killFeed.Push(e.data.killer.name, e.data.victim.name); });
 }
-
-HudScreen::~HudScreen() { m_events.playerDied.Unsubscribe(m_diedToken); }
 
 void HudScreen::Update(float dt) { m_killFeed.Update(dt); }
 

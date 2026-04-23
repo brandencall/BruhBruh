@@ -29,6 +29,8 @@ void LobbyScene::OnEnter() {
 }
 
 void LobbyScene::OnExit() {
+    Scene::OnExit();
+
     using PT = network::PacketType;
     m_handler.Unregister(PT::JoinResponse);
     m_handler.Unregister(PT::PlayerJoined);
@@ -38,7 +40,8 @@ void LobbyScene::OnExit() {
     m_handler.Unregister(PT::StartGame);
     m_handler.Unregister(PT::GameBegin);
 
-    Scene::OnExit();
+    for (auto &[id, tex] : m_icons)
+        UnloadTexture(tex);
 }
 
 void LobbyScene::Update(float dt) {

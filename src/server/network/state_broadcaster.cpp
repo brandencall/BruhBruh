@@ -1,6 +1,7 @@
 #include "state_broadcaster.hpp"
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
+#include "state/player_state.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -20,7 +21,7 @@ void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation 
     pkt.countdown = countdown;
     pkt.playerCount = BuildPlayerState(sim, pkt.players);
     pkt.gameTime = sim.GetGameTime();
-    size_t sendSize = offsetof(network::StatePacket, players) + pkt.playerCount * sizeof(state::PlayerState);
+    size_t sendSize = offsetof(network::GameBeginPacket, players) + pkt.playerCount * sizeof(state::PlayerState);
 
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
 }
@@ -29,7 +30,10 @@ void StateBroadcaster::BroadcastGameEnd(float countdown, const GameSimulation &s
     network::GameEndPacket pkt{};
     pkt.header.type = network::PacketType::GameEnd;
     pkt.countdown = countdown;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    pkt.playerCount = BuildRankedPlayers(sim, pkt.rankedPlayers);
+    size_t sendSize = offsetof(network::GameEndPacket, rankedPlayers) + pkt.playerCount * sizeof(state::RankedPlayer);
+
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
 }
 
 void StateBroadcaster::BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId) {
@@ -189,6 +193,31 @@ uint16_t StateBroadcaster::BuildPlayerState(const GameSimulation &sim, state::Pl
         uint16_t slot = playerCount++;
         players[slot] = currentPlayers[i];
         players[slot].active = currentPlayers[i].active ? 1 : 0;
+    }
+
+    return playerCount;
+}
+uint16_t StateBroadcaster::BuildRankedPlayers(const GameSimulation &sim, state::RankedPlayer *players) {
+    const auto &currentPlayers = sim.GetPlayers();
+
+    std::vector<state::PlayerState *> sorted;
+    for (const auto &p : currentPlayers) {
+        if (p.active)
+            sorted.push_back(const_cast<state::PlayerState *>(&p));
+    }
+
+    std::sort(sorted.begin(), sorted.end(), [](const state::PlayerState *a, const state::PlayerState *b) {
+        if (a->score.kills != b->score.kills)
+            return a->score.kills > b->score.kills;
+        return a->score.deaths < b->score.deaths;
+    });
+
+    uint16_t playerCount = sorted.size();
+    for (int i = 0; i < sorted.size(); ++i) {
+        players[i].id = sorted[i]->id;
+        strcpy(players[i].name, sorted[i]->name);
+        players[i].score.kills = sorted[i]->score.kills;
+        players[i].score.deaths = sorted[i]->score.deaths;
     }
 
     return playerCount;

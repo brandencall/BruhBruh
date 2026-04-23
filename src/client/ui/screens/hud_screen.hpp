@@ -9,7 +9,6 @@ namespace UI {
 class HudScreen : public UIScreen {
   public:
     HudScreen(const state::PlayerState &localPlayer, const float &gameTime, Client::EventHub &events);
-    ~HudScreen();
 
     void Update(float dt) override;
     void Render() override;
@@ -26,7 +25,7 @@ class HudScreen : public UIScreen {
 
     System::KillFeed m_killFeed;
 
-    Client::SubscriptionToken m_diedToken;
+    Client::Subscription m_deathSub;
 };
 
 } // namespace UI

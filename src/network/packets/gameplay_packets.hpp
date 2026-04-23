@@ -20,6 +20,8 @@ struct GameBeginPacket {
 struct GameEndPacket {
     PacketHeader header;
     float countdown;
+    uint16_t playerCount;
+    state::RankedPlayer rankedPlayers[MAX_PLAYERS];
     // Send the player rankings
 };
 

@@ -43,4 +43,11 @@ struct PlayerState {
     float wallTimer = 0.0f;
     bool active = false;
 };
+
+struct RankedPlayer {
+    uint32_t id = UINT32_MAX;
+    char name[MAX_PLAYER_NAME_LEN] = {};
+    PlayerScore score;
+};
+
 } // namespace state

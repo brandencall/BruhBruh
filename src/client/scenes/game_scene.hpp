@@ -68,7 +68,7 @@ class GameScene : public Scene {
     Render::CharacterRenderer m_characterRender;
     Render::WallRenderer m_wallRender;
     UI::UIManager m_ui;
-    std::optional<System::AudioSystem> m_audioSystem;
+    System::AudioSystem m_audioSystem;
 
     uint16_t m_inputSequence = 0;
     uint8_t m_lastButtons = 0;
@@ -79,6 +79,7 @@ class GameScene : public Scene {
     float m_gameBeginTimer = 0.0f;
     bool m_cameraReady = false;
     bool m_initialSnapDone = false;
+    bool m_gameEndScreenActive = false;
 
     Camera2D m_camera{};
 };

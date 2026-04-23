@@ -3,6 +3,7 @@
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
 #include "../ui/screens/death_screen.hpp"
+#include "../ui/screens/game_end_screen.hpp"
 #include "../ui/screens/hud_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
 #include "lobby_scene.hpp"
@@ -48,9 +49,9 @@ void GameScene::OnEnter() {
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.5f;
 
-    Subscribe(m_events.playerDied, [this](const event::PlayerDiedEvent &e) {
-        if (e.victim.id == m_worldState.m_currentPlayerId) {
-            m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.victim.id]));
+    Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
+        if (e.data.victim.id == m_worldState.m_currentPlayerId) {
+            m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.data.victim.id]));
         }
     });
     InitAudioDevice();
@@ -77,10 +78,10 @@ void GameScene::OnExit() {
     m_characterRender.Unload();
     m_wallRender.Unload();
     m_bulletSystem.Unload();
-    m_audioSystem->Unload();
+    m_audioSystem.Unload();
+    m_ui.Clear();
 
     CloseAudioDevice();
-    // Base Scene::OnExit unsubscribes any EventBus subscriptions
     Scene::OnExit();
 }
 
@@ -167,8 +168,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
-        m_audioSystem.emplace(m_worldState.m_players[m_currentPlayerId]);
-        m_audioSystem->Init(m_events.onHit, m_events.playerDied);
+        m_audioSystem.Init(m_events.onHit, m_events.playerDied);
     }
 }
 
@@ -218,14 +218,16 @@ void GameScene::HandlePlayerDamaged(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDamagedPacket *>(buffer);
     m_worldState.m_players[pkt->vitimId].health = pkt->currentHealth;
 
-    m_events.onHit.Publish({pkt->attackerId, pkt->vitimId, m_worldState.m_players[m_currentPlayerId].characterId});
+    m_events.onHit.Publish(
+        {pkt->attackerId, pkt->vitimId, m_worldState.m_players[m_currentPlayerId].characterId, m_currentPlayerId});
 }
 
 void GameScene::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
     m_worldState.m_players[pkt->victim.id] = pkt->victim;
-    m_events.onHit.Publish({pkt->killer.id, pkt->victim.id, m_worldState.m_players[m_currentPlayerId].characterId});
-    m_events.playerDied.Publish({pkt->victim, pkt->killer});
+    m_events.onHit.Publish(
+        {pkt->killer.id, pkt->victim.id, m_worldState.m_players[m_currentPlayerId].characterId, m_currentPlayerId});
+    m_events.playerDied.Publish({pkt->victim, pkt->killer, m_worldState.m_players[m_currentPlayerId]});
 }
 
 void GameScene::HandlePlaceWall(const char *buffer) {
@@ -247,7 +249,18 @@ void GameScene::HandleDestroyWall(const char *buffer) {
 
 void GameScene::HandleGameEnd(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::GameEndPacket *>(buffer);
-    std::cout << "Game end time: " << pkt->countdown << std::endl;
+    if (!m_gameEndScreenActive) {
+        m_gameEndScreenActive = true;
+        UI::GameEndData data;
+        data.countdown = pkt->countdown;
+        data.playerCount = pkt->playerCount;
+        std::copy(pkt->rankedPlayers, pkt->rankedPlayers + pkt->playerCount, data.rankings.begin());
+        m_ui.Push(std::make_unique<UI::GameEndScreen>(std::move(data)));
+    }
+
+    if (auto *screen = m_ui.Get<UI::GameEndScreen>()) {
+        screen->UpdateCountdown(pkt->countdown);
+    }
 }
 
 void GameScene::HandleSwitchToLobby(const char *buf) {

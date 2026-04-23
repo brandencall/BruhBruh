@@ -1,4 +1,5 @@
 #pragma once
+#include "../../config.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../client_transport.hpp"
 #include "../event_hub.hpp"

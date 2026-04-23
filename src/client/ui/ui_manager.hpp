@@ -29,6 +29,13 @@ class UIManager {
         }
         return false;
     }
+    template <typename T> T *Get() const {
+        for (const auto &screen : m_stack) {
+            if (auto *ptr = dynamic_cast<T *>(screen.get()))
+                return ptr;
+        }
+        return nullptr;
+    }
 
     void Update(float dt);
     void Render();
