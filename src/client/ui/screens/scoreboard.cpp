@@ -2,7 +2,7 @@
 #include "../../utils/text_utils.hpp"
 #include "state/player_state.hpp"
 #include <algorithm>
-#include <string.h>
+#include <vector>
 
 namespace UI {
 
@@ -34,8 +34,7 @@ Scoreboard::Scoreboard(const std::array<state::PlayerState, MAX_PLAYERS> &player
 
 void Scoreboard::Render() {
 
-    state::PlayerState sorted[MAX_PLAYERS];
-    SortPlayerArray(sorted);
+    std::vector<state::PlayerState> sorted = GetSortedPlayers();
 
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
@@ -56,10 +55,20 @@ void Scoreboard::Render() {
     DrawVerticalColDividers(panelX, panelY, totalH);
 }
 
-void Scoreboard::SortPlayerArray(state::PlayerState *sorted) {
-    memcpy(sorted, &m_players, sizeof(state::PlayerState) * MAX_PLAYERS);
-    std::sort(sorted, sorted + MAX_PLAYERS,
+std::vector<state::PlayerState> Scoreboard::GetSortedPlayers() {
+    std::vector<state::PlayerState> result;
+    result.reserve(MAX_PLAYERS);
+
+    for (const auto &p : m_players) {
+        if (p.active) {
+            result.push_back(p);
+        }
+    }
+
+    std::sort(result.begin(), result.end(),
               [](const state::PlayerState &a, const state::PlayerState &b) { return a.score.kills > b.score.kills; });
+
+    return result;
 }
 
 void Scoreboard::DrawPanelBackground(float totalH, float panelX, float panelY) {
@@ -81,33 +90,33 @@ void Scoreboard::DrawHeaderRow(float panelX, float panelY, float headerY, float 
     DrawLine((int)panelX, (int)divY, (int)(panelX + PANEL_W), (int)divY, C_DIVIDER);
 }
 
-void Scoreboard::DrawPlayerRows(float panelX, float divY, state::PlayerState *sorted) {
-    for (int i = 0; i < MAX_PLAYERS; i++) {
+void Scoreboard::DrawPlayerRows(float panelX, float divY, const std::vector<state::PlayerState> &sorted) {
+    size_t rowCount = sorted.size();
+
+    for (size_t i = 0; i < MAX_PLAYERS; i++) {
         float rowY = divY + i * ROW_H;
         Color rowBg = (i == 0) ? C_ROW_FIRST : C_ROW_EVEN;
+
         DrawRectangle((int)panelX, (int)rowY, (int)PANEL_W, ROW_H, rowBg);
 
         float textY = rowY + (ROW_H - 13) * 0.5f;
 
-        if (sorted[i].active) {
-            // Rank number
+        if (i < rowCount) {
+            const auto &p = sorted[i];
+
             Color rankColor = (i == 0) ? C_TEXT_RANK1 : C_TEXT_RANK;
-            DrawText(TextFormat("%d", i + 1), (int)(panelX + COL_RANK_X), (int)textY, 11, rankColor);
+            DrawText(TextFormat("%d", (int)i + 1), (int)(panelX + COL_RANK_X), (int)textY, 11, rankColor);
 
-            // Name
             Color nameColor = (i == 0) ? C_TEXT_MAIN : C_TEXT_DIM;
-            DrawText(sorted[i].name, (int)(panelX + COL_NAME_X), (int)textY, 13, nameColor);
+            DrawText(p.name, (int)(panelX + COL_NAME_X), (int)textY, 13, nameColor);
 
-            // Kills / Deaths
-            utils::DrawTextCentered(TextFormat("%d", sorted[i].score.kills), panelX + COL_KILLS_X, textY, 13, C_KILLS);
-            utils::DrawTextCentered(TextFormat("%d", sorted[i].score.deaths), panelX + COL_DEATHS_X, textY, 13,
-                                    C_DEATHS);
+            utils::DrawTextCentered(TextFormat("%d", p.score.kills), panelX + COL_KILLS_X, textY, 13, C_KILLS);
+
+            utils::DrawTextCentered(TextFormat("%d", p.score.deaths), panelX + COL_DEATHS_X, textY, 13, C_DEATHS);
         } else {
-            // Empty slot
             DrawText("-", (int)(panelX + COL_NAME_X), (int)textY, 13, C_TEXT_RANK);
         }
 
-        // Row divider
         if (i < MAX_PLAYERS - 1) {
             float lineY = rowY + ROW_H;
             DrawLine((int)panelX, (int)lineY, (int)(panelX + PANEL_W), (int)lineY, C_DIVIDER);

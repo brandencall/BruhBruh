@@ -3,6 +3,7 @@
 #include "../ui_manager.hpp"
 #include "raylib.h"
 #include <array>
+#include <vector>
 
 namespace UI {
 
@@ -17,11 +18,11 @@ class Scoreboard : public UIScreen {
     bool IsDone() const override { return !IsKeyDown(KEY_TAB); }
 
   private:
-    void SortPlayerArray(state::PlayerState *sorted);
+    std::vector<state::PlayerState> GetSortedPlayers();
     void DrawPanelBackground(float totalH, float panelX, float panelY);
     void DrawTitleBar(float panelX, float panelY);
     void DrawHeaderRow(float panelX, float panelY, float headerY, float divY);
-    void DrawPlayerRows(float panelX, float divY, state::PlayerState *sorted);
+    void DrawPlayerRows(float panelX, float divY, const std::vector<state::PlayerState> &sorted);
     void DrawVerticalColDividers(float panelX, float panelY, float totalH);
 
   private:
