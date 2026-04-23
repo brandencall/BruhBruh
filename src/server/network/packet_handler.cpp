@@ -67,6 +67,9 @@ void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId fro
 
 void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::PeerId from) {
     auto *pkt = reinterpret_cast<network::CharacterSelectedPacket *>(buffer);
+    auto *client = m_registry.FindByPeer(from);
+    if (!client || !client->active)
+        return;
     m_lobby.TrySetCharacter(from, pkt->characterId);
     m_broadcaster.BroadcastCharacterSelected(pkt->playerId, pkt->characterId);
 }
