@@ -37,6 +37,10 @@ void GameSimulation::SetupBulletSystem() {
 
     m_bulletSystem.SetOnPlayerHit([this](uint32_t playerId, float damage, uint32_t shooterId) {
         auto &player = m_players[playerId];
+
+        if (player.invincibilityTimer > 0.0f)
+            return;
+
         player.health -= damage;
         if (player.health <= 0.0f) {
             HandlePlayerDied(player, shooterId);
@@ -93,6 +97,9 @@ void GameSimulation::Update(float tickRate) {
             continue; // skip movement/input while dead
         }
 
+        if (player.invincibilityTimer > 0.0f)
+            player.invincibilityTimer -= tickRate;
+
         if (player.shootTimer > 0.0f)
             player.shootTimer -= tickRate;
 
@@ -114,9 +121,8 @@ void GameSimulation::Update(float tickRate) {
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     const auto &def = GetCharacterDef(player.characterId);
     player.health = def.maxHealth;
-    // TODO: Create a better respawn position based on other players positions and map bounds
-    // player.position = m_map.spawnPoints[player.id];
     player.position = System::Spawn(m_map.spawnPoints, m_players);
+    player.invincibilityTimer = 2.0f;
     player.velocity = {0, 0};
     player.respawnTimer = 0.0f;
     player.shootTimer = 0.0f;

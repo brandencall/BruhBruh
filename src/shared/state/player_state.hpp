@@ -37,6 +37,7 @@ struct PlayerState {
     // bitmask (shoot, place_wall, etc.)
     uint8_t lastButtons;
     float respawnTimer = 0.0f;
+    float invincibilityTimer = 0.0f;
     // Could define this in the character definition
     uint32_t currentAvaliableWalls = 5;
     float shootTimer = 0.0f;

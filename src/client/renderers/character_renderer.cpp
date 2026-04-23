@@ -27,12 +27,19 @@ void CharacterRenderer::Sync(const state::PlayerState &state, float dt) {
     // If this is a new player, snap immediately instead of lerping from origin
     if (m_positions.find(state.id) == m_positions.end()) {
         m_positions[state.id] = state.position;
+        m_blinkTimers[state.id] = 0.0f;
         return;
     }
 
     float smoothing = 10.0f; // lower is smoother, higher is snappier
     Vector2 &current = m_positions[state.id];
     current = Vector2Lerp(current, state.position, smoothing * dt);
+
+    if (state.invincibilityTimer > 0.0f) {
+        m_blinkTimers[state.id] += dt;
+    } else {
+        m_blinkTimers[state.id] = 0.0f;
+    }
 }
 
 void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &players) {
@@ -45,13 +52,15 @@ void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &
             continue;
 
         Draw(player);
-
-        // Use lerped position so hurtbox stays on the sprite
-        // Vector2 renderPos = m_characterRender.GetPosition(player.id);
-        // Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
-        // DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
-        // DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
     }
+}
+
+void CharacterRenderer::DebugHitBox(const state::PlayerState &player) {
+    // Use lerped position so hurtbox stays on the sprite
+    Vector2 renderPos = GetPosition(player.id);
+    Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+    DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
+    DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
 }
 
 void CharacterRenderer::Draw(const state::PlayerState &player) {
@@ -79,8 +88,20 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
 
     Vector2 origin = {frameWidth * 0.5f, frameHeight * 0.5f};
 
+    Color base = WHITE;
+
+    if (player.invincibilityTimer > 0.0f) {
+        float blinkTimer = m_blinkTimers[player.id];
+        float t = sinf(blinkTimer * 20.0f) * 0.5f + 0.5f;
+
+        base =
+            Color{(unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))), (unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))),
+                  (unsigned char)(255 * (0.5f + 0.5f * (1.0f - t))), 255};
+    }
+
+    DrawTexturePro(tex, src, dst, origin, 0.0f, base);
+
     DrawHealthBar(player, position, frameWidth, frameHeight);
-    DrawTexturePro(tex, src, dst, origin, 0.0f, WHITE);
 }
 
 void CharacterRenderer::DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth,
