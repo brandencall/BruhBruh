@@ -11,4 +11,5 @@ target_include_directories(scenes
 target_link_libraries(scenes
     PUBLIC
         raylib
+        SteamSDK
 )

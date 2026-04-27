@@ -1,21 +1,21 @@
 #pragma once
-
+#include "../../network/packets/gameplay_packets.hpp"
+#include "../../shared/characters/character_types.hpp"
+#include "../../shared/network/ITransport.hpp"
+#include "../../shared/state/player_state.hpp"
 #include "../game_simulation.hpp"
-#include "../network/packets/gameplay_packets.hpp"
-#include "../server/server_transport.hpp"
 #include "../server_lobby.hpp"
-#include "characters/character_types.hpp"
 #include "client_registry.hpp"
-#include "network/ITransport.hpp"
-#include "state/player_state.hpp"
 #include <cstdint>
 
 namespace network {
 class StateBroadcaster {
 
   public:
-    StateBroadcaster(network::ServerTransport &transport, ClientRegistry &registry, int &tick)
-        : m_transport(transport), m_registry(registry), m_tick(tick) {}
+    StateBroadcaster(ClientRegistry &registry, int &tick) : m_registry(registry), m_tick(tick) {}
+
+    void SetTransport(network::ITransport &transport);
+    void AssertTransport() const;
 
     void BroadcastStartGame(float countdown);
     void BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId);
@@ -38,7 +38,7 @@ class StateBroadcaster {
     uint16_t BuildRankedPlayers(const GameSimulation &sim, state::RankedPlayer *players);
 
   private:
-    network::ServerTransport &m_transport;
+    network::ITransport *m_transport = nullptr;
     ClientRegistry &m_registry;
     int &m_tick;
 };

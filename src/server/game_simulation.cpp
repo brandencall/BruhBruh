@@ -2,8 +2,6 @@
 #include "../config.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
-#include "characters/character_roster.hpp"
-#include "characters/character_types.hpp"
 #include "events.hpp"
 #include "raylib.h"
 #include "state/player_state.hpp"

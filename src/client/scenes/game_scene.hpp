@@ -1,26 +1,25 @@
 #pragma once
 #include "../../network/packets/gameplay_packets.hpp"
+#include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
-#include "../client_transport.hpp"
 #include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
 #include "../renderers/wall_renderer.hpp"
+#include "../session_manager.hpp"
 #include "../state/world_state.hpp"
 #include "../systems/audio_system.hpp"
 #include "../systems/client_bullet_system.hpp"
 #include "../ui/ui_manager.hpp"
 #include "raylib.h"
 #include "scene.hpp"
-#include "scene_manager.hpp"
 #include <cstdint>
-#include <optional>
 
 class GameScene : public Scene {
   public:
-    GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-              SceneManager &sceneManager, state::LobbySlotState currentPlayerState);
+    GameScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
+              SessionManager &sessionManager, state::LobbySlotState currentPlayerState);
 
     void OnEnter() override;
     void OnExit() override;
@@ -54,9 +53,9 @@ class GameScene : public Scene {
   private:
     // Dependencies — all refs, owned by GameClient
     Client::EventHub &m_events;
-    network::ClientTransport &m_transport;
+    network::ITransport &m_transport;
     NetworkMessageHandler &m_handler;
-    SceneManager &m_sceneManager;
+    SessionManager &m_sessionManager;
     uint32_t m_currentPlayerId = UINT32_MAX;
     Character::CharacterId m_currenCharacterId = Character::CharacterId::None;
 

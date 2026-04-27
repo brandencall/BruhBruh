@@ -1,24 +1,27 @@
 #pragma once
 #include "../client_transport.hpp"
+#include "../shared/network/ITransport.hpp"
+#include "../shared/network/steam_lobby_manager.hpp"
 #include "client_transport.hpp"
 #include "event_hub.hpp"
 #include "network/network_message_handler.hpp"
-#include "scene_manager.hpp"
+#include "scenes/scene_manager.hpp"
 
 class GameClient {
   public:
+    GameClient(network::ITransport &transport, SteamLobbyManager &lobbyManager, NetworkMessageHandler &handler);
     ~GameClient();
-    void Initialize();
     void Start(const char *ip, int port);
-
-  private:
+    void StartInProcess();
     void Update();
-    void Connect(const char *ip, int port);
     void Disconnect();
 
+  private:
     Client::EventHub m_events;
-    network::ClientTransport m_transport;
-    NetworkMessageHandler m_handler;
+    network::ClientTransport m_ownedTransport;
+    network::ITransport *m_transport = nullptr;
+    SteamLobbyManager &m_lobbyManager;
+    NetworkMessageHandler &m_handler;
     SceneManager m_sceneManager;
 
     bool m_running = false;

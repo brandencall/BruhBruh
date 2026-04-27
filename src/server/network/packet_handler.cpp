@@ -3,6 +3,7 @@
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
+#include <iostream>
 
 namespace network {
 
@@ -30,10 +31,15 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
     }
 }
 
+void PacketHandler::SetTransport(network::ITransport &transport) { m_transport = &transport; }
+
 void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from) {
     // Only allow joins during lobby phase
+    if (m_phase != ServerPhase::LOBBY)
+        return;
+
     auto *existing = m_registry.FindByPeer(from);
-    if (m_phase != ServerPhase::LOBBY || existing) {
+    if (existing) {
         SendJoinResponse(from, existing->playerId);
         return;
     }
@@ -45,9 +51,7 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
         return;
     }
 
-    // TODO: need to pass in the name when the client joins
-    // int slot = m_lobby.AddPlayer(from, name, client->playerId);
-    int slot = m_lobby.AddPlayer(from, client->playerId);
+    int slot = m_lobby.AddPlayer(from, pkt->name, client->playerId);
     SendJoinResponse(from, client->playerId);
 
     m_broadcaster.BroadcastPlayerJoined(m_lobby.Slots()[slot].lobbySlot.name, client);
@@ -62,10 +66,11 @@ void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId fro
     returnPacket.playerReady = setReady;
     returnPacket.playerId = pkt->playerId;
     returnPacket.characterId = pkt->characterId;
-    m_transport.send(from, &returnPacket, sizeof(returnPacket));
+    m_transport->send(from, &returnPacket, sizeof(returnPacket));
 }
 
 void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::PeerId from) {
+    std::cout << "Made it to the oncharacterselected handler in server" << std::endl;
     auto *pkt = reinterpret_cast<network::CharacterSelectedPacket *>(buffer);
     auto *client = m_registry.FindByPeer(from);
     if (!client || !client->active)
@@ -113,6 +118,6 @@ void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId) {
     response.header.type = network::PacketType::JoinResponse;
     response.playerId = playerId;
     response.characterId = Character::CharacterId::None;
-    m_transport.send(to, &response, sizeof(response));
+    m_transport->send(to, &response, sizeof(response));
 }
 } // namespace network

@@ -1,5 +1,6 @@
 #pragma once
 #include "../server/server_transport.hpp"
+#include "../shared/network/steam_lobby_manager.hpp"
 #include "event_bus.hpp"
 #include "game_simulation.hpp"
 #include "network/client_registry.hpp"
@@ -7,11 +8,16 @@
 #include "network/state_broadcaster.hpp"
 #include "server_lobby.hpp"
 #include "server_phase.hpp"
+#include <atomic>
 
 class GameServer {
   public:
     GameServer();
     void Start(int port);
+    void Stop();
+    void SignalReady();
+    void AddHostToLobby(std::string name);
+    void StartInProcess(network::ITransport &transport, SteamLobbyManager &steamLobbyManager);
     void RunServer();
     bool IsRunning();
 
@@ -26,14 +32,17 @@ class GameServer {
 
   private:
     ServerPhase m_phase = ServerPhase::LOBBY;
-    bool m_running = false;
+    std::atomic<bool> m_running = false;
+    std::atomic<bool> m_readyToRun = false;
     bool m_gameRunning = false;
     int m_tick = 0;
     float m_startTimer = 0.0f;
     float m_gameBeginTimer = 0.0f;
     float m_gameEndTimer = 0.0f;
 
-    network::ServerTransport m_transport;
+    network::ServerTransport m_ownedTransport;
+    network::ITransport *m_transport = nullptr;
+    SteamLobbyManager *m_steamLobbyManager = nullptr;
     network::ClientRegistry m_registry;
     EventBus m_eventBus;
     GameSimulation m_simulation;

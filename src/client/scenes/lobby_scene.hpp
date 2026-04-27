@@ -1,17 +1,18 @@
 #pragma once
 #include "../../config.hpp"
+#include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
-#include "../client_transport.hpp"
 #include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"
+#include "../session_manager.hpp"
 #include "scene.hpp"
 #include <array>
 #include <map>
 
 class LobbyScene : public Scene {
   public:
-    LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-               SceneManager &sceneManager);
+    LobbyScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
+               SessionManager &sessionManager);
 
     void OnEnter() override;
     void OnExit() override;
@@ -31,6 +32,8 @@ class LobbyScene : public Scene {
     void SendJoin();
     void FlipReadyState();
 
+    void InviteFriendsButton(int screenW, int screenH, bool mouseClicked, Vector2 mousePos);
+
     void OnCharacterSelected(const Character::CharacterId &character);
 
     void RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW, int screenH);
@@ -42,9 +45,9 @@ class LobbyScene : public Scene {
     float m_countdownTimer = 0.0f;
     bool m_gameStarting = false;
     Client::EventHub &m_events;
-    network::ClientTransport &m_transport;
+    network::ITransport &m_transport;
     NetworkMessageHandler &m_handler;
-    SceneManager &m_sceneManager;
+    SessionManager &m_sessionManager;
 
     std::array<state::LobbySlotState, MAX_PLAYERS> m_players{};
     std::map<Character::CharacterId, Texture2D> m_icons;

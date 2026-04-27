@@ -4,3 +4,5 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+external/steamworks_sdk/
+steam_appid.txt

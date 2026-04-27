@@ -17,4 +17,5 @@ target_link_libraries(server
        server_network
        server_systems
        shared
+       SteamSDK
 )

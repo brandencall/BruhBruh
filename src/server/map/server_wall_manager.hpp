@@ -1,9 +1,9 @@
 #pragma once
 
+#include "../../shared/map/dynamic_walls/wall_manager.hpp"
+#include "../../shared/map/grid.hpp"
+#include "../../shared/state/player_state.hpp"
 #include "../event_bus.hpp"
-#include "map/dynamic_walls/wall_manager.hpp"
-#include "map/grid.hpp"
-#include "state/player_state.hpp"
 #include <cstdint>
 #include <functional>
 

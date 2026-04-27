@@ -1,21 +1,60 @@
 #include "game_server.hpp"
+#include "network/ITransport.hpp"
+#include "network/steam_lobby_manager.hpp"
 #include "server_phase.hpp"
 #include <chrono>
 #include <iostream>
 #include <thread>
 
 GameServer::GameServer()
-    : m_broadcaster(m_transport, m_registry, m_tick),
-      m_packetHandler(m_transport, m_registry, m_simulation, m_broadcaster, m_phase, m_lobby) {}
+    : m_broadcaster(m_registry, m_tick), m_packetHandler(m_registry, m_simulation, m_broadcaster, m_phase, m_lobby) {}
 
-void GameServer::Start(int port) { m_running = m_transport.start(static_cast<uint16_t>(port)); }
+void GameServer::Start(int port) {
+    m_running = m_ownedTransport.start(static_cast<uint16_t>(port));
+    // TODO: NEED TO FIX THIS
+    // m_transport = &m_ownedTransport;
+    m_broadcaster.SetTransport(*m_transport);
+}
+
+void GameServer::Stop() { m_running.store(false); }
+
+// Steam path — transport is provided externally
+void GameServer::StartInProcess(network::ITransport &transport, SteamLobbyManager &steamLobbyManager) {
+    m_transport = &transport;
+    m_broadcaster.SetTransport(transport);
+    m_packetHandler.SetTransport(transport);
+    m_steamLobbyManager = &steamLobbyManager;
+    m_running = true;
+}
+
+void GameServer::SignalReady() { m_readyToRun.store(true); }
+
+void GameServer::AddHostToLobby(std::string name) {
+    network::PeerId id = m_steamLobbyManager->AddHostToLobby();
+    auto *client = m_registry.AddClient(id);
+    int slot = m_lobby.AddPlayer(id, name.c_str(), client->playerId);
+    std::cout << "Host added to lobby! Name: " << name << ", PeerId: " << id << ", PlayerId: " << client->playerId
+              << std::endl;
+    network::JoinResponsePacket response{};
+    response.header.type = network::PacketType::JoinResponse;
+    response.playerId = client->playerId;
+    response.characterId = Character::CharacterId::None;
+    strncpy(response.name, name.c_str(), sizeof(response.name) - 1);
+    m_transport->send(id, &response, sizeof(response));
+}
 
 bool GameServer::IsRunning() { return m_running; }
 
 void GameServer::RunServer() {
+    while (!m_readyToRun)
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+
     m_simulation.Initialize(m_eventBus);
 
     while (m_running) {
+        if (!m_transport)
+            break;
+
         switch (m_phase) {
         case ServerPhase::LOBBY:
             TickLobby();
@@ -140,6 +179,7 @@ void GameServer::UpdateSimulation(float tickRate) {
 
 void GameServer::Receive() {
     network::InboundPacket pkt;
-    while (m_transport.recv(pkt))
+    while (m_running && m_transport->recvServer(pkt)) {
         m_packetHandler.Handle(pkt.data, pkt.size, pkt.from);
+    }
 }

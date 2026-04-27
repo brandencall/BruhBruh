@@ -15,19 +15,17 @@ class ClientTransport : public ITransport {
     }
 
     bool recv(InboundPacket &out) override {
-        int received = m_client.Receive(m_buffer, sizeof(m_buffer));
+        int received = m_client.Receive(out.data, sizeof(MAX_PACKET_SIZE));
         if (received <= 0)
             return false;
 
         out.from = PEER_SERVER;
-        out.data = m_buffer;
         out.size = static_cast<size_t>(received);
         return true;
     }
 
   private:
     Client m_client;
-    char m_buffer[2048];
 };
 
 } // namespace network

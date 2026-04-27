@@ -1,8 +1,8 @@
 #pragma once
 #include "../config.hpp"
+#include "../shared/characters/character_types.hpp"
 #include "../shared/network/ITransport.hpp"
 #include "../shared/state/lobby_slot_state.hpp"
-#include "characters/character_types.hpp"
 #include <cstdint>
 
 struct LobbySlot {

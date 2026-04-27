@@ -1,5 +1,4 @@
 #pragma once
-
 #include "../shared/events.hpp"
 #include <vector>
 

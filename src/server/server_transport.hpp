@@ -19,12 +19,11 @@ class ServerTransport : public ITransport {
 
     bool recv(InboundPacket &out) override {
         sockaddr_in addr{};
-        int received = m_server.Receive(m_buffer, sizeof(m_buffer), addr);
+        int received = m_server.Receive(out.data, sizeof(MAX_PACKET_SIZE), addr);
         if (received <= 0)
             return false;
 
         out.from = getOrRegisterPeer(addr);
-        out.data = m_buffer;
         out.size = static_cast<size_t>(received);
         return true;
     }
@@ -44,7 +43,6 @@ class ServerTransport : public ITransport {
     }
 
     Server m_server;
-    char m_buffer[2048];
     uint32_t m_nextPeerId = 1; // 0 is reserved for PEER_SERVER
 
     std::unordered_map<PeerId, sockaddr_in> m_peers;

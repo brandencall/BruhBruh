@@ -5,17 +5,27 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 
 namespace network {
 
+void StateBroadcaster::SetTransport(network::ITransport &transport) { m_transport = &transport; }
+
+void StateBroadcaster::AssertTransport() const {
+    if (!m_transport)
+        throw std::runtime_error("StateBroadcaster: transport is null");
+}
+
 void StateBroadcaster::BroadcastStartGame(float countdown) {
+    AssertTransport();
     network::StartGamePacket pkt{};
     pkt.header.type = network::PacketType::StartGame;
     pkt.countdown = countdown;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation &sim) {
+    AssertTransport();
     network::GameBeginPacket pkt{};
     pkt.header.type = network::PacketType::GameBegin;
     pkt.countdown = countdown;
@@ -23,7 +33,7 @@ void StateBroadcaster::BroadcastGameBegin(float countdown, const GameSimulation 
     pkt.gameTime = sim.GetGameTime();
     size_t sendSize = offsetof(network::GameBeginPacket, players) + pkt.playerCount * sizeof(state::PlayerState);
 
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sendSize); });
 }
 
 void StateBroadcaster::BroadcastGameEnd(float countdown, const GameSimulation &sim) {
@@ -33,49 +43,54 @@ void StateBroadcaster::BroadcastGameEnd(float countdown, const GameSimulation &s
     pkt.playerCount = BuildRankedPlayers(sim, pkt.rankedPlayers);
     size_t sendSize = offsetof(network::GameEndPacket, rankedPlayers) + pkt.playerCount * sizeof(state::RankedPlayer);
 
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sendSize); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sendSize); });
 }
 
 void StateBroadcaster::BroadcastCharacterSelected(uint32_t playerId, Character::CharacterId characterId) {
+    AssertTransport();
     network::CharacterSelectedPacket pkt{};
     pkt.header.type = network::PacketType::CharacterSelected;
     pkt.playerId = playerId;
     pkt.characterId = characterId;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastState(const GameSimulation &sim) {
+    AssertTransport();
     network::StatePacket statePacket{};
     BuildStatePacket(sim, statePacket);
     size_t sendSize = offsetof(network::StatePacket, players) + statePacket.playerCount * sizeof(state::PlayerState);
 
     m_registry.ForEach(
-        [&](network::ClientConnection &client) { m_transport.send(client.peerId, &statePacket, sendSize); });
+        [&](network::ClientConnection &client) { m_transport->send(client.peerId, &statePacket, sendSize); });
 }
 
 void StateBroadcaster::BroadcastLobbyState(const ServerLobby &lobby) {
+    AssertTransport();
     network::LobbyStatePacket pkt{};
     pkt.header.type = network::PacketType::LobbyState;
     for (int i = 0; i < MAX_PLAYERS; ++i) {
         memcpy(&pkt.lobby[i], &lobby.Slots()[i].lobbySlot, sizeof(lobby.Slots()[i].lobbySlot));
     }
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastSwitchToLobby() {
+    AssertTransport();
     network::SwitchToLobbyPacket pkt{};
     pkt.header.type = network::PacketType::SwitchToLobby;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection *client) {
+    AssertTransport();
     network::PlayerJoinedPacket pkt{};
     pkt.header.type = network::PacketType::PlayerJoined;
     strncpy(pkt.name, name, sizeof(pkt.name) - 1);
     pkt.name[sizeof(pkt.name) - 1] = '\0';
     pkt.playerId = client->playerId;
     pkt.characterId = Character::CharacterId::None;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastPlayerDisconnect(uint32_t playerId) {
@@ -84,17 +99,19 @@ void StateBroadcaster::BroadcastPlayerDisconnect(uint32_t playerId) {
 }
 
 void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
+    AssertTransport();
     network::CurrentWorldStatePacket worldStatePacket{};
     BuildCurrentWorldStatePacket(sim, worldStatePacket);
     size_t sendSize =
-        offsetof(network::StatePacket, players) + worldStatePacket.playerCount * sizeof(state::PlayerState);
+        offsetof(network::CurrentWorldStatePacket, players) + worldStatePacket.playerCount * sizeof(state::PlayerState);
 
     m_registry.ForEach(
-        [&](network::ClientConnection &client) { m_transport.send(client.peerId, &worldStatePacket, sendSize); });
+        [&](network::ClientConnection &client) { m_transport->send(client.peerId, &worldStatePacket, sendSize); });
 }
 
 void StateBroadcaster::BroadcastAll(const void *data, size_t size) {
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport.send(client.peerId, data, size); });
+    AssertTransport();
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, data, size); });
 }
 
 void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {

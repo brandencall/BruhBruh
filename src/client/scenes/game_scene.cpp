@@ -6,13 +6,12 @@
 #include "../ui/screens/game_end_screen.hpp"
 #include "../ui/screens/hud_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
-#include "lobby_scene.hpp"
 #include "raylib.h"
 #include <cstdint>
 
-GameScene::GameScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-                     SceneManager &sceneManager, state::LobbySlotState currentPlayerState)
-    : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager),
+GameScene::GameScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
+                     SessionManager &sessionManager, state::LobbySlotState currentPlayerState)
+    : m_events(events), m_transport(transport), m_handler(handler), m_sessionManager(sessionManager),
       m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
@@ -262,9 +261,7 @@ void GameScene::HandleGameEnd(const char *buffer) {
     }
 }
 
-void GameScene::HandleSwitchToLobby(const char *buf) {
-    m_sceneManager.Replace(std::make_unique<LobbyScene>(m_events, m_transport, m_handler, m_sceneManager));
-}
+void GameScene::HandleSwitchToLobby(const char *buf) { m_sessionManager.CreateLobby(); }
 
 void GameScene::DrawMap(const Map::MapData &map) {
     for (const auto &wall : map.walls) {

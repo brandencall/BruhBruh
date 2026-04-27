@@ -1,6 +1,6 @@
 #pragma once
+#include "../../shared/systems/bullet_system.hpp"
 #include "../event_bus.hpp"
-#include "../shared/systems/bullet_system.hpp"
 #include <cstdint>
 #include <functional>
 

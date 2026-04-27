@@ -11,5 +11,6 @@ target_include_directories(network
 target_link_libraries(network
     PUBLIC
         raylib
+        SteamSDK
 )
 

@@ -15,21 +15,21 @@ struct SwitchToLobbyPacket {
 
 struct JoinLobbyPacket {
     PacketHeader header;
-    // Maybe have name here on join
+    char name[MAX_PLAYER_NAME_LEN];
 };
 
 struct JoinResponsePacket {
     PacketHeader header;
     uint32_t playerId;
     Character::CharacterId characterId;
-    char name[32];
+    char name[MAX_PLAYER_NAME_LEN];
 };
 
 struct PlayerJoinedPacket {
     PacketHeader header;
     uint32_t playerId;
     Character::CharacterId characterId;
-    char name[32];
+    char name[MAX_PLAYER_NAME_LEN];
 };
 
 struct PlayerReadyPacket {

@@ -1,5 +1,6 @@
 add_library(client
     game_client.cpp
+    session_manager.cpp
 )
 
 add_subdirectory(entities)
@@ -21,5 +22,6 @@ target_link_libraries(client
         renderers
         ui
         raylib
+        SteamSDK
         shared
 )

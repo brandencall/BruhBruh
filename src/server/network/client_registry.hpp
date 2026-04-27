@@ -1,7 +1,6 @@
 #pragma once
-
-#include "../config.hpp"
-#include "../network/client.hpp"
+#include "../../config.hpp"
+#include "../../network/client.hpp"
 #include <array>
 
 namespace network {

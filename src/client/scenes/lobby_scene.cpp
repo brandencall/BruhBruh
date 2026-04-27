@@ -1,15 +1,15 @@
 #include "lobby_scene.hpp"
 #include "../../network/packets/lobby_packets.hpp"
-#include "../scenes/game_scene.hpp"
 #include "../utils/text_utils.hpp"
 #include "raylib.h"
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <unordered_map>
 
-LobbyScene::LobbyScene(Client::EventHub &events, network::ClientTransport &transport, NetworkMessageHandler &handler,
-                       SceneManager &sceneManager)
-    : m_events(events), m_transport(transport), m_handler(handler), m_sceneManager(sceneManager) {}
+LobbyScene::LobbyScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
+                       SessionManager &sessionManager)
+    : m_events(events), m_transport(transport), m_handler(handler), m_sessionManager(sessionManager) {}
 
 void LobbyScene::OnEnter() {
     using PT = network::PacketType;
@@ -26,6 +26,10 @@ void LobbyScene::OnEnter() {
     m_icons[Character::CharacterId::Raff] = LoadTexture("assets/characters/tmp/Chavz.png");
     m_icons[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/Hodge.png");
     m_icons[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/Big_J.png");
+
+    if (!m_sessionManager.GetLobby().IsLocalPlayerHost()) {
+        SendJoin();
+    }
 }
 
 void LobbyScene::OnExit() {
@@ -45,14 +49,6 @@ void LobbyScene::OnExit() {
 }
 
 void LobbyScene::Update(float dt) {
-    if (!m_joined) {
-        m_joinRetryAccumulator += dt;
-        if (m_joinRetryAccumulator >= 1.0f) {
-            SendJoin();
-            m_joinRetryAccumulator = 0.0f;
-        }
-        return;
-    }
     // Once the game has started counting down, players can't un ready up
     if (IsKeyPressed(KEY_SPACE) && !m_gameStarting) {
         FlipReadyState();
@@ -62,6 +58,9 @@ void LobbyScene::Update(float dt) {
 void LobbyScene::SendJoin() {
     network::JoinLobbyPacket pkt{};
     pkt.header.type = network::PacketType::JoinLobby;
+    // Populate name from Steam
+    const char *name = SteamFriends()->GetPersonaName();
+    strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
     m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
@@ -110,11 +109,8 @@ void LobbyScene::HandleGameStarting(const char *buf) {
     m_gameStarting = true;
 }
 
-void LobbyScene::HandleGameBegin(const char *buf) {
-    // Server says everyone is ready — transition to game
-    m_sceneManager.Replace(
-        std::make_unique<GameScene>(m_events, m_transport, m_handler, m_sceneManager, m_players[m_localPlayerId]));
-}
+// Server says everyone is ready — transition to game
+void LobbyScene::HandleGameBegin(const char *buf) { m_sessionManager.CreateGame(m_players[m_localPlayerId]); }
 
 void LobbyScene::FlipReadyState() {
     network::PlayerReadyPacket pkt{};
@@ -182,8 +178,32 @@ void LobbyScene::Render() {
         int fontSize = screenH * 0.177f;
         utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize, YELLOW);
     }
+    if (m_sessionManager.GetLobby().IsLocalPlayerHost()) {
+        InviteFriendsButton(screenW, screenH, mouseClicked, mousePos);
+    }
 
     EndDrawing();
+}
+
+void LobbyScene::InviteFriendsButton(int screenW, int screenH, bool mouseClicked, Vector2 mousePos) {
+    // Invite Friends button
+    const char *btnText = "Invite Friends";
+
+    int btnW = screenW * 0.18f;
+    int btnH = screenH * 0.06f;
+
+    Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f, (float)btnW, (float)btnH};
+
+    bool hovered = CheckCollisionPointRec(mousePos, btnRect);
+
+    DrawRectangleRec(btnRect, hovered ? ColorAlpha(WHITE, 0.2f) : ColorAlpha(GRAY, 0.2f));
+    DrawRectangleLinesEx(btnRect, 2, hovered ? YELLOW : GRAY);
+
+    utils::DrawTextCentered(btnText, btnRect.x + btnRect.width * 0.5f, btnRect.y + btnRect.height * 0.5f, 20, WHITE);
+
+    if (hovered && mouseClicked) {
+        m_sessionManager.GetLobby().OpenInviteDialog();
+    }
 }
 
 void LobbyScene::OnCharacterSelected(const Character::CharacterId &character) {
