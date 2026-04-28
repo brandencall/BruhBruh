@@ -17,17 +17,19 @@ int main() {
 
     bool isHost = false;
 
-    std::cout << "Host (h) or Join (j)? ";
-    char choice;
-    std::cin >> choice;
-    isHost = (choice == 'h' || choice == 'H');
-    sessionManager.Initialize();
+    // std::cout << "Host (h) or Join (j)? ";
+    // char choice;
+    // std::cin >> choice;
+    // isHost = (choice == 'h' || choice == 'H');
 
-    if (isHost) {
-        sessionManager.StartHost();
-    } else {
-        sessionManager.StartClient();
-    }
+    sessionManager.Initialize();
+    sessionManager.StartHost();
+
+    // if (isHost) {
+    //     sessionManager.StartHost();
+    // } else {
+    //     sessionManager.StartClient();
+    // }
 
     sessionManager.Run(); // main loop (blocks)
     sessionManager.Shutdown();

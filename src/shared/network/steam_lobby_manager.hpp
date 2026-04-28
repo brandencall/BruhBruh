@@ -3,9 +3,10 @@
 #include "../../network/packets/lobby_packets.hpp"
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
-#include "steam/isteamuser.h"
 #include "steam_transport.hpp"
 #include <functional>
+#include <iostream>
+#include <steam/isteamuser.h>
 #include <steam/steam_api.h>
 #include <string>
 #include <vector>
@@ -45,6 +46,9 @@ class SteamLobbyManager {
 
     // Opens the Steam overlay invite dialog for the host
     void OpenInviteDialog() {
+        if (!SteamUtils()->IsOverlayEnabled()) {
+            std::cout << "Steam overlay is not enabled" << std::endl;
+        }
         if (m_lobbyId.IsValid())
             SteamFriends()->ActivateGameOverlayInviteDialog(m_lobbyId);
     }
@@ -87,6 +91,23 @@ class SteamLobbyManager {
         }
     }
 
+    std::vector<CSteamID> GetOnlineFriends() {
+        std::vector<CSteamID> friends;
+        int count = SteamFriends()->GetFriendCount(k_EFriendFlagImmediate);
+        for (int i = 0; i < count; ++i) {
+            CSteamID id = SteamFriends()->GetFriendByIndex(i, k_EFriendFlagImmediate);
+            if (SteamFriends()->GetFriendPersonaState(id) != k_EPersonaStateOffline) {
+                friends.push_back(id);
+            }
+        }
+        return friends;
+    }
+
+    void InviteFriend(CSteamID friendId) {
+        std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
+        SteamFriends()->InviteUserToGame(friendId, connectStr.c_str());
+    }
+
     std::string GetLocalPlayerName() const { return SteamFriends()->GetPersonaName(); }
 
     network::PeerId AddHostToLobby() {
@@ -98,7 +119,6 @@ class SteamLobbyManager {
     // ---- Steam callbacks ----
 
     void OnLobbyCreated(LobbyCreated_t *result, bool bIOFailure) {
-        std::cout << "In the lobby created callback" << std::endl;
         if (bIOFailure || result->m_eResult != k_EResultOK) {
             if (m_callbacks.onError)
                 m_callbacks.onError("Failed to create lobby");

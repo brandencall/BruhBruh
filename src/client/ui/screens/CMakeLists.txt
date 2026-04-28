@@ -3,6 +3,7 @@ add_library(screens
     hud_screen.cpp
     scoreboard.cpp
     game_end_screen.cpp
+    friends_invite_screen.cpp
 )
 
 target_include_directories(screens
@@ -15,4 +16,5 @@ target_link_libraries(screens
         client_systems
         shared
         raylib
+        SteamSDK
 )

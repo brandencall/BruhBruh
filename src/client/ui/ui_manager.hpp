@@ -17,6 +17,8 @@ class UIScreen {
 
 class UIManager {
   public:
+    UIManager() = default;
+    ~UIManager();
     // Push a screen on top (e.g. death screen over HUD)
     void Push(std::unique_ptr<UIScreen> screen);
     void Pop();

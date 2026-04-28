@@ -1,13 +1,13 @@
 #pragma once
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
-#include "steam/isteamuser.h"
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <mutex>
 #include <queue>
 #include <shared_mutex>
+#include <steam/isteamuser.h>
 #include <steam/steam_api.h>
 #include <unordered_map>
 

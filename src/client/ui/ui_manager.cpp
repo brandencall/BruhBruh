@@ -2,6 +2,8 @@
 
 namespace UI {
 
+UIManager::~UIManager() { Clear(); }
+
 void UIManager::Push(std::unique_ptr<UIScreen> screen) { m_stack.push_back(std::move(screen)); }
 
 void UIManager::Pop() {

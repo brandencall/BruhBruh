@@ -1,6 +1,7 @@
 #include "session_manager.hpp"
 #include "network/steam_lobby_manager.hpp"
 #include "network/steam_transport.hpp"
+#include "raylib.h"
 #include "scenes/game_scene.hpp"
 #include "scenes/lobby_scene.hpp"
 #include <iostream>
@@ -18,7 +19,8 @@ void SessionManager::Initialize() {
     InitWindow(width, height, "BruhBruh");
 
     // Borderless fullscreen
-    SetWindowState(FLAG_WINDOW_UNDECORATED);
+    // SetWindowState(FLAG_WINDOW_UNDECORATED);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
 
     Vector2 pos = GetMonitorPosition(monitor);
     SetWindowPosition((int)pos.x, (int)pos.y);
