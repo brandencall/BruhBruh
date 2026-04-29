@@ -19,6 +19,8 @@ struct LobbyCallbacks {
     std::function<void(CSteamID)> onMemberLeft;   // Someone left
     std::function<void()> onLobbyFull;
     std::function<void(const char *)> onError;
+    std::function<void(CSteamID, CSteamID)> onInviteAccepted; // (fromId, lobbyId)
+    std::function<void(CSteamID)> onJoinRequested;            // rich presence join
 };
 
 class SteamLobbyManager {
@@ -104,8 +106,9 @@ class SteamLobbyManager {
     }
 
     void InviteFriend(CSteamID friendId) {
-        std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
-        SteamFriends()->InviteUserToGame(friendId, connectStr.c_str());
+        // std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
+        // SteamFriends()->InviteUserToGame(friendId, connectStr.c_str());
+        SteamMatchmaking()->InviteUserToLobby(m_lobbyId, friendId);
     }
 
     std::string GetLocalPlayerName() const { return SteamFriends()->GetPersonaName(); }
@@ -125,6 +128,16 @@ class SteamLobbyManager {
             return;
         }
         m_lobbyId = result->m_ulSteamIDLobby;
+
+        SteamMatchmaking()->SetLobbyType(m_lobbyId, k_ELobbyTypePublic);
+        SteamMatchmaking()->SetLobbyData(m_lobbyId, "game", "BruhBruh");
+        SteamMatchmaking()->SetLobbyData(m_lobbyId, "host_name", SteamFriends()->GetPersonaName());
+
+        std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
+        SteamFriends()->SetRichPresence("connect", connectStr.c_str());
+        SteamFriends()->SetRichPresence("steam_player_group", connectStr.c_str());
+        SteamFriends()->SetRichPresence("steam_player_group_size", "1");
+        SteamFriends()->SetRichPresence("status", "In Lobby");
 
         // Register the host as PEER_SERVER (PeerId 0)
         CSteamID hostId = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
@@ -175,9 +188,12 @@ class SteamLobbyManager {
         }
     }
 
-    // Handle friend clicking "Join Game" from Steam overlay
-    STEAM_CALLBACK(SteamLobbyManager, OnGameLobbyJoinRequested, GameLobbyJoinRequested_t) {
-        JoinLobby(pParam->m_steamIDLobby);
+    STEAM_CALLBACK(SteamLobbyManager, OnLobbyInvite, LobbyInvite_t) {
+        std::cout << "Lobby invite received: " << pParam->m_ulSteamIDLobby << "\n";
+
+        if (m_callbacks.onInviteAccepted) {
+            m_callbacks.onInviteAccepted(CSteamID(pParam->m_ulSteamIDUser), CSteamID(pParam->m_ulSteamIDLobby));
+        }
     }
 
     STEAM_CALLBACK(SteamLobbyManager, OnSessionRequest, SteamNetworkingMessagesSessionRequest_t) {

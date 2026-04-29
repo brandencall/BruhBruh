@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/projects/bruhbruh/
+cd "$(dirname "$0")"
 export SteamAppId=480
 export SteamGameId=480
 

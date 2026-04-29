@@ -1,6 +1,6 @@
 #include "start_scene.hpp"
 #include "../utils/text_utils.hpp"
-// #include "join_scene.hpp"
+#include "join_scene.hpp"
 #include "lobby_scene.hpp"
 #include "raylib.h"
 #include <iostream>
@@ -13,14 +13,24 @@ StartScene::StartScene(Client::EventHub &events, SessionManager &session, SceneM
     : m_events(events), m_session(session), m_sceneManager(sceneManager) {}
 
 void StartScene::OnEnter() {
+    std::cout << "Start scene entered" << std::endl;
     m_state = State::Idle;
     m_statusText.clear();
     m_pendingInvite.active = false;
+    m_session.GetLobby().SetCallbacks({
+        .onInviteAccepted = [this](CSteamID from, CSteamID lobbyId) { m_pendingInvite = {from, lobbyId, true}; },
+        .onJoinRequested =
+            [this](CSteamID lobbyId) {
+                std::cout << "Invite recieved" << std::endl;
+                m_pendingInvite = {CSteamID(), lobbyId, true};
+            },
+    });
 }
 
 void StartScene::OnExit() {
     Scene::OnExit();
     m_pendingInvite.active = false;
+    m_session.GetLobby().SetCallbacks({});
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,6 +70,7 @@ void StartScene::ComputeLayout(int screenW, int screenH) {
 
 void StartScene::OnJoinRequested(GameRichPresenceJoinRequested_t *pCallback) {
     // pCallback->m_rgchConnect holds the lobby ID string set via SetRichPresence
+    std::cout << "Got join request" << std::endl;
     uint64 lobbyRaw = std::stoull(pCallback->m_rgchConnect);
     m_pendingInvite = {pCallback->m_steamIDFriend, CSteamID(lobbyRaw), true};
 }
@@ -105,7 +116,6 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
 
     if (CheckCollisionPointRec(mouse, m_layout.joinBtn)) {
         // m_sceneManager.Push(std::make_unique<JoinScene>(m_events, m_session, m_sceneManager));
-        std::cout << "Push the join scene" << std::endl;
     }
 }
 

@@ -29,8 +29,6 @@ void SessionManager::Shutdown() {
     m_server.reset();
     m_lobbyManager.reset();
     m_transport.reset();
-
-    CloseWindow();
 }
 
 network::ITransport &SessionManager::GetTransport() { return *m_transport; }
