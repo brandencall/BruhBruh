@@ -1,6 +1,7 @@
 add_library(client
     game_client.cpp
     session_manager.cpp
+    game.cpp
 )
 
 add_subdirectory(entities)

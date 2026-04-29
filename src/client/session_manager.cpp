@@ -1,7 +1,7 @@
 #include "session_manager.hpp"
+#include "network/ITransport.hpp"
 #include "network/steam_lobby_manager.hpp"
 #include "network/steam_transport.hpp"
-#include "raylib.h"
 #include "scenes/game_scene.hpp"
 #include "scenes/lobby_scene.hpp"
 #include <iostream>
@@ -9,30 +9,7 @@
 
 void SessionManager::Initialize() {
     m_transport = std::make_unique<network::SteamTransport>();
-
     m_lobbyManager = std::make_unique<SteamLobbyManager>(*m_transport);
-    int monitor = GetCurrentMonitor(); // or pick manually later
-
-    int width = GetMonitorWidth(monitor);
-    int height = GetMonitorHeight(monitor);
-
-    InitWindow(width, height, "BruhBruh");
-
-    // Borderless fullscreen
-    // SetWindowState(FLAG_WINDOW_UNDECORATED);
-    SetWindowState(FLAG_WINDOW_RESIZABLE);
-
-    Vector2 pos = GetMonitorPosition(monitor);
-    SetWindowPosition((int)pos.x, (int)pos.y);
-
-    SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
-    SetWindowState(FLAG_VSYNC_HINT);
-
-    int hz = GetMonitorRefreshRate(monitor);
-    if (hz < 30 || hz > 360)
-        hz = 60;
-
-    SetTargetFPS(hz);
 }
 
 void SessionManager::Shutdown() {
@@ -56,8 +33,70 @@ void SessionManager::Shutdown() {
     CloseWindow();
 }
 
+network::ITransport &SessionManager::GetTransport() { return *m_transport; }
+
+void SessionManager::TickClient() {
+    if (m_client) {
+        m_client->Update();
+    }
+}
+
+NetworkMessageHandler &SessionManager::GetHandler() { return m_handler; }
+
+void SessionManager::HostGame(std::function<void()> onSuccess, std::function<void(const char *)> onError) {
+    // Start the server thread first so it is ready by the time OnLobbyCreated fires
+    StartServerThread();
+
+    m_lobbyManager->SetCallbacks({
+        .onLobbyCreated =
+            [this, onSuccess = std::move(onSuccess)]() {
+                // Wire the host player into the server, then signal it is ready to run
+                m_server->AddHostToLobby(m_lobbyManager->GetLocalPlayerName());
+                m_server->SignalReady();
+
+                // Create the client-side GameClient now that the server is up
+                StartGameClient();
+
+                // Tell the scene it can push LobbyScene
+                if (onSuccess)
+                    onSuccess();
+            },
+        .onMemberJoined = [](CSteamID who) { std::cout << SteamFriends()->GetFriendPersonaName(who) << " joined\n"; },
+        .onError =
+            [onError = std::move(onError)](const char *msg) {
+                std::cerr << "Lobby error: " << msg << "\n";
+                if (onError)
+                    onError(msg);
+            },
+    });
+
+    m_lobbyManager->CreateLobby(MAX_PLAYERS);
+}
+
+void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess,
+                               std::function<void(const char *)> onError) {
+    m_lobbyManager->SetCallbacks({
+        .onLobbyJoined =
+            [this, onSuccess = std::move(onSuccess)]() {
+                // Server is remote — only a client is needed on this machine
+                StartGameClient();
+
+                if (onSuccess)
+                    onSuccess();
+            },
+        .onError =
+            [onError = std::move(onError)](const char *msg) {
+                std::cerr << "Lobby error: " << msg << "\n";
+                if (onError)
+                    onError(msg);
+            },
+    });
+
+    m_lobbyManager->JoinLobby(lobbyId);
+}
+
 void SessionManager::StartHost() {
-    StartGamerServerThread();
+    StartServerThread();
     StartGameClient();
     m_lobbyManager->SetCallbacks(
         {.onLobbyCreated =
@@ -114,7 +153,7 @@ void SessionManager::Run() {
     }
 }
 
-void SessionManager::StartGamerServerThread() {
+void SessionManager::StartServerThread() {
     if (!m_transport)
         return;
 

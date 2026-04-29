@@ -1,4 +1,4 @@
-#include "session_manager.hpp"
+#include "client/game.hpp"
 #include "steam/steam_api.h"
 #include <iostream>
 
@@ -8,22 +8,25 @@ int main() {
         return 1;
     }
 
+    Game game;
+    game.Run();
+
     // network::SteamTransport transport;
     // transport.Init();
 
     // SteamLobbyManager lobbyManager(transport);
 
-    SessionManager sessionManager;
+    // SessionManager sessionManager;
 
-    bool isHost = false;
+    // bool isHost = false;
 
     // std::cout << "Host (h) or Join (j)? ";
     // char choice;
     // std::cin >> choice;
     // isHost = (choice == 'h' || choice == 'H');
 
-    sessionManager.Initialize();
-    sessionManager.StartHost();
+    // sessionManager.Initialize();
+    // sessionManager.StartHost();
 
     // if (isHost) {
     //     sessionManager.StartHost();
@@ -31,8 +34,8 @@ int main() {
     //     sessionManager.StartClient();
     // }
 
-    sessionManager.Run(); // main loop (blocks)
-    sessionManager.Shutdown();
+    // sessionManager.Run(); // main loop (blocks)
+    // sessionManager.Shutdown();
 
     SteamAPI_Shutdown();
     return 0;
