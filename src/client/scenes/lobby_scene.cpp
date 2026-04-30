@@ -208,6 +208,7 @@ void LobbyScene::RenderInviteButton(int screenW, int screenH, Vector2 mousePos) 
 }
 
 void LobbyScene::SendJoin() {
+    std::cout << "Sending the join response from lobby client" << std::endl;
     network::JoinLobbyPacket pkt{};
     pkt.header.type = network::PacketType::JoinLobby;
     const char *name = SteamFriends()->GetPersonaName();
@@ -232,6 +233,7 @@ void LobbyScene::OnCharacterSelected(const Character::CharacterId &character) {
 }
 
 void LobbyScene::HandleJoinResponse(const char *buf) {
+    std::cout << "Handle the join response" << std::endl;
     auto *pkt = reinterpret_cast<const network::JoinResponsePacket *>(buf);
     m_localPlayerId = pkt->playerId;
     m_players[m_localPlayerId].id = pkt->playerId;

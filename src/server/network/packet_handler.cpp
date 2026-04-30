@@ -34,6 +34,7 @@ void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
 void PacketHandler::SetTransport(network::ITransport &transport) { m_transport = &transport; }
 
 void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from) {
+    std::cout << "OnJoinLobby method called" << std::endl;
     // Only allow joins during lobby phase
     if (m_phase != ServerPhase::LOBBY)
         return;
@@ -117,6 +118,7 @@ void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId) {
     response.header.type = network::PacketType::JoinResponse;
     response.playerId = playerId;
     response.characterId = Character::CharacterId::None;
+    std::cout << "Sending the join response. Peer: " << to << ", playerId: " << playerId << std::endl;
     m_transport->send(to, &response, sizeof(response));
 }
 } // namespace network

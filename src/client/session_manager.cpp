@@ -76,7 +76,8 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
     m_lobbyManager->SetCallbacks({
         .onLobbyJoined =
             [this, onSuccess = std::move(onSuccess)]() {
-                // Server is remote — only a client is needed on this machine
+                std::cout << "In .onLobbyJoined callback" << std::endl;
+                // m_server->AddClientToLobby(m_lobbyManager->GetLocalPlayerName());
                 StartGameClient();
 
                 if (onSuccess)
@@ -93,36 +94,6 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
     m_lobbyManager->JoinLobby(lobbyId);
 }
 
-void SessionManager::StartHost() {
-    StartServerThread();
-    StartGameClient();
-    m_lobbyManager->SetCallbacks(
-        {.onLobbyCreated =
-             [this]() {
-                 std::cout << "Lobby created\n";
-                 m_server->AddHostToLobby(m_lobbyManager->GetLocalPlayerName());
-                 m_server->SignalReady();
-             },
-         .onMemberJoined = [](CSteamID who) { std::cout << SteamFriends()->GetFriendPersonaName(who) << " joined\n"; },
-         .onError = [](const char *msg) { std::cerr << "Lobby error: " << msg << "\n"; }});
-
-    m_lobbyManager->CreateLobby(MAX_PLAYERS);
-}
-
-void SessionManager::StartClient() {
-    m_lobbyManager->SetCallbacks(
-        {.onLobbyJoined =
-             [this]() {
-                 std::cout << "Joined lobby\n";
-
-                 m_client = std::make_unique<GameClient>(*m_transport, *m_lobbyManager, m_handler);
-                 m_client->StartInProcess();
-
-                 m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, *m_transport, m_handler, *this));
-             },
-         .onError = [](const char *msg) { std::cerr << "Lobby error: " << msg << "\n"; }});
-}
-
 SteamLobbyManager &SessionManager::GetLobby() { return *m_lobbyManager; }
 
 void SessionManager::CreateLobby() {
@@ -131,24 +102,6 @@ void SessionManager::CreateLobby() {
 
 void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
     m_sceneManager.Replace(std::make_unique<GameScene>(m_events, *m_transport, m_handler, *this, currentPlayerState));
-}
-
-void SessionManager::Run() {
-    while (true) {
-        SteamAPI_RunCallbacks();
-        m_transport->Pump();
-
-        if (WindowShouldClose())
-            break;
-
-        float dt = GetFrameTime();
-
-        if (m_client)
-            m_client->Update();
-
-        m_sceneManager.Update(dt);
-        m_sceneManager.Render();
-    }
 }
 
 void SessionManager::StartServerThread() {
@@ -166,7 +119,4 @@ void SessionManager::StartServerThread() {
 void SessionManager::StartGameClient() {
     m_client = std::make_unique<GameClient>(*m_transport, *m_lobbyManager, m_handler);
     m_client->StartInProcess();
-
-    // push lobby scene
-    m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, *m_transport, m_handler, *this));
 }

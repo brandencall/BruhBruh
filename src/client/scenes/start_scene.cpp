@@ -132,6 +132,8 @@ void StartScene::UpdateInviteToast(Vector2 mouse) {
         m_session.JoinLobby(
             lobbyId,
             [this]() {
+                std::cout << SteamFriends()->GetPersonaName() << ": Join lobby called.. pushing lobby scene"
+                          << std::endl;
                 m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_session.GetTransport(),
                                                                  m_session.GetHandler(), m_session));
             },

@@ -1,8 +1,8 @@
 starting game
-ERROR: ld.so: object '/home/steam_test/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
-[S_API] SteamAPI_Init(): Loaded '/home/steam_test/.local/share/Steam/linux64/steamclient.so' OK.
+ERROR: ld.so: object '/home/brabs/.local/share/Steam/ubuntu12_32/gameoverlayrenderer.so' from LD_PRELOAD cannot be preloaded (wrong ELF class: ELFCLASS32): ignored.
+[S_API] SteamAPI_Init(): Loaded '/home/brabs/.local/share/Steam/linux64/steamclient.so' OK.
 Setting breakpad minidump AppID = 480
-SteamInternal_SetMinidumpSteamID:  Caching Steam ID:  76561199819472507 [API loaded no]
+SteamInternal_SetMinidumpSteamID:  Caching Steam ID:  76561199468913340 [API loaded no]
 WARNING: GLFW: Failed to find selected monitor
 WARNING: GLFW: Failed to find selected monitor
 INFO: Initializing raylib 5.6-dev
@@ -46,9 +46,34 @@ INFO: FONT: Default font loaded successfully (224 glyphs)
 INFO: SYSTEM: Working Directory: /home/brabs/projects/bruhbruh
 INFO: TIMER: Target time per frame: 13.333 milliseconds
 Start scene entered
+getOrRegisterPeer()
+newId: 1
+End of getOrRegisterPeer()
 Host added to lobby! Name: brandencall, PeerId: 1, PlayerId: 0
 INFO: FILEIO: [assets/characters/tmp/Tonts.png] File loaded successfully
 INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: TEXTURE: [ID 4] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: FILEIO: [assets/characters/tmp/Chavz.png] File loaded successfully
+INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: TEXTURE: [ID 5] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: FILEIO: [assets/characters/tmp/Hodge.png] File loaded successfully
+INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: TEXTURE: [ID 6] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: FILEIO: [assets/characters/tmp/Big_J.png] File loaded successfully
+INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+INFO: TEXTURE: [ID 7] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+getOrRegisterPeer()
+newId: 2
+End of getOrRegisterPeer()
+Lobby invite received: 109775243511378254
+getOrRegisterPeer()
+newId: 1
+End of getOrRegisterPeer()
+OnLobbyEnter callback fired. RegisterPeer as: 1
+In .onLobbyJoined callback
+brabs: Join lobby called.. pushing lobby scene
+INFO: FILEIO: [assets/characters/tmp/Tonts.png] File loaded successfully
+INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
 INFO: TEXTURE: [ID 3] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
 INFO: FILEIO: [assets/characters/tmp/Chavz.png] File loaded successfully
 INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
@@ -59,43 +84,7 @@ INFO: TEXTURE: [ID 5] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
 INFO: FILEIO: [assets/characters/tmp/Big_J.png] File loaded successfully
 INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
 INFO: TEXTURE: [ID 6] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Tonts.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 7] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Chavz.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 8] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Hodge.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 9] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Big_J.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 10] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-Lobby invite received: 109775243442059551
-INFO: FILEIO: [assets/characters/tmp/Tonts.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 3] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Chavz.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 4] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Hodge.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 5] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Big_J.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 6] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Tonts.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 7] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Chavz.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 8] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Hodge.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 9] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: FILEIO: [assets/characters/tmp/Big_J.png] File loaded successfully
-INFO: IMAGE: Data loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
-INFO: TEXTURE: [ID 10] Texture loaded successfully (32x32 | R8G8B8A8 | 1 mipmaps)
+brabs: There is no peer for this steam id
 INFO: TEXTURE: [ID 2] Unloaded texture data from VRAM (GPU)
 INFO: SHADER: [ID 3] Default shader unloaded successfully
 INFO: TEXTURE: [ID 1] Default texture unloaded successfully

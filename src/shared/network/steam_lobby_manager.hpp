@@ -3,6 +3,7 @@
 #include "../../network/packets/lobby_packets.hpp"
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
+#include "steam/isteammatchmaking.h"
 #include "steam_transport.hpp"
 #include <functional>
 #include <iostream>
@@ -42,6 +43,9 @@ class SteamLobbyManager {
 
     // ---- Client flow ----
     void JoinLobby(CSteamID lobbyId) {
+        if (!lobbyId.IsValid())
+            return;
+        m_lobbyId = lobbyId;
         SteamAPICall_t call = SteamMatchmaking()->JoinLobby(lobbyId);
         m_lobbyEnter.Set(call, this, &SteamLobbyManager::OnLobbyEnter);
     }
@@ -115,7 +119,9 @@ class SteamLobbyManager {
 
     network::PeerId AddHostToLobby() {
         CSteamID host = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
-        return m_transport.RegisterPeer(host);
+        // Force a fresh non-zero PeerId for the host as a player,
+        // independent of the PEER_SERVER mapping
+        return m_transport.RegisterHostPlayer(host);
     }
 
   private:
@@ -153,17 +159,17 @@ class SteamLobbyManager {
                 m_callbacks.onError("Failed to join lobby");
             return;
         }
-        m_lobbyId = result->m_ulSteamIDLobby;
-        CSteamID id = SteamUser()->GetSteamID();
-        m_transport.RegisterPeer(id);
+
+        CSteamID hostId = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
+        m_transport.RegisterPeerAs(hostId, network::PEER_SERVER);
 
         if (m_callbacks.onLobbyJoined)
             m_callbacks.onLobbyJoined();
 
-        network::JoinLobbyPacket pkt{};
-        pkt.header.type = network::PacketType::JoinLobby;
-        strncpy(pkt.name, GetLocalPlayerName().c_str(), sizeof(pkt.name) - 1);
-        m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+        // network::JoinLobbyPacket pkt{};
+        // pkt.header.type = network::PacketType::JoinLobby;
+        // strncpy(pkt.name, GetLocalPlayerName().c_str(), sizeof(pkt.name) - 1);
+        // m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
     }
 
     // Member joined the lobby

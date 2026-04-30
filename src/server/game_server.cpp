@@ -2,6 +2,8 @@
 #include "network/ITransport.hpp"
 #include "network/steam_lobby_manager.hpp"
 #include "server_phase.hpp"
+#include "steam/isteamuser.h"
+#include "steam/steamclientpublic.h"
 #include <chrono>
 #include <iostream>
 #include <thread>
@@ -41,6 +43,25 @@ void GameServer::AddHostToLobby(std::string name) {
     response.characterId = Character::CharacterId::None;
     strncpy(response.name, name.c_str(), sizeof(response.name) - 1);
     m_transport->send(id, &response, sizeof(response));
+}
+
+void GameServer::AddClientToLobby(std::string name) {
+    // std::cout << "Begin AddClientToLobby()" << std::endl;
+    // CSteamID steamId = SteamUser()->GetSteamID();
+    // std::cout << "Current user steam id: " << steamId.ConvertToUint64() << std::endl;
+    // network::PeerId id = m_steamLobbyManager->AddClientToLobby(steamId);
+    // std::cout << "Added the client to the steam lobby" << std::endl;
+    // auto *client = m_registry.AddClient(id);
+    // std::cout << "Registered the client in the registry" << std::endl;
+    // int slot = m_lobby.AddPlayer(id, name.c_str(), client->playerId);
+    // std::cout << "Client added to lobby! Name: " << name << ", PeerId: " << id << ", PlayerId: " << client->playerId
+    //           << std::endl;
+    // network::JoinResponsePacket response{};
+    // response.header.type = network::PacketType::JoinResponse;
+    // response.playerId = client->playerId;
+    // response.characterId = Character::CharacterId::None;
+    // strncpy(response.name, name.c_str(), sizeof(response.name) - 1);
+    // m_transport->send(id, &response, sizeof(response));
 }
 
 bool GameServer::IsRunning() { return m_running; }

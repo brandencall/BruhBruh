@@ -1,9 +1,12 @@
 #pragma once
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
+#include "steam/isteamfriends.h"
+#include "steam/steamclientpublic.h"
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <iostream>
 #include <mutex>
 #include <queue>
 #include <shared_mutex>
@@ -47,8 +50,9 @@ class SteamTransport : public ITransport {
         if (!m_running)
             return false;
         auto it = m_peerToSteam.find(to);
-        if (it == m_peerToSteam.end())
+        if (it == m_peerToSteam.end()) {
             return false;
+        }
 
         if (it->second == m_localSteamId) {
             InboundPacket pkt;
@@ -76,6 +80,9 @@ class SteamTransport : public ITransport {
 
         auto result =
             SteamNetworkingMessages()->SendMessageToUser(identity, data, static_cast<uint32>(size), sendFlags, channel);
+        if (header->type == network::PacketType::JoinResponse) {
+            std::cout << "JoinResponse packet in send(). To: " << to << std::endl;
+        }
         return result == k_EResultOK;
     }
 
@@ -88,6 +95,7 @@ class SteamTransport : public ITransport {
             while (SteamNetworkingMessages()->ReceiveMessagesOnChannel(channel, &msg, 1) > 0) {
                 InboundPacket pkt;
                 CSteamID sender = msg->m_identityPeer.GetSteamID();
+                std::cout << "Sender: " << sender.ConvertToUint64() << std::endl;
                 size_t sz = std::min<size_t>(msg->GetSize(), MAX_PACKET_SIZE);
                 memcpy(pkt.data, msg->GetData(), sz);
                 pkt.size = sz;
@@ -98,9 +106,15 @@ class SteamTransport : public ITransport {
                     pkt.from = getOrRegisterPeer(sender);
                 }
 
-                if (pkt.from == PEER_SERVER)
+                std::cout << "The packet is from: " << pkt.from << std::endl;
+                auto *header = reinterpret_cast<const network::PacketHeader *>(pkt.data);
+                std::cout << "Header type is:" << (int)header->type << std::endl;
+
+                if (pkt.from == PEER_SERVER) {
+                    auto *header = reinterpret_cast<const network::PacketHeader *>(pkt.data);
+                    std::cout << "pumping the client queue. Header type is:" << (int)header->type << std::endl;
                     m_clientQueue.push(pkt);
-                else
+                } else
                     m_serverQueue.push(pkt);
             }
         }
@@ -118,11 +132,27 @@ class SteamTransport : public ITransport {
 
     // In SteamTransport — add this public method:
     void RegisterPeerAs(CSteamID steamId, PeerId forcedId) {
+        std::cout << "RegisterPeerAs(), steamId: " << steamId.ConvertToUint64() << ", forcedId: " << forcedId
+                  << std::endl;
         m_peerToSteam[forcedId] = steamId;
         m_steamToPeer[steamId.ConvertToUint64()] = forcedId;
         // Ensure nextPeerId doesn't collide
         if (m_nextPeerId <= forcedId)
             m_nextPeerId = forcedId + 1;
+    }
+
+    // Always assign a new PeerId — the host needs both:
+    //   PEER_SERVER (0) → their SteamID  (for client→server routing)
+    //   PeerId N        → their SteamID  (for server treating them as a player)
+    // Note: intentionally do NOT update m_steamToPeer here —
+    // lookups by SteamID should still resolve to PEER_SERVER
+    // for the self-send routing logic
+    PeerId RegisterHostPlayer(CSteamID id) {
+        std::unique_lock lk(m_mapMtx);
+        PeerId newId = m_nextPeerId++;
+        m_peerToSteam[newId] = id;
+        std::cout << "Registering host as player. PeerId: " << newId << "\n";
+        return newId;
     }
 
     CSteamID GetSteamID(PeerId peer) const {
@@ -131,7 +161,6 @@ class SteamTransport : public ITransport {
             return CSteamID{};
         return it->second;
     }
-
     // Accept incoming session requests (called from SteamLobbyManager callback)
     void AcceptSession(CSteamID from) {
         SteamNetworkingIdentity identity{};
@@ -164,12 +193,13 @@ class SteamTransport : public ITransport {
   private:
     PeerId getOrRegisterPeer(CSteamID id) {
         auto it = m_steamToPeer.find(id.ConvertToUint64());
-        if (it != m_steamToPeer.end() && it->second != network::PEER_SERVER)
+        if (it != m_steamToPeer.end())
             return it->second;
 
         PeerId newId = m_nextPeerId++;
         m_peerToSteam[newId] = id;
         m_steamToPeer[id.ConvertToUint64()] = newId;
+        std::cout << "Registering peer. SteamId: " << id.ConvertToUint64() << "PeerId: " << newId << std::endl;
         return newId;
     }
 

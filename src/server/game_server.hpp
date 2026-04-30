@@ -17,6 +17,7 @@ class GameServer {
     void Stop();
     void SignalReady();
     void AddHostToLobby(std::string name);
+    void AddClientToLobby(std::string name);
     void StartInProcess(network::ITransport &transport, SteamLobbyManager &steamLobbyManager);
     void RunServer();
     bool IsRunning();
