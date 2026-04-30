@@ -1,12 +1,10 @@
 #pragma once
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
-#include "steam/isteamfriends.h"
 #include "steam/steamclientpublic.h"
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
-#include <iostream>
 #include <mutex>
 #include <queue>
 #include <shared_mutex>
@@ -61,7 +59,7 @@ class SteamTransport : public ITransport {
             pkt.size = sz;
 
             if (to == PEER_SERVER) {
-                pkt.from = m_steamToPeer.at(SteamUser()->GetSteamID().ConvertToUint64());
+                pkt.from = m_hostPlayerPeerId;
                 m_serverQueue.push(pkt);
             } else {
                 pkt.from = PEER_SERVER;
@@ -80,9 +78,6 @@ class SteamTransport : public ITransport {
 
         auto result =
             SteamNetworkingMessages()->SendMessageToUser(identity, data, static_cast<uint32>(size), sendFlags, channel);
-        if (header->type == network::PacketType::JoinResponse) {
-            std::cout << "JoinResponse packet in send(). To: " << to << std::endl;
-        }
         return result == k_EResultOK;
     }
 
@@ -95,7 +90,6 @@ class SteamTransport : public ITransport {
             while (SteamNetworkingMessages()->ReceiveMessagesOnChannel(channel, &msg, 1) > 0) {
                 InboundPacket pkt;
                 CSteamID sender = msg->m_identityPeer.GetSteamID();
-                std::cout << "Sender: " << sender.ConvertToUint64() << std::endl;
                 size_t sz = std::min<size_t>(msg->GetSize(), MAX_PACKET_SIZE);
                 memcpy(pkt.data, msg->GetData(), sz);
                 pkt.size = sz;
@@ -106,13 +100,8 @@ class SteamTransport : public ITransport {
                     pkt.from = getOrRegisterPeer(sender);
                 }
 
-                std::cout << "The packet is from: " << pkt.from << std::endl;
-                auto *header = reinterpret_cast<const network::PacketHeader *>(pkt.data);
-                std::cout << "Header type is:" << (int)header->type << std::endl;
-
                 if (pkt.from == PEER_SERVER) {
                     auto *header = reinterpret_cast<const network::PacketHeader *>(pkt.data);
-                    std::cout << "pumping the client queue. Header type is:" << (int)header->type << std::endl;
                     m_clientQueue.push(pkt);
                 } else
                     m_serverQueue.push(pkt);
@@ -132,8 +121,6 @@ class SteamTransport : public ITransport {
 
     // In SteamTransport — add this public method:
     void RegisterPeerAs(CSteamID steamId, PeerId forcedId) {
-        std::cout << "RegisterPeerAs(), steamId: " << steamId.ConvertToUint64() << ", forcedId: " << forcedId
-                  << std::endl;
         m_peerToSteam[forcedId] = steamId;
         m_steamToPeer[steamId.ConvertToUint64()] = forcedId;
         // Ensure nextPeerId doesn't collide
@@ -151,7 +138,7 @@ class SteamTransport : public ITransport {
         std::unique_lock lk(m_mapMtx);
         PeerId newId = m_nextPeerId++;
         m_peerToSteam[newId] = id;
-        std::cout << "Registering host as player. PeerId: " << newId << "\n";
+        m_hostPlayerPeerId = newId;
         return newId;
     }
 
@@ -199,7 +186,6 @@ class SteamTransport : public ITransport {
         PeerId newId = m_nextPeerId++;
         m_peerToSteam[newId] = id;
         m_steamToPeer[id.ConvertToUint64()] = newId;
-        std::cout << "Registering peer. SteamId: " << id.ConvertToUint64() << "PeerId: " << newId << std::endl;
         return newId;
     }
 
@@ -212,6 +198,7 @@ class SteamTransport : public ITransport {
     ThreadSafeQueue m_serverQueue;
     ThreadSafeQueue m_clientQueue;
     CSteamID m_localSteamId;
+    network::PeerId m_hostPlayerPeerId = -1;
 };
 
 } // namespace network

@@ -233,7 +233,6 @@ void LobbyScene::OnCharacterSelected(const Character::CharacterId &character) {
 }
 
 void LobbyScene::HandleJoinResponse(const char *buf) {
-    std::cout << "Handle the join response" << std::endl;
     auto *pkt = reinterpret_cast<const network::JoinResponsePacket *>(buf);
     m_localPlayerId = pkt->playerId;
     m_players[m_localPlayerId].id = pkt->playerId;
