@@ -1,6 +1,7 @@
 #pragma once
 #include "../event_hub.hpp"
 #include "../session_manager.hpp"
+#include "../ui/ui_manager.hpp"
 #include "scene.hpp"
 #include "scene_manager.hpp"
 #include <steam/steam_api.h>
@@ -38,6 +39,7 @@ class StartScene : public Scene {
     Client::EventHub &m_events;
     SessionManager &m_session;
     SceneManager &m_sceneManager;
+    UI::UIManager m_ui;
 
     enum class State { Idle, WaitingForLobby };
     State m_state = State::Idle;

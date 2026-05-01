@@ -1,6 +1,6 @@
 #include "start_scene.hpp"
+#include "../ui/screens/join_screen.hpp"
 #include "../utils/text_utils.hpp"
-#include "join_scene.hpp"
 #include "lobby_scene.hpp"
 #include "raylib.h"
 #include <iostream>
@@ -80,6 +80,10 @@ void StartScene::OnJoinRequested(GameRichPresenceJoinRequested_t *pCallback) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 void StartScene::Update(float dt) {
+    m_ui.Update(dt);
+    if (m_ui.BlocksGameInput())
+        return;
+
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
     ComputeLayout(screenW, screenH);
@@ -115,7 +119,21 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
     }
 
     if (CheckCollisionPointRec(mouse, m_layout.joinBtn)) {
-        // m_sceneManager.Push(std::make_unique<JoinScene>(m_events, m_session, m_sceneManager));
+        m_ui.Push(std::make_unique<UI::JoinScreen>([this](CSteamID lobbyId) {
+            SetStatus("Joining lobby...");
+            m_state = State::WaitingForLobby;
+            m_session.JoinLobby(
+                lobbyId,
+                [this]() {
+                    // JoinScreen will be cleaned up when StartScene exits
+                    m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_session.GetTransport(),
+                                                                     m_session.GetHandler(), m_session));
+                },
+                [this](const char *err) {
+                    SetStatus(std::string("Error: ") + err);
+                    m_state = State::Idle;
+                });
+        }));
     }
 }
 
@@ -173,6 +191,7 @@ void StartScene::Render() {
     if (m_pendingInvite.active)
         RenderInviteToast(screenW, screenH, mouse);
 
+    m_ui.Render();
     EndDrawing();
 }
 

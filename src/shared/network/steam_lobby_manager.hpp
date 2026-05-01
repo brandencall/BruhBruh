@@ -128,10 +128,12 @@ class SteamLobbyManager {
             return;
         }
         m_lobbyId = result->m_ulSteamIDLobby;
+        CSteamID hostId = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
 
         SteamMatchmaking()->SetLobbyType(m_lobbyId, k_ELobbyTypePublic);
         SteamMatchmaking()->SetLobbyData(m_lobbyId, "game", "BruhBruh");
         SteamMatchmaking()->SetLobbyData(m_lobbyId, "host_name", SteamFriends()->GetPersonaName());
+        SteamMatchmaking()->SetLobbyData(m_lobbyId, "host_id", std::to_string(hostId.ConvertToUint64()).c_str());
 
         std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
         SteamFriends()->SetRichPresence("connect", connectStr.c_str());
@@ -140,7 +142,6 @@ class SteamLobbyManager {
         SteamFriends()->SetRichPresence("status", "In Lobby");
 
         // Register the host as PEER_SERVER (PeerId 0)
-        CSteamID hostId = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
         m_transport.RegisterPeerAs(hostId, network::PEER_SERVER);
 
         if (m_callbacks.onLobbyCreated)

@@ -4,6 +4,7 @@ add_library(screens
     scoreboard.cpp
     game_end_screen.cpp
     friends_invite_screen.cpp
+    join_screen.cpp
 )
 
 target_include_directories(screens
