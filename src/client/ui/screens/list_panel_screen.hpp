@@ -187,7 +187,7 @@ template <typename Derived, typename RowT> class SteamListPanel : public UIScree
         bool closeHov = CheckCollisionPointRec(mouse, closeBtn);
         DrawRectangleRec(closeBtn, closeHov ? Color{180, 50, 50, 255} : Color{40, 40, 55, 255});
         DrawRectangleLinesEx(closeBtn, 1, {80, 80, 110, 255});
-        utils::DrawTextCentered("✕", closeBtn.x + closeBtn.width * 0.5f, closeBtn.y + closeBtn.height * 0.5f, 16,
+        utils::DrawTextCentered("X", closeBtn.x + closeBtn.width * 0.5f, closeBtn.y + closeBtn.height * 0.5f, 16,
                                 LIGHTGRAY);
         if (closeHov && clicked)
             m_done = true;

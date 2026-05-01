@@ -200,7 +200,7 @@ void LobbyScene::RenderInviteButton(int screenW, int screenH, Vector2 mousePos) 
     int btnH = screenH * 0.06f;
 
     Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f + 20, (float)btnW, (float)btnH};
-    bool hovered = CheckCollisionPointRec(mousePos, btnRect);
+    bool hovered = CheckCollisionPointRec(mousePos, btnRect) && !m_ui.HasScreenOfType<UI::FriendsInviteScreen>();
 
     DrawRectangleRec(btnRect, hovered ? ColorAlpha(WHITE, 0.2f) : ColorAlpha(GRAY, 0.2f));
     DrawRectangleLinesEx(btnRect, 2, hovered ? YELLOW : GRAY);
