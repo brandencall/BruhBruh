@@ -7,6 +7,8 @@
 #include <iostream>
 #include <memory>
 
+SessionManager::SessionManager(SceneManager &sceneManager) : m_sceneManager(sceneManager) {}
+
 void SessionManager::Initialize() {
     m_transport = std::make_unique<network::SteamTransport>();
     m_lobbyManager = std::make_unique<SteamLobbyManager>(*m_transport);

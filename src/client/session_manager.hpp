@@ -12,7 +12,7 @@
 
 class SessionManager {
   public:
-    SessionManager() = default;
+    SessionManager(SceneManager &sceneManager);
 
     void Initialize();
     void Shutdown();
@@ -39,9 +39,9 @@ class SessionManager {
   private:
     // Remove the below members
     Client::EventHub m_events;
-    SceneManager m_sceneManager;
     bool m_shouldStartHost = false;
 
+    SceneManager &m_sceneManager;
     NetworkMessageHandler m_handler;
     std::unique_ptr<SteamLobbyManager> m_lobbyManager;
     std::unique_ptr<network::SteamTransport> m_transport;

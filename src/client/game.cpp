@@ -4,6 +4,7 @@
 
 void Game::Run() {
     CreateWindow();
+    InitAudioDevice();
     m_session.Initialize();
 
     // Push the start screen — it holds a ref to session and scenemanager
@@ -20,6 +21,7 @@ void Game::Run() {
     }
 
     m_session.Shutdown();
+    CloseAudioDevice();
     CloseWindow();
 }
 

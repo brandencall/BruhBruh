@@ -79,6 +79,7 @@ class GameScene : public Scene {
     bool m_cameraReady = false;
     bool m_initialSnapDone = false;
     bool m_gameEndScreenActive = false;
+    bool m_audioAvailable = false;
 
     Camera2D m_camera{};
 };

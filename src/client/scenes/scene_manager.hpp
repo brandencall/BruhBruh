@@ -21,6 +21,8 @@ class SceneManager {
             m_stack.back()->OnEnter();
     }
 
+    void RequestReplace(std::unique_ptr<Scene> scene) { m_pendingReplace = std::move(scene); }
+
     // Replace the current scene entirely
     void Replace(std::unique_ptr<Scene> scene) {
         if (!m_stack.empty()) {
@@ -32,6 +34,10 @@ class SceneManager {
     }
 
     void Update(float dt) {
+        if (m_pendingReplace) {
+            Replace(std::move(m_pendingReplace));
+            m_pendingReplace = nullptr;
+        }
         if (!m_stack.empty())
             m_stack.back()->Update(dt);
     }
@@ -45,4 +51,5 @@ class SceneManager {
 
   private:
     std::vector<std::unique_ptr<Scene>> m_stack;
+    std::unique_ptr<Scene> m_pendingReplace;
 };

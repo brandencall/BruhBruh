@@ -13,7 +13,7 @@ class Game {
     void Shutdown();
 
   private:
-    SessionManager m_session;
     SceneManager m_sceneManager;
+    SessionManager m_session{m_sceneManager};
     Client::EventHub m_events;
 };

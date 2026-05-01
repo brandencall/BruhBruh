@@ -1,7 +1,5 @@
 #pragma once
 #include "../../config.hpp"
-#include "../../network/packets/lobby_packets.hpp"
-#include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
 #include "steam/isteammatchmaking.h"
 #include "steam_transport.hpp"
@@ -109,11 +107,7 @@ class SteamLobbyManager {
         return friends;
     }
 
-    void InviteFriend(CSteamID friendId) {
-        // std::string connectStr = std::to_string(m_lobbyId.ConvertToUint64());
-        // SteamFriends()->InviteUserToGame(friendId, connectStr.c_str());
-        SteamMatchmaking()->InviteUserToLobby(m_lobbyId, friendId);
-    }
+    void InviteFriend(CSteamID friendId) { SteamMatchmaking()->InviteUserToLobby(m_lobbyId, friendId); }
 
     std::string GetLocalPlayerName() const { return SteamFriends()->GetPersonaName(); }
 
@@ -165,11 +159,6 @@ class SteamLobbyManager {
 
         if (m_callbacks.onLobbyJoined)
             m_callbacks.onLobbyJoined();
-
-        // network::JoinLobbyPacket pkt{};
-        // pkt.header.type = network::PacketType::JoinLobby;
-        // strncpy(pkt.name, GetLocalPlayerName().c_str(), sizeof(pkt.name) - 1);
-        // m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
     }
 
     // Member joined the lobby

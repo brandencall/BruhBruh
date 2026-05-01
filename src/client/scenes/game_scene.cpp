@@ -15,6 +15,8 @@ GameScene::GameScene(Client::EventHub &events, network::ITransport &transport, N
       m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
+    std::cout << "GameScene::OnEnter() - playerId: " << m_currentPlayerId
+              << " characterId: " << (int)m_currenCharacterId << std::endl;
     // Register packet handlers
     using PT = network::PacketType;
     m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
@@ -35,6 +37,7 @@ void GameScene::OnEnter() {
     Map::MapData mapData = Map::LoadMap(ACTIVE_MAP);
     m_worldState.m_map = mapData;
     m_worldState.m_tileMap = mapData.tileMap;
+    m_worldState.m_currentPlayerId = m_currentPlayerId;
     m_tilemapRenderer.Load(ACTIVE_MAP.tileset);
     // TODO: Optimize loading so that we don't load all textures and just the ones that are needed
     m_characterRender.Load();
@@ -46,13 +49,14 @@ void GameScene::OnEnter() {
     m_camera.offset = {std::round(screenW / 2.0f), std::round(screenH / 2.0f)};
     m_camera.rotation = 0.0f;
     m_camera.zoom = 1.5f;
+    m_audioAvailable = IsAudioDeviceReady();
 
     Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
         if (e.data.victim.id == m_worldState.m_currentPlayerId) {
             m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.data.victim.id]));
         }
     });
-    InitAudioDevice();
+    std::cout << "In the Games Scene OnEnter()" << std::endl;
 }
 
 void GameScene::OnExit() {
@@ -79,7 +83,6 @@ void GameScene::OnExit() {
     m_audioSystem.Unload();
     m_ui.Clear();
 
-    CloseAudioDevice();
     Scene::OnExit();
 }
 
@@ -166,7 +169,8 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
-        m_audioSystem.Init(m_events.onHit, m_events.playerDied);
+        if (m_audioAvailable)
+            m_audioSystem.Init(m_events.onHit, m_events.playerDied);
     }
 }
 
@@ -272,7 +276,6 @@ void GameScene::DrawMap(const Map::MapData &map) {
 }
 
 void GameScene::Render() {
-
     if (!m_joined || !m_initialSnapDone) {
         RenderConnecting();
         return;

@@ -7,6 +7,7 @@
 #include "state/player_state.hpp"
 #include "systems/spawn_system.hpp"
 #include <cstdint>
+#include <iostream>
 #include <string.h>
 #include <sys/types.h>
 
