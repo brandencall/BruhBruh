@@ -72,8 +72,13 @@ void PacketHandler::OnPlayerReady(char *buffer, size_t size, network::PeerId fro
 void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::PeerId from) {
     auto *pkt = reinterpret_cast<network::CharacterSelectedPacket *>(buffer);
     auto *client = m_registry.FindByPeer(from);
-    if (!client || !client->active)
+
+    // Unknown client, Inactive client, pkt client mismatch
+    // The pkt client mismatch happens when the client has not fully connected to the lobby and tries to pick a
+    // character. If that happens the playerId that is sent with the pkt is junk which crashes the program.
+    if (!client || !client->active || client->playerId != pkt->playerId)
         return;
+
     m_lobby.TrySetCharacter(from, pkt->characterId);
     m_broadcaster.BroadcastCharacterSelected(pkt->playerId, pkt->characterId);
 }
