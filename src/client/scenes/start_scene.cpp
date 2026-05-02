@@ -1,13 +1,10 @@
 #include "start_scene.hpp"
+#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/join_screen.hpp"
 #include "../utils/text_utils.hpp"
 #include "lobby_scene.hpp"
 #include "raylib.h"
 #include <iostream>
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Construction / lifecycle
-// ─────────────────────────────────────────────────────────────────────────────
 
 StartScene::StartScene(Game &game, Client::EventHub &events, SessionManager &session, SceneManager &sceneManager)
     : m_game(game), m_events(events), m_session(session), m_sceneManager(sceneManager) {}
@@ -17,6 +14,7 @@ void StartScene::OnEnter() {
     m_state = State::Idle;
     m_statusText.clear();
     m_pendingInvite.active = false;
+    m_ui.Clear();
     m_session.GetLobby().SetCallbacks({
         .onInviteAccepted = [this](CSteamID from, CSteamID lobbyId) { m_pendingInvite = {from, lobbyId, true}; },
         .onJoinRequested =
@@ -25,12 +23,14 @@ void StartScene::OnEnter() {
                 m_pendingInvite = {CSteamID(), lobbyId, true};
             },
     });
+    std::cout << "StartScene::OnEnter() end" << std::endl;
 }
 
 void StartScene::OnExit() {
     Scene::OnExit();
     m_pendingInvite.active = false;
     m_session.GetLobby().SetCallbacks({});
+    m_ui.Clear();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -241,8 +241,8 @@ void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
     // Quit hint bottom-right
     DrawText("ESC  Quit", screenW - MeasureText("ESC  Quit", 14) - 16, screenH - 28, 14, {60, 60, 80, 255});
 
-    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.Peek()->BlocksGameInput())
-        m_game.RequestQuit();
+    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.BlocksGameInput())
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.RequestQuit(); }));
 }
 
 void StartScene::RenderStatusText(int screenW, int screenH) {

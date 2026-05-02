@@ -15,14 +15,10 @@ void SessionManager::Initialize() {
 }
 
 void SessionManager::Shutdown() {
-    if (m_server)
-        m_server->Stop();
+    ShutdownServer();
 
     if (m_transport)
         m_transport->Shutdown();
-
-    if (m_serverThread.joinable())
-        m_serverThread.join();
 
     if (m_client)
         m_client->Disconnect();
@@ -36,6 +32,12 @@ void SessionManager::Shutdown() {
 network::ITransport &SessionManager::GetTransport() { return *m_transport; }
 
 void SessionManager::TickClient() {
+    if (m_returningToStart) {
+        m_returningToStart = false;
+        ShutdownServer();
+        m_client.reset();
+        return;
+    }
     if (m_client) {
         m_client->Update();
     }
@@ -106,6 +108,11 @@ void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState)
     m_sceneManager.Replace(std::make_unique<GameScene>(m_events, *m_transport, m_handler, *this, currentPlayerState));
 }
 
+void SessionManager::ReturnToStart() {
+    m_returningToStart = true;
+    m_sceneManager.RequestPop();
+}
+
 void SessionManager::StartServerThread() {
     if (!m_transport)
         return;
@@ -121,4 +128,12 @@ void SessionManager::StartServerThread() {
 void SessionManager::StartGameClient() {
     m_client = std::make_unique<GameClient>(*m_transport, *m_lobbyManager, m_handler);
     m_client->StartInProcess();
+}
+
+void SessionManager::ShutdownServer() {
+    if (m_server)
+        m_server->Stop();
+
+    if (m_serverThread.joinable())
+        m_serverThread.join();
 }

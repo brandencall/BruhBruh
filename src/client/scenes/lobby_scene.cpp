@@ -1,5 +1,6 @@
 #include "lobby_scene.hpp"
 #include "../../network/packets/lobby_packets.hpp"
+#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/friends_invite_screen.hpp"
 #include "../utils/text_utils.hpp"
 #include "raylib.h"
@@ -73,6 +74,10 @@ void LobbyScene::Update(float dt) {
 
     if (m_sessionManager.GetLobby().IsLocalPlayerHost())
         UpdateInviteButton(mousePos);
+
+    if (IsKeyPressed(KEY_ESCAPE))
+        // m_sessionManager.ReturnToStart();
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
 }
 
 void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,

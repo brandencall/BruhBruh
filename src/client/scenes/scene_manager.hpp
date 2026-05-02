@@ -33,11 +33,18 @@ class SceneManager {
         m_stack.back()->OnEnter();
     }
 
+    void RequestPop() { m_pendingPop = true; }
+
     void Update(float dt) {
         if (m_pendingReplace) {
             Replace(std::move(m_pendingReplace));
             m_pendingReplace = nullptr;
         }
+        if (m_pendingPop) {
+            Pop();
+            m_pendingPop = false;
+        }
+
         if (!m_stack.empty())
             m_stack.back()->Update(dt);
     }
@@ -52,4 +59,5 @@ class SceneManager {
   private:
     std::vector<std::unique_ptr<Scene>> m_stack;
     std::unique_ptr<Scene> m_pendingReplace;
+    bool m_pendingPop = false;
 };

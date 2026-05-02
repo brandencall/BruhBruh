@@ -23,6 +23,7 @@ class SessionManager {
     void HostGame();
     void JoinLobby(CSteamID lobbyId);
     void CreateGame(const state::LobbySlotState &currentPlayerState);
+    void ReturnToStart();
 
     void HostGame(std::function<void()> onSuccess, std::function<void(const char *)> onError);
     // Joins an existing lobby by ID, calls onSuccess/onError when done
@@ -35,11 +36,13 @@ class SessionManager {
   private:
     void StartServerThread();
     void StartGameClient();
+    void ShutdownServer();
 
   private:
     // Remove the below members
     Client::EventHub m_events;
     bool m_shouldStartHost = false;
+    bool m_returningToStart = false;
 
     SceneManager &m_sceneManager;
     NetworkMessageHandler m_handler;
