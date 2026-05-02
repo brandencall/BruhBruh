@@ -9,8 +9,8 @@
 // Construction / lifecycle
 // ─────────────────────────────────────────────────────────────────────────────
 
-StartScene::StartScene(Client::EventHub &events, SessionManager &session, SceneManager &sceneManager)
-    : m_events(events), m_session(session), m_sceneManager(sceneManager) {}
+StartScene::StartScene(Game &game, Client::EventHub &events, SessionManager &session, SceneManager &sceneManager)
+    : m_game(game), m_events(events), m_session(session), m_sceneManager(sceneManager) {}
 
 void StartScene::OnEnter() {
     std::cout << "Start scene entered" << std::endl;
@@ -241,8 +241,8 @@ void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
     // Quit hint bottom-right
     DrawText("ESC  Quit", screenW - MeasureText("ESC  Quit", 14) - 16, screenH - 28, 14, {60, 60, 80, 255});
 
-    if (IsKeyPressed(KEY_ESCAPE))
-        CloseWindow(); // handled by the main loop via WindowShouldClose()
+    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.Peek()->BlocksGameInput())
+        m_game.RequestQuit();
 }
 
 void StartScene::RenderStatusText(int screenW, int screenH) {

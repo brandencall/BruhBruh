@@ -1,5 +1,6 @@
 #pragma once
 #include "../event_hub.hpp"
+#include "../game.hpp"
 #include "../session_manager.hpp"
 #include "../ui/ui_manager.hpp"
 #include "scene.hpp"
@@ -9,7 +10,7 @@
 
 class StartScene : public Scene {
   public:
-    StartScene(Client::EventHub &events, SessionManager &session, SceneManager &sceneManager);
+    StartScene(Game &game, Client::EventHub &events, SessionManager &session, SceneManager &sceneManager);
 
     void OnEnter() override;
     void OnExit() override;
@@ -36,6 +37,7 @@ class StartScene : public Scene {
     void SetStatus(const std::string &msg) { m_statusText = msg; }
 
   private:
+    Game &m_game;
     Client::EventHub &m_events;
     SessionManager &m_session;
     SceneManager &m_sceneManager;

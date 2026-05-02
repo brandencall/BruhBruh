@@ -24,6 +24,8 @@ class UIManager {
     void Pop();
     void Clear();
 
+    const UIScreen *Peek() const;
+
     template <typename T> bool HasScreenOfType() const {
         for (const auto &screen : m_stack) {
             if (dynamic_cast<const T *>(screen.get()) != nullptr)

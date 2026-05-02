@@ -13,6 +13,13 @@ void UIManager::Pop() {
 
 void UIManager::Clear() { m_stack.clear(); }
 
+const UIScreen *UIManager::Peek() const {
+    if (m_stack.empty())
+        return nullptr;
+
+    return m_stack.back().get();
+}
+
 // Current logic only updates the very top screen. May need to change this in the future
 void UIManager::Update(float dt) {
     if (!m_stack.empty() && m_stack.back()->IsDone())
