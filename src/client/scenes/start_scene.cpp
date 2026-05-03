@@ -10,7 +10,6 @@ StartScene::StartScene(Game &game, Client::EventHub &events, SessionManager &ses
     : m_game(game), m_events(events), m_session(session), m_sceneManager(sceneManager) {}
 
 void StartScene::OnEnter() {
-    std::cout << "Start scene entered" << std::endl;
     m_state = State::Idle;
     m_statusText.clear();
     m_pendingInvite.active = false;
@@ -23,7 +22,6 @@ void StartScene::OnEnter() {
                 m_pendingInvite = {CSteamID(), lobbyId, true};
             },
     });
-    std::cout << "StartScene::OnEnter() end" << std::endl;
 }
 
 void StartScene::OnExit() {

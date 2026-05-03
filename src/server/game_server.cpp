@@ -17,7 +17,10 @@ void GameServer::Start(int port) {
     m_broadcaster.SetTransport(*m_transport);
 }
 
-void GameServer::Stop() { m_running.store(false); }
+void GameServer::Stop() {
+    m_broadcaster.BroadcastHostDisconnected();
+    m_running.store(false);
+}
 
 // Steam path — transport is provided externally
 void GameServer::StartInProcess(network::ITransport &transport, SteamLobbyManager &steamLobbyManager) {

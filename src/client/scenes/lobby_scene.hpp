@@ -33,6 +33,7 @@ class LobbyScene : public Scene {
     void HandleLobbyState(const char *buf);
     void HandleGameStarting(const char *buf);
     void HandleGameBegin(const char *buf);
+    void HandleHostDisconnected(const char *buf);
 
     void SendJoin();
     void FlipReadyState();

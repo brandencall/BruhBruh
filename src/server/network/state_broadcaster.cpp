@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 
 namespace network {
 
@@ -96,6 +95,12 @@ void StateBroadcaster::BroadcastPlayerJoined(const char *name, ClientConnection 
 void StateBroadcaster::BroadcastPlayerDisconnect(uint32_t playerId) {
     network::DisconnectPacket pkt{};
     pkt.header.type = network::PacketType::Disconnect;
+}
+
+void StateBroadcaster::BroadcastHostDisconnected() {
+    network::HostDisconnectedPacket pkt{};
+    pkt.header.type = network::PacketType::HostDisconnected;
+    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
 }
 
 void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {

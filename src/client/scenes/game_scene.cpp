@@ -32,6 +32,7 @@ void GameScene::OnEnter() {
     m_handler.Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
     m_handler.Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
     m_handler.Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
+    m_handler.Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
 
     // Load map + assets
     Map::MapData mapData = Map::LoadMap(ACTIVE_MAP);
@@ -75,6 +76,7 @@ void GameScene::OnExit() {
     m_handler.Unregister(PT::WallDestroyed);
     m_handler.Unregister(PT::GameEnd);
     m_handler.Unregister(PT::SwitchToLobby);
+    m_handler.Unregister(PT::HostDisconnected);
 
     m_tilemapRenderer.Unload();
     m_characterRender.Unload();
@@ -266,6 +268,8 @@ void GameScene::HandleGameEnd(const char *buffer) {
 }
 
 void GameScene::HandleSwitchToLobby(const char *buf) { m_sessionManager.CreateLobby(); }
+
+void GameScene::HandleHostDisconnected(const char *buf) { m_sessionManager.ReturnToStart(); }
 
 void GameScene::DrawMap(const Map::MapData &map) {
     for (const auto &wall : map.walls) {

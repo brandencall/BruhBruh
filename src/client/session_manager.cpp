@@ -56,14 +56,11 @@ void SessionManager::HostGame(std::function<void()> onSuccess, std::function<voi
                 m_server->AddHostToLobby(m_lobbyManager->GetLocalPlayerName());
                 m_server->SignalReady();
 
-                // Create the client-side GameClient now that the server is up
                 StartGameClient();
-
                 // Tell the scene it can push LobbyScene
                 if (onSuccess)
                     onSuccess();
             },
-        .onMemberJoined = [](CSteamID who) { std::cout << SteamFriends()->GetFriendPersonaName(who) << " joined\n"; },
         .onError =
             [onError = std::move(onError)](const char *msg) {
                 std::cerr << "Lobby error: " << msg << "\n";
@@ -80,10 +77,7 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
     m_lobbyManager->SetCallbacks({
         .onLobbyJoined =
             [this, onSuccess = std::move(onSuccess)]() {
-                std::cout << "In .onLobbyJoined callback" << std::endl;
-                // m_server->AddClientToLobby(m_lobbyManager->GetLocalPlayerName());
                 StartGameClient();
-
                 if (onSuccess)
                     onSuccess();
             },
@@ -93,6 +87,7 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
                 if (onError)
                     onError(msg);
             },
+        .onHostLeft = [this]() { ReturnToStart(); },
     });
 
     m_lobbyManager->JoinLobby(lobbyId);

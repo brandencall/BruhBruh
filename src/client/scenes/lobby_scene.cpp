@@ -6,7 +6,6 @@
 #include "raylib.h"
 #include <cstdint>
 #include <cstring>
-#include <iostream>
 #include <memory>
 #include <unordered_map>
 
@@ -23,6 +22,9 @@ void LobbyScene::OnEnter() {
     m_handler.Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
     m_handler.Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
     m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
+    // Host Disconnect needs to be handled in both lobby and game scenes.
+    // TODO: Might not have to register it and Unregister it every scene
+    m_handler.Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
 
     // TODO: Replace these with the actual character icons
     m_icons[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/Tonts.png");
@@ -45,6 +47,7 @@ void LobbyScene::OnExit() {
     m_handler.Unregister(PT::LobbyState);
     m_handler.Unregister(PT::StartGame);
     m_handler.Unregister(PT::GameBegin);
+    m_handler.Unregister(PT::HostDisconnected);
 
     m_ui.Clear();
 
@@ -76,7 +79,6 @@ void LobbyScene::Update(float dt) {
         UpdateInviteButton(mousePos);
 
     if (IsKeyPressed(KEY_ESCAPE))
-        // m_sessionManager.ReturnToStart();
         m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
 }
 
@@ -214,7 +216,6 @@ void LobbyScene::RenderInviteButton(int screenW, int screenH, Vector2 mousePos) 
 }
 
 void LobbyScene::SendJoin() {
-    std::cout << "Sending the join response from lobby client" << std::endl;
     network::JoinLobbyPacket pkt{};
     pkt.header.type = network::PacketType::JoinLobby;
     const char *name = SteamFriends()->GetPersonaName();
@@ -282,6 +283,8 @@ void LobbyScene::HandleGameStarting(const char *buf) {
 }
 
 void LobbyScene::HandleGameBegin(const char *buf) { m_sessionManager.CreateGame(m_players[m_localPlayerId]); }
+
+void LobbyScene::HandleHostDisconnected(const char *buf) { m_sessionManager.ReturnToStart(); }
 
 void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW,
                                   int screenH) {

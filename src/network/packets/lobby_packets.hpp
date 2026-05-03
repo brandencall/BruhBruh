@@ -50,6 +50,10 @@ struct DisconnectPacket {
     uint32_t playerId;
 };
 
+struct HostDisconnectedPacket {
+    PacketHeader header;
+};
+
 struct StartGamePacket {
     PacketHeader header;
     // Maybe add the lobby info

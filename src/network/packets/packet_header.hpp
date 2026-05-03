@@ -12,6 +12,7 @@ enum class PacketType : uint8_t {
     PlayerReady,
     LobbyState,
     Disconnect,
+    HostDisconnected,
     StartGame,
     CharacterSelected,
     LobbyEnd,

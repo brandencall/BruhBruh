@@ -20,6 +20,7 @@ struct LobbyCallbacks {
     std::function<void(const char *)> onError;
     std::function<void(CSteamID, CSteamID)> onInviteAccepted; // (fromId, lobbyId)
     std::function<void(CSteamID)> onJoinRequested;            // rich presence join
+    std::function<void()> onHostLeft;
 };
 
 class SteamLobbyManager {
@@ -162,25 +163,21 @@ class SteamLobbyManager {
             m_callbacks.onLobbyJoined();
     }
 
-    // Member joined the lobby
     STEAM_CALLBACK(SteamLobbyManager, OnLobbyChatUpdate, LobbyChatUpdate_t) {
-        if (pParam->m_ulSteamIDLobby != m_lobbyId.ConvertToUint64())
-            return;
+        std::cout << "In the lobby changed callback" << std::endl;
+        std::cout << "The param is: " << pParam->m_rgfChatMemberStateChange << std::endl;
+        if (pParam->m_rgfChatMemberStateChange & k_EChatMemberStateChangeDisconnected ||
+            pParam->m_rgfChatMemberStateChange & k_EChatMemberStateChangeLeft) {
 
-        CSteamID who = pParam->m_ulSteamIDUserChanged;
-        uint32 change = pParam->m_rgfChatMemberStateChange;
+            std::cout << "Detected the member leaving" << std::endl;
 
-        if (change & k_EChatMemberStateChangeEntered) {
-            m_transport.RegisterPeer(who);
-            if (m_callbacks.onMemberJoined)
-                m_callbacks.onMemberJoined(who);
-            if (GetMemberCount() >= MAX_PLAYERS && m_callbacks.onLobbyFull)
-                m_callbacks.onLobbyFull();
-        }
-        if (change & (k_EChatMemberStateChangeLeft | k_EChatMemberStateChangeDisconnected)) {
-            m_transport.CloseSession(who);
-            if (m_callbacks.onMemberLeft)
-                m_callbacks.onMemberLeft(who);
+            CSteamID whoLeft(pParam->m_ulSteamIDUserChanged);
+            CSteamID host = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
+
+            if (whoLeft == host && m_callbacks.onHostLeft) {
+                std::cout << "Calling the callback" << std::endl;
+                m_callbacks.onHostLeft();
+            }
         }
     }
 
@@ -194,9 +191,6 @@ class SteamLobbyManager {
 
     STEAM_CALLBACK(SteamLobbyManager, OnSessionRequest, SteamNetworkingMessagesSessionRequest_t) {
         CSteamID requester = pParam->m_identityRemote.GetSteamID();
-
-        std::cout << "Session request from: " << requester.ConvertToUint64() << std::endl;
-
         // Only accept if you want to allow communication
         m_transport.AcceptSession(requester);
     }
