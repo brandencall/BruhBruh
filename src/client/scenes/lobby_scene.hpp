@@ -12,8 +12,7 @@
 
 class LobbyScene : public Scene {
   public:
-    LobbyScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
-               SessionManager &sessionManager);
+    LobbyScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager);
 
     void OnEnter() override;
     void OnExit() override;
@@ -54,7 +53,6 @@ class LobbyScene : public Scene {
     float m_joinRetryAccumulator = 0.0f;
     float m_countdownTimer = 0.0f;
     bool m_gameStarting = false;
-    Client::EventHub &m_events;
     network::ITransport &m_transport;
     NetworkMessageHandler &m_handler;
     SessionManager &m_sessionManager;

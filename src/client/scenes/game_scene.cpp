@@ -9,14 +9,12 @@
 #include "raylib.h"
 #include <cstdint>
 
-GameScene::GameScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
-                     SessionManager &sessionManager, state::LobbySlotState currentPlayerState)
-    : m_events(events), m_transport(transport), m_handler(handler), m_sessionManager(sessionManager),
+GameScene::GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
+                     state::LobbySlotState currentPlayerState)
+    : m_transport(transport), m_handler(handler), m_sessionManager(sessionManager),
       m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
-    std::cout << "GameScene::OnEnter() - playerId: " << m_currentPlayerId
-              << " characterId: " << (int)m_currenCharacterId << std::endl;
     // Register packet handlers
     using PT = network::PacketType;
     m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
@@ -57,10 +55,10 @@ void GameScene::OnEnter() {
             m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.data.victim.id]));
         }
     });
-    std::cout << "In the Games Scene OnEnter()" << std::endl;
 }
 
 void GameScene::OnExit() {
+    std::cout << "GameScene::OnExit()" << std::endl;
     // Unregister packet handlers
     using PT = network::PacketType;
     m_handler.Unregister(PT::GameBegin);

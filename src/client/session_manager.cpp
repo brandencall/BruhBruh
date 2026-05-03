@@ -20,9 +20,6 @@ void SessionManager::Shutdown() {
     if (m_transport)
         m_transport->Shutdown();
 
-    if (m_client)
-        m_client->Disconnect();
-
     m_client.reset();
     m_server.reset();
     m_lobbyManager.reset();
@@ -96,11 +93,11 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
 SteamLobbyManager &SessionManager::GetLobby() { return *m_lobbyManager; }
 
 void SessionManager::CreateLobby() {
-    m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, *m_transport, m_handler, *this));
+    m_sceneManager.Push(std::make_unique<LobbyScene>(*m_transport, m_handler, *this));
 }
 
 void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
-    m_sceneManager.Replace(std::make_unique<GameScene>(m_events, *m_transport, m_handler, *this, currentPlayerState));
+    m_sceneManager.Replace(std::make_unique<GameScene>(*m_transport, m_handler, *this, currentPlayerState));
 }
 
 void SessionManager::ReturnToStart() {

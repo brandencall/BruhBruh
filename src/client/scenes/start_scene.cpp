@@ -6,8 +6,8 @@
 #include "raylib.h"
 #include <iostream>
 
-StartScene::StartScene(Game &game, Client::EventHub &events, SessionManager &session, SceneManager &sceneManager)
-    : m_game(game), m_events(events), m_session(session), m_sceneManager(sceneManager) {}
+StartScene::StartScene(Game &game, SessionManager &session, SceneManager &sceneManager)
+    : m_game(game), m_session(session), m_sceneManager(sceneManager) {}
 
 void StartScene::OnEnter() {
     m_state = State::Idle;
@@ -106,8 +106,8 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
         m_session.HostGame(
             [this]() {
                 // onLobbyCreated fires on the Steam callback thread — push scene safely
-                m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_session.GetTransport(),
-                                                                 m_session.GetHandler(), m_session));
+                m_sceneManager.Push(
+                    std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);
@@ -124,8 +124,8 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
                 lobbyId,
                 [this]() {
                     // JoinScreen will be cleaned up when StartScene exits
-                    m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_session.GetTransport(),
-                                                                     m_session.GetHandler(), m_session));
+                    m_sceneManager.Push(
+                        std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
                 },
                 [this](const char *err) {
                     SetStatus(std::string("Error: ") + err);
@@ -150,8 +150,8 @@ void StartScene::UpdateInviteToast(Vector2 mouse) {
             [this]() {
                 std::cout << SteamFriends()->GetPersonaName() << ": Join lobby called.. pushing lobby scene"
                           << std::endl;
-                m_sceneManager.Push(std::make_unique<LobbyScene>(m_events, m_session.GetTransport(),
-                                                                 m_session.GetHandler(), m_session));
+                m_sceneManager.Push(
+                    std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);

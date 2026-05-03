@@ -3,7 +3,6 @@
 #include "../shared/network/ITransport.hpp"
 #include "../shared/network/steam_lobby_manager.hpp"
 #include "client_transport.hpp"
-#include "event_hub.hpp"
 #include "network/network_message_handler.hpp"
 #include "scenes/scene_manager.hpp"
 
@@ -17,7 +16,6 @@ class GameClient {
     void Disconnect();
 
   private:
-    Client::EventHub m_events;
     network::ClientTransport m_ownedTransport;
     network::ITransport *m_transport = nullptr;
     SteamLobbyManager &m_lobbyManager;

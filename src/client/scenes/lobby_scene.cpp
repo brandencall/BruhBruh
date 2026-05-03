@@ -9,9 +9,8 @@
 #include <memory>
 #include <unordered_map>
 
-LobbyScene::LobbyScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
-                       SessionManager &sessionManager)
-    : m_events(events), m_transport(transport), m_handler(handler), m_sessionManager(sessionManager) {}
+LobbyScene::LobbyScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager)
+    : m_transport(transport), m_handler(handler), m_sessionManager(sessionManager) {}
 
 void LobbyScene::OnEnter() {
     using PT = network::PacketType;

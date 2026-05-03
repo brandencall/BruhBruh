@@ -18,8 +18,8 @@
 
 class GameScene : public Scene {
   public:
-    GameScene(Client::EventHub &events, network::ITransport &transport, NetworkMessageHandler &handler,
-              SessionManager &sessionManager, state::LobbySlotState currentPlayerState);
+    GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
+              state::LobbySlotState currentPlayerState);
 
     void OnEnter() override;
     void OnExit() override;
@@ -52,8 +52,7 @@ class GameScene : public Scene {
     network::InputPacket CollectInput();
 
   private:
-    // Dependencies — all refs, owned by GameClient
-    Client::EventHub &m_events;
+    Client::EventHub m_events;
     network::ITransport &m_transport;
     NetworkMessageHandler &m_handler;
     SessionManager &m_sessionManager;

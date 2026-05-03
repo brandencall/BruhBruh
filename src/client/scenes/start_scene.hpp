@@ -10,7 +10,7 @@
 
 class StartScene : public Scene {
   public:
-    StartScene(Game &game, Client::EventHub &events, SessionManager &session, SceneManager &sceneManager);
+    StartScene(Game &game, SessionManager &session, SceneManager &sceneManager);
 
     void OnEnter() override;
     void OnExit() override;
@@ -38,7 +38,6 @@ class StartScene : public Scene {
 
   private:
     Game &m_game;
-    Client::EventHub &m_events;
     SessionManager &m_session;
     SceneManager &m_sceneManager;
     UI::UIManager m_ui;

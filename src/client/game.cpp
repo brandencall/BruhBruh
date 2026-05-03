@@ -8,7 +8,7 @@ void Game::Run() {
     m_session.Initialize();
 
     // Push the start screen — it holds a ref to session and scenemanager
-    m_sceneManager.Push(std::make_unique<StartScene>(*this, m_events, m_session, m_sceneManager));
+    m_sceneManager.Push(std::make_unique<StartScene>(*this, m_session, m_sceneManager));
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         SteamAPI_RunCallbacks();
