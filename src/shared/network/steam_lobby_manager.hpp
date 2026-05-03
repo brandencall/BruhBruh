@@ -20,7 +20,6 @@ struct LobbyCallbacks {
     std::function<void(const char *)> onError;
     std::function<void(CSteamID, CSteamID)> onInviteAccepted; // (fromId, lobbyId)
     std::function<void(CSteamID)> onJoinRequested;            // rich presence join
-    std::function<void()> onHostLeft;
 };
 
 class SteamLobbyManager {
@@ -168,16 +167,7 @@ class SteamLobbyManager {
         std::cout << "The param is: " << pParam->m_rgfChatMemberStateChange << std::endl;
         if (pParam->m_rgfChatMemberStateChange & k_EChatMemberStateChangeDisconnected ||
             pParam->m_rgfChatMemberStateChange & k_EChatMemberStateChangeLeft) {
-
             std::cout << "Detected the member leaving" << std::endl;
-
-            CSteamID whoLeft(pParam->m_ulSteamIDUserChanged);
-            CSteamID host = SteamMatchmaking()->GetLobbyOwner(m_lobbyId);
-
-            if (whoLeft == host && m_callbacks.onHostLeft) {
-                std::cout << "Calling the callback" << std::endl;
-                m_callbacks.onHostLeft();
-            }
         }
     }
 

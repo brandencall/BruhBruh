@@ -20,6 +20,10 @@ void SessionManager::Shutdown() {
     if (m_transport)
         m_transport->Shutdown();
 
+    if (m_client)
+        m_client->Disconnect();
+
+    m_sceneManager.Clear();
     m_client.reset();
     m_server.reset();
     m_lobbyManager.reset();
@@ -84,7 +88,6 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
                 if (onError)
                     onError(msg);
             },
-        .onHostLeft = [this]() { ReturnToStart(); },
     });
 
     m_lobbyManager->JoinLobby(lobbyId);

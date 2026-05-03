@@ -56,6 +56,12 @@ class SceneManager {
 
     bool Empty() const { return m_stack.empty(); }
 
+    void Clear() {
+        while (!Empty()) {
+            Pop();
+        }
+    }
+
   private:
     std::vector<std::unique_ptr<Scene>> m_stack;
     std::unique_ptr<Scene> m_pendingReplace;

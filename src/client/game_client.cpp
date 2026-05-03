@@ -3,6 +3,7 @@
 #include "network/ITransport.hpp"
 #include "network/network_message_handler.hpp"
 #include "network/steam_lobby_manager.hpp"
+#include <iostream>
 
 GameClient::GameClient(network::ITransport &transport, SteamLobbyManager &lobbyManager, NetworkMessageHandler &handler)
     : m_transport(&transport), m_lobbyManager(lobbyManager), m_handler(handler) {}
@@ -27,9 +28,8 @@ void GameClient::Update() {
 }
 
 void GameClient::Disconnect() {
+    std::cout << "In game client disconnect" << std::endl;
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
     m_transport->send(network::PEER_SERVER, &packet, sizeof(packet));
 }
-
-GameClient::~GameClient() { Disconnect(); }

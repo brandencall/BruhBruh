@@ -85,6 +85,7 @@ void PacketHandler::OnCharacterSelected(char *buffer, size_t size, network::Peer
 
 void PacketHandler::OnDisconnect(char *buffer, network::PeerId from) {
     auto *client = m_registry.FindByPeer(from);
+    std::cout << "Recieved an disconnect from player: " << client->playerId << std::endl;
     if (!client)
         return;
 

@@ -58,7 +58,7 @@ void GameScene::OnEnter() {
 }
 
 void GameScene::OnExit() {
-    std::cout << "GameScene::OnExit()" << std::endl;
+    std::cout << "GameScene::CleanUp()" << std::endl;
     // Unregister packet handlers
     using PT = network::PacketType;
     m_handler.Unregister(PT::GameBegin);

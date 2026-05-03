@@ -9,7 +9,7 @@
 class GameClient {
   public:
     GameClient(network::ITransport &transport, SteamLobbyManager &lobbyManager, NetworkMessageHandler &handler);
-    ~GameClient();
+
     void Start(const char *ip, int port);
     void StartInProcess();
     void Update();
