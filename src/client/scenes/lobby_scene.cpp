@@ -78,7 +78,10 @@ void LobbyScene::Update(float dt) {
         UpdateInviteButton(mousePos);
 
     if (IsKeyPressed(KEY_ESCAPE))
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
+            SendDisconnect();
+            m_sessionManager.ReturnToStart();
+        }));
 }
 
 void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,
@@ -220,6 +223,12 @@ void LobbyScene::SendJoin() {
     const char *name = SteamFriends()->GetPersonaName();
     strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
     m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+}
+
+void LobbyScene::SendDisconnect() {
+    network::DisconnectPacket packet{};
+    packet.header.type = network::PacketType::Disconnect;
+    m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 void LobbyScene::FlipReadyState() {

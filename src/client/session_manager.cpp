@@ -34,10 +34,16 @@ network::ITransport &SessionManager::GetTransport() { return *m_transport; }
 
 void SessionManager::TickClient() {
     if (m_returningToStart) {
+        m_lobbyManager->LeaveLobby();
         m_returningToStart = false;
         ShutdownServer();
         m_client.reset();
         m_server.reset();
+        m_lobbyManager.reset();
+        m_transport.reset();
+
+        m_transport = std::make_unique<network::SteamTransport>();
+        m_lobbyManager = std::make_unique<SteamLobbyManager>(*m_transport);
         return;
     }
     if (m_client) {

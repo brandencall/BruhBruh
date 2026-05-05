@@ -2,7 +2,6 @@
 #include "../../config.hpp"
 #include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
-#include "../event_hub.hpp"
 #include "../network/network_message_handler.hpp"
 #include "../session_manager.hpp"
 #include "../ui/ui_manager.hpp"
@@ -35,6 +34,7 @@ class LobbyScene : public Scene {
     void HandleHostDisconnected(const char *buf);
 
     void SendJoin();
+    void SendDisconnect();
     void FlipReadyState();
 
     void InviteFriendsButton(int screenW, int screenH, bool mouseClicked, Vector2 mousePos);

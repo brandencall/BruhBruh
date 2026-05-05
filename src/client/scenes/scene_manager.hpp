@@ -1,6 +1,5 @@
 #pragma once
 #include "scene.hpp"
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -14,7 +13,6 @@ class SceneManager {
     }
 
     void Pop() {
-        std::cout << "Popping the scene" << std::endl;
         if (m_stack.empty())
             return;
         m_stack.back()->OnExit();
