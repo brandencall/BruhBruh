@@ -54,6 +54,10 @@ jobs:
           unzip steamworks_sdk.zip -d external/
           # SDK will land at external/steamworks_sdk/sdk which matches your STEAM_SDK_ROOT
 
+      - name: Create steam_appid.txt
+        shell: bash
+        run: echo "480" > steam_appid.txt
+
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
