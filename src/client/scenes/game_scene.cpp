@@ -2,6 +2,7 @@
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
+#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/death_screen.hpp"
 #include "../ui/screens/game_end_screen.hpp"
 #include "../ui/screens/hud_screen.hpp"
@@ -92,11 +93,17 @@ void GameScene::Update(float dt) {
     Sync(dt);
     m_bulletSystem.Update(dt);
     m_ui.Update(dt);
+    if (m_ui.BlocksGameInput())
+        return;
+
     HandleScoreboardInput();
+
+    if (IsKeyPressed(KEY_ESCAPE))
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
 
     m_sendAccumulator += dt;
     if (m_sendAccumulator >= m_sendInterval) {
-        if (!m_ui.BlocksGameInput() && m_gameBeginTimer <= 0.0f) {
+        if (m_gameBeginTimer <= 0.0f) {
             auto input = CollectInput();
             m_transport.send(network::PEER_SERVER, &input, sizeof(input));
         }
