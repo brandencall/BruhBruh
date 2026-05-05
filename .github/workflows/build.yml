@@ -1,18 +1,14 @@
 name: Build Game
-
 on:
   push:
     branches: [ main ]
   pull_request:
-
 jobs:
   build:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-
     runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,20 +18,41 @@ jobs:
       - name: Install dependencies (Linux only)
         if: matrix.os == 'ubuntu-latest'
         run: |
-            sudo apt-get update
-            sudo apt-get install -y \
-              build-essential \
-              cmake \
-              libasound2-dev \
-              libx11-dev \
-              libxrandr-dev \
-              libxi-dev \
-              libgl1-mesa-dev \
-              libglu1-mesa-dev \
-              libxcursor-dev \
-              libxinerama-dev \
-              libwayland-dev \
-              libxkbcommon-dev
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            libasound2-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxi-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libxcursor-dev \
+            libxinerama-dev \
+            libwayland-dev \
+            libxkbcommon-dev
+
+      - name: Cache Steam SDK
+        id: cache-steam-sdk
+        uses: actions/cache@v4
+        with:
+          path: external/steamworks_sdk
+          key: steam-sdk-v1.0
+
+      - name: Download Steam SDK (cache miss)
+        if: steps.cache-steam-sdk.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          SDK_ACCESS_TOKEN: ${{ secrets.SDK_ACCESS_TOKEN }}
+        run: |
+          curl -L \
+            -H "Authorization: Bearer $SDK_ACCESS_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/brandencall/steamworks_sdk_private/releases/assets/412974565" \
+            -o steamworks_sdk.zip
+          unzip steamworks_sdk.zip -d external/
+          # SDK will land at external/steamworks_sdk/sdk which matches your STEAM_SDK_ROOT
 
       - name: Configure
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
