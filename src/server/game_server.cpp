@@ -18,7 +18,7 @@ void GameServer::Start(int port) {
 }
 
 void GameServer::Stop() {
-    m_broadcaster.BroadcastHostDisconnected();
+    m_broadcaster.BroadcastHostDisconnected(m_hostPeerId);
     m_running.store(false);
 }
 
@@ -34,17 +34,17 @@ void GameServer::StartInProcess(network::ITransport &transport, SteamLobbyManage
 void GameServer::SignalReady() { m_readyToRun.store(true); }
 
 void GameServer::AddHostToLobby(std::string name) {
-    network::PeerId id = m_steamLobbyManager->AddHostToLobby();
-    auto *client = m_registry.AddClient(id);
-    int slot = m_lobby.AddPlayer(id, name.c_str(), client->playerId);
-    std::cout << "Host added to lobby! Name: " << name << ", PeerId: " << id << ", PlayerId: " << client->playerId
-              << std::endl;
+    m_hostPeerId = m_steamLobbyManager->AddHostToLobby();
+    auto *client = m_registry.AddClient(m_hostPeerId);
+    int slot = m_lobby.AddPlayer(m_hostPeerId, name.c_str(), client->playerId);
+    std::cout << "Host added to lobby! Name: " << name << ", PeerId: " << m_hostPeerId
+              << ", PlayerId: " << client->playerId << std::endl;
     network::JoinResponsePacket response{};
     response.header.type = network::PacketType::JoinResponse;
     response.playerId = client->playerId;
     response.characterId = Character::CharacterId::None;
     strncpy(response.name, name.c_str(), sizeof(response.name) - 1);
-    m_transport->send(id, &response, sizeof(response));
+    m_transport->send(m_hostPeerId, &response, sizeof(response));
 }
 
 bool GameServer::IsRunning() { return m_running; }

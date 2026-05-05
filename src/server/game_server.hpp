@@ -1,5 +1,6 @@
 #pragma once
 #include "../server/server_transport.hpp"
+#include "../shared/network/ITransport.hpp"
 #include "../shared/network/steam_lobby_manager.hpp"
 #include "event_bus.hpp"
 #include "game_simulation.hpp"
@@ -49,4 +50,5 @@ class GameServer {
     network::StateBroadcaster m_broadcaster;
     ServerLobby m_lobby;
     network::PacketHandler m_packetHandler;
+    network::PeerId m_hostPeerId;
 };

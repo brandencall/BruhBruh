@@ -267,7 +267,10 @@ void GameScene::HandleGameEnd(const char *buffer) {
 
 void GameScene::HandleSwitchToLobby(const char *buf) { m_sessionManager.CreateLobby(); }
 
-void GameScene::HandleHostDisconnected(const char *buf) { m_sessionManager.ReturnToStart(); }
+void GameScene::HandleHostDisconnected(const char *buf) {
+    std::cout << "Calling m_sessionManager.ReturnToStart() from GameScene::HandleHostDisconnected()" << std::endl;
+    m_sessionManager.ReturnToStart();
+}
 
 void GameScene::DrawMap(const Map::MapData &map) {
     for (const auto &wall : map.walls) {

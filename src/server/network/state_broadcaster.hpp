@@ -23,7 +23,7 @@ class StateBroadcaster {
     void BroadcastGameEnd(float countdown, const GameSimulation &sim);
     void BroadcastPlayerJoined(const char *name, ClientConnection *client);
     void BroadcastPlayerDisconnect(uint32_t playerId);
-    void BroadcastHostDisconnected();
+    void BroadcastHostDisconnected(network::PeerId hostPeerId);
     void BroadcastState(const GameSimulation &sim);
     void BroadcastLobbyState(const ServerLobby &lobby);
     void BroadcastSwitchToLobby();

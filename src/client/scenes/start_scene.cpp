@@ -123,6 +123,7 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
             m_session.JoinLobby(
                 lobbyId,
                 [this]() {
+                    std::cout << "Pushing the lobby scene when the join button was pushed" << std::endl;
                     // JoinScreen will be cleaned up when StartScene exits
                     m_sceneManager.Push(
                         std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));

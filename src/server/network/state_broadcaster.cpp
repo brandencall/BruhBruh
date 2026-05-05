@@ -97,10 +97,14 @@ void StateBroadcaster::BroadcastPlayerDisconnect(uint32_t playerId) {
     pkt.header.type = network::PacketType::Disconnect;
 }
 
-void StateBroadcaster::BroadcastHostDisconnected() {
+void StateBroadcaster::BroadcastHostDisconnected(network::PeerId hostPeerId) {
     network::HostDisconnectedPacket pkt{};
     pkt.header.type = network::PacketType::HostDisconnected;
-    m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, &pkt, sizeof(pkt)); });
+    m_registry.ForEach([&](network::ClientConnection &client) {
+        if (client.peerId == hostPeerId)
+            return;
+        m_transport->send(client.peerId, &pkt, sizeof(pkt));
+    });
 }
 
 void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
