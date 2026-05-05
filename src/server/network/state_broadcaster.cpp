@@ -101,9 +101,8 @@ void StateBroadcaster::BroadcastHostDisconnected(network::PeerId hostPeerId) {
     network::HostDisconnectedPacket pkt{};
     pkt.header.type = network::PacketType::HostDisconnected;
     m_registry.ForEach([&](network::ClientConnection &client) {
-        if (client.peerId == hostPeerId)
-            return;
-        m_transport->send(client.peerId, &pkt, sizeof(pkt));
+        if (client.peerId != hostPeerId)
+            m_transport->send(client.peerId, &pkt, sizeof(pkt));
     });
 }
 

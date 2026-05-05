@@ -37,6 +37,7 @@ void SessionManager::TickClient() {
         m_returningToStart = false;
         ShutdownServer();
         m_client.reset();
+        m_server.reset();
         return;
     }
     if (m_client) {

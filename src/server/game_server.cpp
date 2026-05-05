@@ -125,7 +125,7 @@ void GameServer::TickGameplay() {
 
     auto previousTime = std::chrono::steady_clock::now();
 
-    while (m_gameRunning) {
+    while (m_gameRunning && m_running) {
         auto now = std::chrono::steady_clock::now();
         float dt = std::chrono::duration<float>(now - previousTime).count();
         previousTime = now;
