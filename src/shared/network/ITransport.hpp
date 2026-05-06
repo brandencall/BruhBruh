@@ -21,6 +21,7 @@ class ITransport {
     virtual bool send(PeerId to, const void *data, size_t size) = 0;
     virtual bool recv(InboundPacket &out) { return false; };
     virtual void Pump() {}
+    virtual void Shutdown() {}
     virtual bool recvServer(InboundPacket &out) { return recv(out); }
     virtual bool recvClient(InboundPacket &out) { return recv(out); }
 };

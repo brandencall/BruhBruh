@@ -1,8 +1,8 @@
 #include "game.hpp"
 #include "game_client.hpp"
-#include "lobby_scene.hpp"
 #include "raylib.h"
 #include "scenes/start_scene.hpp"
+#include <cassert>
 
 void Game::Run() {
     CreateWindow();
@@ -14,7 +14,8 @@ void Game::Run() {
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         SteamAPI_RunCallbacks();
-        m_session.GetTransport().Pump();
+        assert(m_session.GetTransport());
+        m_session.GetTransport()->Pump();
 
         float dt = GetFrameTime();
         m_session.TickClient();
@@ -27,12 +28,12 @@ void Game::Run() {
     CloseWindow();
 }
 
-void Game::RunLocal(GameClient &client, NetworkMessageHandler &handler) {
+void Game::RunLocal(GameClient &client) {
     CreateWindow();
     InitAudioDevice();
+    m_session.InitializeClientTransport(*client.GetTransport(), *client.GetHandler());
 
-    // Push the start screen — it holds a ref to session and scenemanager
-    m_sceneManager.Push(std::make_unique<LobbyScene>(*client.GetTransport(), handler, m_session));
+    m_session.CreateLobby();
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         float dt = GetFrameTime();

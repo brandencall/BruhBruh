@@ -15,10 +15,11 @@ class SessionManager {
     SessionManager(SceneManager &sceneManager);
 
     void Initialize();
+    void InitializeClientTransport(network::ITransport &transport, NetworkMessageHandler &handler);
     void Shutdown();
 
-    network::ITransport &GetTransport();
-    NetworkMessageHandler &GetHandler();
+    network::ITransport *GetTransport();
+    NetworkMessageHandler *GetHandler();
     void TickClient();
     void HostGame();
     void JoinLobby(CSteamID lobbyId);
@@ -45,9 +46,9 @@ class SessionManager {
     bool m_returningToStart = false;
 
     SceneManager &m_sceneManager;
-    NetworkMessageHandler m_handler;
+    NetworkMessageHandler *m_handler = nullptr;
     std::unique_ptr<SteamLobbyManager> m_lobbyManager;
-    std::unique_ptr<network::SteamTransport> m_transport;
+    network::ITransport *m_transport = nullptr;
     std::unique_ptr<GameClient> m_client;
     std::unique_ptr<GameServer> m_server;
     std::thread m_serverThread;

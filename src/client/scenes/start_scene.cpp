@@ -4,6 +4,7 @@
 #include "../utils/text_utils.hpp"
 #include "lobby_scene.hpp"
 #include "raylib.h"
+#include <cassert>
 #include <iostream>
 
 StartScene::StartScene(Game &game, SessionManager &session, SceneManager &sceneManager)
@@ -106,8 +107,10 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
         m_session.HostGame(
             [this]() {
                 // onLobbyCreated fires on the Steam callback thread — push scene safely
+                assert(m_session.GetTransport());
+                assert(m_session.GetHandler());
                 m_sceneManager.Push(
-                    std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
+                    std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);
@@ -125,8 +128,10 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
                 [this]() {
                     std::cout << "Pushing the lobby scene when the join button was pushed" << std::endl;
                     // JoinScreen will be cleaned up when StartScene exits
+                    assert(m_session.GetTransport());
+                    assert(m_session.GetHandler());
                     m_sceneManager.Push(
-                        std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
+                        std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
                 },
                 [this](const char *err) {
                     SetStatus(std::string("Error: ") + err);
@@ -151,8 +156,10 @@ void StartScene::UpdateInviteToast(Vector2 mouse) {
             [this]() {
                 std::cout << SteamFriends()->GetPersonaName() << ": Join lobby called.. pushing lobby scene"
                           << std::endl;
+                assert(m_session.GetTransport());
+                assert(m_session.GetHandler());
                 m_sceneManager.Push(
-                    std::make_unique<LobbyScene>(m_session.GetTransport(), m_session.GetHandler(), m_session));
+                    std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);

@@ -30,3 +30,5 @@ void GameClient::Disconnect() {
 }
 
 network::ITransport *GameClient::GetTransport() { return m_transport; }
+
+NetworkMessageHandler *GameClient::GetHandler() { return &m_handler; }

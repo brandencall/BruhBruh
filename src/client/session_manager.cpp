@@ -1,5 +1,6 @@
 #include "session_manager.hpp"
 #include "network/ITransport.hpp"
+#include "network/network_message_handler.hpp"
 #include "network/steam_lobby_manager.hpp"
 #include "network/steam_transport.hpp"
 #include "scenes/game_scene.hpp"
@@ -10,8 +11,14 @@
 SessionManager::SessionManager(SceneManager &sceneManager) : m_sceneManager(sceneManager) {}
 
 void SessionManager::Initialize() {
-    m_transport = std::make_unique<network::SteamTransport>();
-    m_lobbyManager = std::make_unique<SteamLobbyManager>(*m_transport);
+    m_transport = new network::SteamTransport();
+    m_handler = new NetworkMessageHandler();
+    m_lobbyManager = std::make_unique<SteamLobbyManager>(dynamic_cast<network::SteamTransport &>(*m_transport));
+}
+
+void SessionManager::InitializeClientTransport(network::ITransport &transport, NetworkMessageHandler &handler) {
+    m_transport = &transport;
+    m_handler = &handler;
 }
 
 void SessionManager::Shutdown() {
@@ -27,10 +34,10 @@ void SessionManager::Shutdown() {
     m_client.reset();
     m_server.reset();
     m_lobbyManager.reset();
-    m_transport.reset();
+    m_transport = nullptr;
 }
 
-network::ITransport &SessionManager::GetTransport() { return *m_transport; }
+network::ITransport *SessionManager::GetTransport() { return m_transport; }
 
 void SessionManager::TickClient() {
     if (m_returningToStart) {
@@ -40,10 +47,10 @@ void SessionManager::TickClient() {
         m_client.reset();
         m_server.reset();
         m_lobbyManager.reset();
-        m_transport.reset();
+        m_transport = nullptr;
 
-        m_transport = std::make_unique<network::SteamTransport>();
-        m_lobbyManager = std::make_unique<SteamLobbyManager>(*m_transport);
+        m_transport = new network::SteamTransport();
+        m_lobbyManager = std::make_unique<SteamLobbyManager>(dynamic_cast<network::SteamTransport &>(*m_transport));
         return;
     }
     if (m_client) {
@@ -51,7 +58,7 @@ void SessionManager::TickClient() {
     }
 }
 
-NetworkMessageHandler &SessionManager::GetHandler() { return m_handler; }
+NetworkMessageHandler *SessionManager::GetHandler() { return m_handler; }
 
 void SessionManager::HostGame(std::function<void()> onSuccess, std::function<void(const char *)> onError) {
     // Start the server thread first so it is ready by the time OnLobbyCreated fires
@@ -103,11 +110,11 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
 SteamLobbyManager *SessionManager::GetLobby() { return m_lobbyManager.get(); }
 
 void SessionManager::CreateLobby() {
-    m_sceneManager.Push(std::make_unique<LobbyScene>(*m_transport, m_handler, *this));
+    m_sceneManager.Push(std::make_unique<LobbyScene>(*m_transport, *m_handler, *this));
 }
 
 void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
-    m_sceneManager.Replace(std::make_unique<GameScene>(*m_transport, m_handler, *this, currentPlayerState));
+    m_sceneManager.Replace(std::make_unique<GameScene>(*m_transport, *m_handler, *this, currentPlayerState));
 }
 
 void SessionManager::ReturnToStart() {
@@ -128,7 +135,7 @@ void SessionManager::StartServerThread() {
 }
 
 void SessionManager::StartGameClient() {
-    m_client = std::make_unique<GameClient>(*m_transport, m_handler);
+    m_client = std::make_unique<GameClient>(*m_transport, *m_handler);
     m_client->StartInProcess();
 }
 

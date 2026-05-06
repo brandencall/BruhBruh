@@ -16,6 +16,7 @@ class GameClient {
     void Update();
     void Disconnect();
     network::ITransport *GetTransport();
+    NetworkMessageHandler *GetHandler();
 
   private:
     network::ClientTransport m_ownedTransport;

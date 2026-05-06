@@ -172,7 +172,7 @@ class SteamTransport : public ITransport {
         m_steamToPeer.clear();
     }
 
-    void Shutdown() {
+    void Shutdown() override {
         CloseAllSessions();
         m_running = false;
     }

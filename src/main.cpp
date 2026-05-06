@@ -16,7 +16,7 @@ void RunClient() {
     GameClient gameClient(handler);
     gameClient.Start("127.0.0.1", 54000);
     Game game;
-    game.RunLocal(gameClient, handler);
+    game.RunLocal(gameClient);
 }
 
 int main(int argc, char **argv) {
