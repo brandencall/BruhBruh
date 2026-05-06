@@ -100,7 +100,7 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
     m_lobbyManager->JoinLobby(lobbyId);
 }
 
-SteamLobbyManager &SessionManager::GetLobby() { return *m_lobbyManager; }
+SteamLobbyManager *SessionManager::GetLobby() { return m_lobbyManager.get(); }
 
 void SessionManager::CreateLobby() {
     m_sceneManager.Push(std::make_unique<LobbyScene>(*m_transport, m_handler, *this));
@@ -128,7 +128,7 @@ void SessionManager::StartServerThread() {
 }
 
 void SessionManager::StartGameClient() {
-    m_client = std::make_unique<GameClient>(*m_transport, *m_lobbyManager, m_handler);
+    m_client = std::make_unique<GameClient>(*m_transport, m_handler);
     m_client->StartInProcess();
 }
 

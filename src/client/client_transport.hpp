@@ -15,7 +15,7 @@ class ClientTransport : public ITransport {
     }
 
     bool recv(InboundPacket &out) override {
-        int received = m_client.Receive(out.data, sizeof(MAX_PACKET_SIZE));
+        int received = m_client.Receive(out.data, MAX_PACKET_SIZE);
         if (received <= 0)
             return false;
 

@@ -19,7 +19,7 @@ class ServerTransport : public ITransport {
 
     bool recv(InboundPacket &out) override {
         sockaddr_in addr{};
-        int received = m_server.Receive(out.data, sizeof(MAX_PACKET_SIZE), addr);
+        int received = m_server.Receive(out.data, MAX_PACKET_SIZE, addr);
         if (received <= 0)
             return false;
 

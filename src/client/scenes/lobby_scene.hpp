@@ -34,6 +34,7 @@ class LobbyScene : public Scene {
     void HandleHostDisconnected(const char *buf);
 
     void SendJoin();
+    void SendLocalJoin();
     void SendDisconnect();
     void FlipReadyState();
 

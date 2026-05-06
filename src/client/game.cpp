@@ -1,4 +1,6 @@
 #include "game.hpp"
+#include "game_client.hpp"
+#include "lobby_scene.hpp"
 #include "raylib.h"
 #include "scenes/start_scene.hpp"
 
@@ -21,6 +23,24 @@ void Game::Run() {
     }
 
     m_session.Shutdown();
+    CloseAudioDevice();
+    CloseWindow();
+}
+
+void Game::RunLocal(GameClient &client, NetworkMessageHandler &handler) {
+    CreateWindow();
+    InitAudioDevice();
+
+    // Push the start screen — it holds a ref to session and scenemanager
+    m_sceneManager.Push(std::make_unique<LobbyScene>(*client.GetTransport(), handler, m_session));
+
+    while (!WindowShouldClose() && !m_shouldQuit) {
+        float dt = GetFrameTime();
+        client.Update();
+        m_sceneManager.Update(dt);
+        m_sceneManager.Render();
+    }
+
     CloseAudioDevice();
     CloseWindow();
 }

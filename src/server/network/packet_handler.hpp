@@ -23,7 +23,7 @@ class PacketHandler {
     void OnDisconnect(char *buffer, network::PeerId from);
     void OnInput(char *buffer, size_t bytes, network::PeerId from);
 
-    void SendJoinResponse(network::PeerId to, uint32_t playerId);
+    void SendJoinResponse(network::PeerId to, uint32_t playerId, const char *name);
 
   private:
     network::ITransport *m_transport;

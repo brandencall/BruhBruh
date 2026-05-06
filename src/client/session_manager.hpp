@@ -30,7 +30,7 @@ class SessionManager {
     void JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess, std::function<void(const char *)> onError);
 
     // Remove below methods
-    SteamLobbyManager &GetLobby();
+    SteamLobbyManager *GetLobby();
     void CreateLobby();
 
   private:

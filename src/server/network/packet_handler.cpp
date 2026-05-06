@@ -3,11 +3,14 @@
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
 #include "packet_handler.hpp"
+#include <cassert>
 #include <iostream>
+#include <string.h>
 
 namespace network {
 
 void PacketHandler::Handle(char *buffer, size_t bytes, network::PeerId from) {
+    assert(m_transport);
     auto *header = reinterpret_cast<network::PacketHeader *>(buffer);
 
     switch (header->type) {
@@ -38,13 +41,12 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
     if (m_phase != ServerPhase::LOBBY)
         return;
 
+    auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
     auto *existing = m_registry.FindByPeer(from);
     if (existing) {
-        SendJoinResponse(from, existing->playerId);
         return;
     }
 
-    auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
     auto *client = m_registry.AddClient(from);
     if (!client) {
         // TODO: Send a lobby full packet so that the client knows that it is getting denied
@@ -52,7 +54,7 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
     }
 
     int slot = m_lobby.AddPlayer(from, pkt->name, client->playerId);
-    SendJoinResponse(from, client->playerId);
+    SendJoinResponse(from, client->playerId, pkt->name);
 
     m_broadcaster.BroadcastPlayerJoined(m_lobby.Slots()[slot].lobbySlot.name, client);
 }
@@ -118,11 +120,13 @@ void PacketHandler::OnInput(char *buffer, size_t size, network::PeerId from) {
                             });
 }
 
-void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId) {
+void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId, const char *name) {
     network::JoinResponsePacket response{};
     response.header.type = network::PacketType::JoinResponse;
     response.playerId = playerId;
     response.characterId = Character::CharacterId::None;
+    strncpy(response.name, name, sizeof(response.name) - 1);
     m_transport->send(to, &response, sizeof(response));
 }
+
 } // namespace network

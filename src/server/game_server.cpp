@@ -12,9 +12,10 @@ GameServer::GameServer()
 
 void GameServer::Start(int port) {
     m_running = m_ownedTransport.start(static_cast<uint16_t>(port));
-    // TODO: NEED TO FIX THIS
-    // m_transport = &m_ownedTransport;
+    m_transport = &m_ownedTransport;
     m_broadcaster.SetTransport(*m_transport);
+    m_packetHandler.SetTransport(*m_transport);
+    SignalReady();
 }
 
 void GameServer::Stop() {

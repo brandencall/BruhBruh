@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 
@@ -31,7 +32,9 @@ void LobbyScene::OnEnter() {
     m_icons[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/Hodge.png");
     m_icons[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/Big_J.png");
 
-    if (!m_sessionManager.GetLobby().IsLocalPlayerHost())
+    if (!m_sessionManager.GetLobby())
+        SendLocalJoin();
+    else if (!m_sessionManager.GetLobby()->IsLocalPlayerHost())
         SendJoin();
 }
 
@@ -55,6 +58,11 @@ void LobbyScene::OnExit() {
 }
 
 void LobbyScene::Update(float dt) {
+    if (!m_joined && !m_sessionManager.GetLobby()) {
+        SendLocalJoin();
+        return;
+    }
+
     m_ui.Update(dt);
 
     if (m_ui.BlocksGameInput())
@@ -74,7 +82,7 @@ void LobbyScene::Update(float dt) {
 
     UpdateCharacterSelection(mousePos, takenCharacters);
 
-    if (m_sessionManager.GetLobby().IsLocalPlayerHost())
+    if (m_sessionManager.GetLobby() && m_sessionManager.GetLobby()->IsLocalPlayerHost())
         UpdateInviteButton(mousePos);
 
     if (IsKeyPressed(KEY_ESCAPE))
@@ -127,7 +135,7 @@ void LobbyScene::UpdateInviteButton(Vector2 mousePos) {
     Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f, (float)btnW, (float)btnH};
 
     if (CheckCollisionPointRec(mousePos, btnRect))
-        m_ui.Push(std::make_unique<UI::FriendsInviteScreen>(m_sessionManager.GetLobby()));
+        m_ui.Push(std::make_unique<UI::FriendsInviteScreen>(*m_sessionManager.GetLobby()));
 }
 
 void LobbyScene::Render() {
@@ -160,7 +168,7 @@ void LobbyScene::Render() {
         utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize, YELLOW);
     }
 
-    if (m_sessionManager.GetLobby().IsLocalPlayerHost())
+    if (m_sessionManager.GetLobby() && m_sessionManager.GetLobby()->IsLocalPlayerHost())
         RenderInviteButton(screenW, screenH, mousePos);
 
     m_ui.Render();
@@ -221,6 +229,14 @@ void LobbyScene::SendJoin() {
     network::JoinLobbyPacket pkt{};
     pkt.header.type = network::PacketType::JoinLobby;
     const char *name = SteamFriends()->GetPersonaName();
+    strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
+    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+}
+
+void LobbyScene::SendLocalJoin() {
+    network::JoinLobbyPacket pkt{};
+    pkt.header.type = network::PacketType::JoinLobby;
+    const char *name = "Player";
     strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
     m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }

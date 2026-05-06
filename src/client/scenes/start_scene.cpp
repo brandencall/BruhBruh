@@ -14,7 +14,7 @@ void StartScene::OnEnter() {
     m_statusText.clear();
     m_pendingInvite.active = false;
     m_ui.Clear();
-    m_session.GetLobby().SetCallbacks({
+    m_session.GetLobby()->SetCallbacks({
         .onInviteAccepted = [this](CSteamID from, CSteamID lobbyId) { m_pendingInvite = {from, lobbyId, true}; },
         .onJoinRequested =
             [this](CSteamID lobbyId) {
@@ -27,7 +27,7 @@ void StartScene::OnEnter() {
 void StartScene::OnExit() {
     Scene::OnExit();
     m_pendingInvite.active = false;
-    m_session.GetLobby().SetCallbacks({});
+    m_session.GetLobby()->SetCallbacks({});
     m_ui.Clear();
 }
 
