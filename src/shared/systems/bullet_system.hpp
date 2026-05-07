@@ -47,17 +47,6 @@ template <typename TBulletState> class BulletSystem {
         return -1;
     }
 
-    virtual int SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                                     const Character::CharacterDef &character) {
-        int slot = GetSlot(serverId);
-        if (slot < 0 || slot >= MAX_BULLETS)
-            return -1;
-
-        InitBulletSlot(slot, serverId, ownerId, position, velocity, character);
-
-        return slot;
-    }
-
     void InitBulletSlot(int slot, uint32_t id, uint32_t ownerId, Vector2 position, Vector2 velocity,
                         const Character::CharacterDef &character) {
         component::Hitbox hitbox = {

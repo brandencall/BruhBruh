@@ -15,6 +15,8 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     void Draw(const state::ClientBulletState &bullet);
     void AssignId(int slot, uint32_t id);
     void Update(float dt);
+    int SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
+                             const Character::CharacterDef &character);
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;

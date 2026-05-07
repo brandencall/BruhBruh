@@ -67,6 +67,17 @@ void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawn
     bullet.characterId = characterId;
 }
 
+int ClientBulletSystem::SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
+                                             const Character::CharacterDef &character) {
+    int slot = GetSlot(serverId);
+    if (slot < 0 || slot >= MAX_BULLETS)
+        return -1;
+
+    InitBulletSlot(slot, serverId, ownerId, position, velocity, character);
+
+    return slot;
+}
+
 void ClientBulletSystem::AssignId(int slot, uint32_t id) {
     if (slot < 0 || slot >= MAX_BULLETS)
         return;
