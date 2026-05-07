@@ -5,9 +5,9 @@ namespace Render {
 
 void WallRenderer::Load() {
     m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/walls/tonts_wall.png");
-    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/tmp_wall.png");
-    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/tmp_wall.png");
-    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/tmp_wall.png");
+    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/walls/raff_wall.png");
+    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/walls/hodges_wall.png");
+    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/walls/jonty_wall.png");
 
     for (const auto &tex : m_textures) {
         SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);

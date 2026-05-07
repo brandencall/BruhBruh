@@ -4,7 +4,6 @@
 #include "raymath.h"
 #include <array>
 #include <cstdint>
-#include <iostream>
 
 namespace Render {
 
