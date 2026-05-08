@@ -110,14 +110,13 @@ void PacketHandler::OnInput(char *buffer, size_t size, network::PeerId from) {
         return;
 
     m_simulation.ApplyInput(client->playerId, packet->characterId,
-                            {
-                                .moveX = packet->moveX,
-                                .moveY = packet->moveY,
-                                .aimX = packet->aimX,
-                                .aimY = packet->aimY,
-                                .angle = packet->facingAngle,
-                                .buttons = packet->buttons,
-                            });
+                            {.moveX = packet->moveX,
+                             .moveY = packet->moveY,
+                             .aimX = packet->aimX,
+                             .aimY = packet->aimY,
+                             .angle = packet->facingAngle,
+                             .buttons = packet->buttons,
+                             .sequence = packet->sequence});
 }
 
 void PacketHandler::SendJoinResponse(network::PeerId to, uint32_t playerId, const char *name) {

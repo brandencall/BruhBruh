@@ -16,6 +16,11 @@
 #include "scene.hpp"
 #include <cstdint>
 
+struct PendingInput {
+    network::InputPacket packet;
+    float dt;
+};
+
 class GameScene : public Scene {
   public:
     GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
@@ -49,7 +54,10 @@ class GameScene : public Scene {
     void DrawMap(const Map::MapData &map);
     void RenderConnecting();
 
+    void TickPrediction(float dt);
     network::InputPacket CollectInput();
+
+    void Reconcile(Vector2 serverPos, uint32_t ackedSeq);
 
   private:
     Client::EventHub m_events;
@@ -69,14 +77,21 @@ class GameScene : public Scene {
     UI::UIManager m_ui;
     System::AudioSystem m_audioSystem;
 
-    uint16_t m_inputSequence = 0;
+    static constexpr size_t INPUT_BUFFER_SIZE = 128;
+    static constexpr float SNAP_THRESHOLD = 64.0f; // pixels — tune to your tile size
+    std::array<PendingInput, INPUT_BUFFER_SIZE> m_inputBuffer{};
+    uint32_t m_lastAckedSeq = 0;
+    Vector2 m_predictedPos{0.0f, 0.0f};
+    Vector2 m_smoothedPredictedPos{0.0f, 0.0f};
+    bool m_predictionInitialised = false;
+
+    uint16_t m_inputSequence = 1;
     uint8_t m_lastButtons = 0;
     float m_sendAccumulator = 0.0f;
     float m_sendInterval = 1.0f / 60.0f;
 
     bool m_joined = false;
     float m_gameBeginTimer = 0.0f;
-    bool m_cameraReady = false;
     bool m_initialSnapDone = false;
     bool m_gameEndScreenActive = false;
     bool m_audioAvailable = false;

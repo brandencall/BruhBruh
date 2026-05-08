@@ -23,6 +23,7 @@ struct PlayerInput {
     float angle = 0.0;
     // bitmask (shoot, place_wall, etc.)
     uint8_t buttons;
+    uint32_t sequence;
 };
 
 struct PlayerState {

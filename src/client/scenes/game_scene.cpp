@@ -1,4 +1,5 @@
 #include "game_scene.hpp"
+#include "../../shared/characters/character_movement.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
@@ -101,57 +102,34 @@ void GameScene::Update(float dt) {
     if (IsKeyPressed(KEY_ESCAPE))
         m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
 
-    m_sendAccumulator += dt;
-    if (m_sendAccumulator >= m_sendInterval) {
-        if (m_gameBeginTimer <= 0.0f) {
-            auto input = CollectInput();
-            m_transport.send(network::PEER_SERVER, &input, sizeof(input));
-        }
-        m_sendAccumulator -= m_sendInterval;
-    }
+    TickPrediction(dt);
 }
 
 void GameScene::Sync(float dt) {
-    // Sync players
+    // Interpolate remote players toward their last known server position
     for (const auto &player : m_worldState.m_players) {
-        if (!m_initialSnapDone && player.id == m_worldState.m_currentPlayerId)
+        if (!player.active || player.id == m_worldState.m_currentPlayerId)
             continue;
         m_characterRender.Sync(player, dt);
     }
 
-    if (!m_joined)
+    if (!m_joined || m_worldState.m_currentPlayerId == -1)
         return;
 
-    //  Sync Camera
-
-    if (m_worldState.m_currentPlayerId == -1)
-        return;
-
+    // Wait until the local player has a real position before starting
     if (!m_initialSnapDone) {
         const auto &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];
         if (lp.position.x == 0.0f && lp.position.y == 0.0f)
             return;
 
-        m_characterRender.SnapToPosition(lp);
-        Vector2 snappedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
-        m_camera.target = snappedPos;
+        m_camera.target = lp.position;
         m_initialSnapDone = true;
-        m_cameraReady = true;
-        return;
     }
 
-    Vector2 smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
-    if (!m_cameraReady) {
-        const auto &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];
-        m_characterRender.SnapToPosition(m_worldState.m_players[m_worldState.m_currentPlayerId]);
-        smoothedPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
-        m_camera.target = smoothedPos;
-        m_cameraReady = true;
-        return;
-    }
-
-    float smoothFactor = 1.0f - std::exp(-5.0f * dt);
-    Vector2 smoothed = Vector2Lerp(m_camera.target, smoothedPos, smoothFactor);
+    // Smoothly follow the renderer position (which tracks predicted pos for local player)
+    Vector2 rendererPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
+    float smoothFactor = 1.0f - std::exp(-15.0f * dt);
+    Vector2 smoothed = Vector2Lerp(m_camera.target, rendererPos, smoothFactor);
     m_camera.target = {std::round(smoothed.x), std::round(smoothed.y)};
 }
 
@@ -167,12 +145,23 @@ void GameScene::HandleScoreboardInput() {
 void GameScene::HandleGameBegin(const char *buffer) {
     auto *pkt = (network::GameBeginPacket *)buffer;
     m_gameBeginTimer = pkt->countdown;
+
     if (!m_joined) {
         m_worldState.m_currentPlayerId = m_currentPlayerId;
         m_worldState.m_gameTime = pkt->gameTime;
         m_joined = true;
+
         for (uint16_t i = 0; i < pkt->playerCount; ++i)
             m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
+
+        const state::PlayerState &lp = m_worldState.m_players[m_currentPlayerId];
+        m_predictedPos = lp.position;
+        m_smoothedPredictedPos = lp.position;
+        m_predictionInitialised = true;
+
+        m_characterRender.SnapToPosition(lp);
+        m_camera.target = lp.position;
+        m_initialSnapDone = true;
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
@@ -186,6 +175,16 @@ void GameScene::HandleStateResponse(const char *buffer) {
     for (uint16_t i = 0; i < pkt->playerCount; ++i)
         m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
     m_worldState.m_gameTime = pkt->currentGameTime;
+
+    if (!m_predictionInitialised)
+        return;
+
+    uint32_t ackedSeq = pkt->players[m_currentPlayerId].currentInput.sequence;
+    if (ackedSeq > m_lastAckedSeq) {
+        m_lastAckedSeq = ackedSeq;
+        const state::PlayerState &lp = m_worldState.m_players[m_currentPlayerId];
+        Reconcile(lp.position, ackedSeq);
+    }
 }
 
 void GameScene::HandleCurrentWorldState(const char *buffer) {
@@ -219,7 +218,13 @@ void GameScene::HandlePlayerRespawned(const char *buffer) {
 
     // only snap camera for the local player
     if (pkt->player.id == m_worldState.m_currentPlayerId) {
-        m_cameraReady = false;
+        m_predictedPos = pkt->player.position;
+        m_smoothedPredictedPos = pkt->player.position;
+
+        m_inputBuffer = {};
+        m_lastAckedSeq = 0;
+
+        m_camera.target = pkt->player.position;
     }
 }
 
@@ -334,6 +339,69 @@ void GameScene::RenderConnecting() {
     EndDrawing();
 }
 
+void GameScene::TickPrediction(float dt) {
+    if (!m_joined || m_gameBeginTimer > 0.0f)
+        return;
+
+    const state::PlayerState &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];
+
+    // Don't predict while dead
+    if (lp.state == state::State::Dead)
+        return;
+
+    float moveX = 0.0f, moveY = 0.0f;
+    if (IsKeyDown(KEY_W))
+        moveY -= 1.0f;
+    if (IsKeyDown(KEY_S))
+        moveY += 1.0f;
+    if (IsKeyDown(KEY_A))
+        moveX -= 1.0f;
+    if (IsKeyDown(KEY_D))
+        moveX += 1.0f;
+
+    state::PlayerState predicted = m_worldState.m_players[m_worldState.m_currentPlayerId];
+    predicted.position = m_predictedPos;
+    predicted.currentInput.moveX = moveX;
+    predicted.currentInput.moveY = moveY;
+
+    Character::SimulateMove(predicted, dt);
+
+    m_predictedPos = predicted.position;
+
+    m_sendAccumulator += dt;
+    if (m_sendAccumulator >= m_sendInterval) {
+        auto pkt = CollectInput();
+        pkt.moveX = moveX;
+        pkt.moveY = moveY;
+        m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+
+        // Store in ring buffer (overwrite old slots — ring wraps by INPUT_BUFFER_SIZE)
+        size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
+        m_inputBuffer[slot] = {pkt, m_sendInterval};
+
+        m_sendAccumulator -= m_sendInterval;
+    }
+
+    if (!m_smoothedPredictedPos.x && !m_smoothedPredictedPos.y)
+        m_smoothedPredictedPos = m_predictedPos;
+
+    float dist = Vector2Distance(m_smoothedPredictedPos, m_predictedPos);
+
+    // If the correction is large (e.g. respawn or big reconciliation), snap immediately
+    // Otherwise smoothly close the gap each frame
+    if (dist > SNAP_THRESHOLD) {
+        m_smoothedPredictedPos = m_predictedPos;
+    } else {
+        // Exponential decay — fast enough to feel instant, slow enough to hide jitter
+        float t = 1.0f - std::exp(-20.0f * dt);
+        m_smoothedPredictedPos = Vector2Lerp(m_smoothedPredictedPos, m_predictedPos, t);
+    }
+
+    state::PlayerState fakeLp = lp;
+    fakeLp.position = m_smoothedPredictedPos;
+    m_characterRender.SnapToPosition(fakeLp);
+}
+
 network::InputPacket GameScene::CollectInput() {
     network::InputPacket packet{};
     if (!m_joined)
@@ -342,21 +410,6 @@ network::InputPacket GameScene::CollectInput() {
     packet.header.type = network::PacketType::Input;
     packet.playerId = m_worldState.m_currentPlayerId;
     packet.characterId = m_currenCharacterId;
-
-    float x = 0.0f;
-    float y = 0.0f;
-
-    if (IsKeyDown(KEY_W))
-        y -= 1.0f;
-    if (IsKeyDown(KEY_S))
-        y += 1.0f;
-    if (IsKeyDown(KEY_A))
-        x -= 1.0f;
-    if (IsKeyDown(KEY_D))
-        x += 1.0f;
-
-    packet.moveX = x;
-    packet.moveY = y;
 
     uint8_t buttons = 0;
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
@@ -391,4 +444,24 @@ network::InputPacket GameScene::CollectInput() {
     m_lastButtons = buttons;
 
     return packet;
+}
+
+void GameScene::Reconcile(Vector2 serverPos, uint32_t ackedSeq) {
+    state::PlayerState ghost = m_worldState.m_players[m_worldState.m_currentPlayerId];
+    ghost.position = serverPos;
+
+    for (size_t i = 0; i < INPUT_BUFFER_SIZE; ++i) {
+        const PendingInput &pi = m_inputBuffer[i];
+        if (pi.packet.sequence == 0 || pi.packet.sequence <= ackedSeq)
+            continue;
+
+        ghost.currentInput.moveX = pi.packet.moveX;
+        ghost.currentInput.moveY = pi.packet.moveY;
+        Character::SimulateMove(ghost, pi.dt);
+    }
+
+    m_predictedPos = ghost.position;
+
+    if (Vector2Distance(m_smoothedPredictedPos, m_predictedPos) > SNAP_THRESHOLD)
+        m_smoothedPredictedPos = m_predictedPos;
 }

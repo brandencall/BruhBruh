@@ -1,5 +1,6 @@
 #include "game_simulation.hpp"
 #include "../config.hpp"
+#include "../shared/characters/character_movement.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
 #include "events.hpp"
@@ -7,7 +8,6 @@
 #include "state/player_state.hpp"
 #include "systems/spawn_system.hpp"
 #include <cstdint>
-#include <iostream>
 #include <string.h>
 #include <sys/types.h>
 
@@ -106,12 +106,8 @@ void GameSimulation::Update(float tickRate) {
         if (player.wallTimer > 0.0f)
             player.wallTimer -= tickRate;
 
-        Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
-        const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
-        player.velocity = Vector2Scale(dir, charDef.moveSpeed);
-        player.position = Vector2Add(player.position, Vector2Scale(player.velocity, tickRate));
-        Collision::Circle circle = {player.position, player.hurtbox.radius};
-        player.position = Collision::resolveCircleAABBList(circle, m_map.walls, dynamicColliders);
+        Character::CollisionContext ctx{&m_map.walls, &dynamicColliders};
+        Character::SimulateMove(player, tickRate, &ctx);
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
@@ -120,6 +116,7 @@ void GameSimulation::Update(float tickRate) {
 
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     const auto &def = GetCharacterDef(player.characterId);
+    player.state = state::State::Idle;
     player.health = def.maxHealth;
     player.position = System::Spawn(m_map.spawnPoints, m_players);
     player.invincibilityTimer = 2.0f;
