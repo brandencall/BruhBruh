@@ -364,7 +364,8 @@ void GameScene::TickPrediction(float dt) {
     predicted.currentInput.moveX = moveX;
     predicted.currentInput.moveY = moveY;
 
-    Character::SimulateMove(predicted, dt);
+    std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
+    Character::SimulateMove(predicted, dt, m_worldState.m_map.walls, dynamicColliders);
 
     m_predictedPos = predicted.position;
 

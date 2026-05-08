@@ -106,8 +106,7 @@ void GameSimulation::Update(float tickRate) {
         if (player.wallTimer > 0.0f)
             player.wallTimer -= tickRate;
 
-        Character::CollisionContext ctx{&m_map.walls, &dynamicColliders};
-        Character::SimulateMove(player, tickRate, &ctx);
+        Character::SimulateMove(player, tickRate, m_map.walls, dynamicColliders);
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());

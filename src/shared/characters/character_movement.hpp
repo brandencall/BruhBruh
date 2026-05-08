@@ -4,25 +4,20 @@
 #include "character_roster.hpp"
 #include "character_types.hpp"
 #include "raymath.h"
+#include <vector>
 
 namespace Character {
 
-struct CollisionContext {
-    const std::vector<Collision::AABB> *staticWalls;
-    const std::vector<Collision::AABB> *dynamicWalls;
-};
-
-inline void SimulateMove(state::PlayerState &player, float dt, const CollisionContext *ctx = nullptr) {
+inline void SimulateMove(state::PlayerState &player, float dt, const std::vector<Collision::AABB> &staticWalls = {},
+                         const std::vector<Collision::AABB> &dynamicWalls = {}) {
 
     Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
     const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
     player.velocity = Vector2Scale(dir, charDef.moveSpeed);
     player.position = Vector2Add(player.position, Vector2Scale(player.velocity, dt));
 
-    if (ctx && ctx->staticWalls) {
-        Collision::Circle circle = {player.position, player.hurtbox.radius};
-        player.position = Collision::resolveCircleAABBList(circle, *ctx->staticWalls, *ctx->dynamicWalls);
-    }
+    Collision::Circle circle = {player.position, player.hurtbox.radius};
+    player.position = Collision::resolveCircleAABBList(circle, staticWalls, dynamicWalls);
 }
 
 } // namespace Character
