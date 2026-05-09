@@ -3,8 +3,15 @@
 #include "../../shared/systems/bullet_system.hpp"
 #include "../state/client_bullet_state.hpp"
 #include <cstdint>
+#include <vector>
 
 namespace System {
+
+struct HitEffect {
+    Vector2 position;
+    float timer;
+    float maxTimer;
+};
 
 class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
@@ -20,9 +27,11 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
+    void OnBulletDestroyed(int slot, Vector2 position) override;
 
   private:
     static constexpr float BULLET_INTERP_SPEED = 5.0f;
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
+    std::vector<HitEffect> m_hitEffects;
 };
 } // namespace System

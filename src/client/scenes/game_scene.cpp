@@ -208,7 +208,8 @@ void GameScene::HandleBulletSpawn(const char *buffer) {
 
 void GameScene::HandleBulletDestroyed(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
-    m_bulletSystem.Deactivate(pkt->bulletId);
+    // m_bulletSystem.Deactivate(pkt->bulletId);
+    m_bulletSystem.Deactivate(pkt->bulletId, pkt->position);
 }
 
 void GameScene::HandlePlayerRespawned(const char *buffer) {

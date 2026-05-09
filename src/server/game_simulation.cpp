@@ -52,8 +52,9 @@ void GameSimulation::SetupBulletSystem() {
                                            Vector2 position, Vector2 velocity) {
         m_eventBus->publish(event::BulletSpawnEvent{bulletId, ownerId, characterId, position, velocity});
     });
-    m_bulletSystem.SetOnBulletDestroyed(
-        [this](uint32_t bulletId) { m_eventBus->publish(event::BulletDestroyedEvent{bulletId}); });
+    m_bulletSystem.SetOnBulletDestroyed([this](uint32_t bulletId, Vector2 position) {
+        m_eventBus->publish(event::BulletDestroyedEvent{bulletId, position});
+    });
 }
 
 void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {

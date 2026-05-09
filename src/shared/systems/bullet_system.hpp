@@ -74,11 +74,11 @@ template <typename TBulletState> class BulletSystem {
             UpdateBulletKinematics(bullet, dt);
 
             if (bullet.lifetime <= 0.0f) {
-                Deactivate(bullet.id);
+                Deactivate(bullet.id, bullet.hitbox.circle.center);
                 continue;
             }
 
-            HandleCollisions(bullet, players, dynamicWalls);
+            HandleCollisions(bullet, players, dynamicWalls, bullet.hitbox.circle.center);
         }
     }
 
@@ -95,18 +95,19 @@ template <typename TBulletState> class BulletSystem {
     }
 
     void HandleCollisions(TBulletState &bullet, const std::array<state::PlayerState, MAX_PLAYERS> &players,
-                          const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
+                          const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls,
+                          Vector2 bulletPos) {
         if (m_map) {
             for (auto &wall : m_map->walls) {
                 if (Collision::Overlap(bullet.hitbox.circle, wall)) {
-                    Deactivate(bullet.id);
+                    Deactivate(bullet.id, bulletPos);
                     break;
                 }
             }
         }
         for (auto &[_, wall] : dynamicWalls) {
             if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
-                Deactivate(bullet.id);
+                Deactivate(bullet.id, bulletPos);
                 OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
                 break;
             }
@@ -114,8 +115,8 @@ template <typename TBulletState> class BulletSystem {
 
         for (auto &player : players) {
             if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active &&
-                Collision::Overlap(bullet.hitbox.circle, Collision::GetHurtBox(player))) {
-                Deactivate(bullet.id);
+                Collision::Overlap(bullet.hitbox.circle, Collision::HurtboxToCircle(player.position, player.hurtbox))) {
+                Deactivate(bullet.id, bulletPos);
                 OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
                 break;
             }
@@ -124,11 +125,10 @@ template <typename TBulletState> class BulletSystem {
 
     void SetMap(const Map::MapData &map) { m_map = &map; }
 
-    virtual void Deactivate(uint32_t id) {
+    virtual void Deactivate(uint32_t id, Vector2 position) {
         int slot = GetSlot(id);
         if (slot >= 0 && slot < MAX_BULLETS) {
-            m_bullets[slot].active = false;
-            OnBulletDestroyed(id);
+            OnBulletDestroyed(slot, position);
         }
     }
 
@@ -150,7 +150,7 @@ template <typename TBulletState> class BulletSystem {
     virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
                                Vector2 position, Vector2 velocity) {}
-    virtual void OnBulletDestroyed(uint32_t bulletId) {}
+    virtual void OnBulletDestroyed(int slot, Vector2 position) {}
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos, Character::CharacterId characterId) {}

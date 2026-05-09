@@ -1,6 +1,7 @@
 #include "client_bullet_system.hpp"
 #include "raylib.h"
 #include <array>
+#include <cstdint>
 
 namespace System {
 
@@ -25,6 +26,13 @@ void ClientBulletSystem::Update(float dt) {
         if (!bullet.active)
             continue;
 
+        if (bullet.lingerTimer > 0.0f) {
+            bullet.lingerTimer -= dt;
+            if (bullet.lingerTimer <= 0.0f)
+                bullet.active = false;
+            continue; // don't move it
+        }
+
         UpdateBulletKinematics(bullet, dt);
 
         if (bullet.lifetime <= 0.0f) {
@@ -32,6 +40,11 @@ void ClientBulletSystem::Update(float dt) {
             continue;
         }
     }
+
+    for (auto &fx : m_hitEffects)
+        fx.timer -= dt;
+
+    std::erase_if(m_hitEffects, [](const HitEffect &fx) { return fx.timer <= 0.0f; });
 }
 
 void ClientBulletSystem::Draw(const std::array<state::ClientBulletState, MAX_BULLETS> &bullets) {
@@ -39,6 +52,13 @@ void ClientBulletSystem::Draw(const std::array<state::ClientBulletState, MAX_BUL
         if (!bullet.active)
             continue;
         Draw(bullet);
+    }
+
+    for (const auto &fx : m_hitEffects) {
+        float t = 1.0f - (fx.timer / fx.maxTimer);
+        float radius = 8.0f * t;
+        uint8_t alpha = (uint8_t)(255 * (1.0f - t));
+        DrawCircleV(fx.position, radius, {255, 200, 50, alpha});
     }
 }
 
@@ -57,14 +77,21 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     DrawTexturePro(tex, source, dest, origin, bullet.rotation, WHITE);
 
     // debug hitbox
-    // DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
-    // DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
+    DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
+    DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
 }
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,
                                  Character::CharacterId characterId) {
     bullet.serverPosition = spawnPos;
     bullet.characterId = characterId;
+}
+
+void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position) {
+    m_bullets[slot].serverPosition = position;
+    m_bullets[slot].hitbox.circle.center = position;
+    m_bullets[slot].lingerTimer = 0.02f;
+    m_hitEffects.push_back({position, 0.15f, 0.15f});
 }
 
 int ClientBulletSystem::SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,

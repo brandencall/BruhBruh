@@ -137,6 +137,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         network::BulletDestroyedPacket pkt{};
         pkt.header.type = network::PacketType::BulletDestroyed;
         pkt.bulletId = e.bulletId;
+        pkt.position = e.position;
         BroadcastAll(&pkt, sizeof(pkt));
     });
     eventBus.DrainPlayerRespawn([&](const event::PlayerRespawnEvent &e) {

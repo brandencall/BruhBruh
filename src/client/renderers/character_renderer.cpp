@@ -47,11 +47,8 @@ void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &
         if (!player.active)
             continue;
 
-        // TODO: Instead of not drawing the dead player, draw the dead players death frames
-        // if (player.respawnTimer > 0.0f)
-        //    continue;
-
         Draw(player);
+        DebugHitBox(player);
     }
 }
 

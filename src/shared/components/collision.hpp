@@ -40,10 +40,6 @@ inline bool Overlap(const Circle &circle, const AABB &aabb) {
     return dx * dx + dy * dy <= circle.radius * circle.radius;
 }
 
-inline Circle GetHurtBox(const state::PlayerState &player) {
-    return {player.position.x, player.position.y, player.hurtbox.radius};
-}
-
 inline Circle HurtboxToCircle(Vector2 position, component::Hurtbox hurtbox) {
     return Circle{.center = {position.x + hurtbox.offsetX, position.y + hurtbox.offsetY}, .radius = hurtbox.radius};
 }
