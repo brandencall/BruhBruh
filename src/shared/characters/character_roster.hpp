@@ -6,10 +6,62 @@ namespace Character {
 inline const CharacterDef &GetCharacterDef(CharacterId id) {
     static const CharacterDef roster[] = {
         {},
-        {CharacterId::Tonts, 300.0f, 12.0f, 100.0f, .50f, {500.0f, 10.0f, 10.0f, 3.0f, 360.0f, .20f}},
-        {CharacterId::Hodge, 300.0f, 12.0f, 100.0f, .50f, {500.0f, 10.0f, 10.0f, 3.0f, 360.0f, .20f}},
-        {CharacterId::Raff, 300.0f, 12.0f, 100.0f, .50f, {500.0f, 10.0f, 10.0f, 3.0f, 360.0f, .20f}},
-        {CharacterId::JJ, 300.0f, 12.0f, 100.0f, .50f, {500.0f, 10.0f, 10.0f, 3.0f, 0.0f, .20f}},
+        {CharacterId::Tonts, // CharacterId
+         300.0f,             // moveSpeed
+         12.0f,              // hurtboxRadius
+         100.0f,             // maxHealth
+         .50f,               // wallCooldown
+         // BulletDef
+         {
+             650.0f, // speed
+             8.0f,   // radius
+             10.0f,  // damage
+             3.0f,   // lifetime
+             540.0f, // spinSpeed
+             .20f    // cooldown}
+         }},
+        {CharacterId::Hodge, // CharacterId
+         300.0f,             // moveSpeed
+         12.0f,              // hurtboxRadius
+         100.0f,             // maxHealth
+         .50f,               // wallCooldown
+         // BulletDef
+         {
+             650.0f, // speed
+             8.0f,   // radius
+             10.0f,  // damage
+             3.0f,   // lifetime
+             360.0f, // spinSpeed
+             .20f    // cooldown}
+         }},
+        {CharacterId::Raff, // CharacterId
+         300.0f,            // moveSpeed
+         12.0f,             // hurtboxRadius
+         100.0f,            // maxHealth
+         .50f,              // wallCooldown
+         // BulletDef
+         {
+             650.0f, // speed
+             8.0f,   // radius
+             10.0f,  // damage
+             3.0f,   // lifetime
+             360.0f, // spinSpeed
+             .20f    // cooldown}
+         }},
+        {CharacterId::JJ, // CharacterId
+         300.0f,          // moveSpeed
+         12.0f,           // hurtboxRadius
+         100.0f,          // maxHealth
+         .50f,            // wallCooldown
+         // BulletDef
+         {
+             650.0f, // speed
+             8.0f,   // radius
+             10.0f,  // damage
+             3.0f,   // lifetime
+             0.0f,   // spinSpeed
+             .20f    // cooldown}
+         }},
     };
     return roster[static_cast<uint8_t>(id)];
 }

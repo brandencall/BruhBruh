@@ -6,8 +6,8 @@
 namespace System {
 
 void ClientBulletSystem::Load() {
-    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/items/bottle_tonts.png");
-    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/items/meatball_hodges.png");
+    m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/items/bottle_tonts_v2.png");
+    m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/items/meatball_hodges_v1.png");
     m_textures[Character::CharacterId::Raff] = LoadTexture("assets/items/steak_raff.png");
     m_textures[Character::CharacterId::JJ] = LoadTexture("assets/items/needle_j.png");
 
@@ -66,19 +66,22 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     auto it = m_textures.find(bullet.characterId);
     if (it == m_textures.end())
         return;
-
     const Texture2D &tex = it->second;
     const Vector2 &center = bullet.hitbox.circle.center;
 
+    // texture renders at 125% of hitbox radius
+    constexpr float kVisualScale = 1.25f;
+    float diameter = bullet.hitbox.circle.radius * 2.0f * kVisualScale;
+
     Rectangle source = {0, 0, (float)tex.width, (float)tex.height};
-    Rectangle dest = {center.x, center.y, (float)tex.width, (float)tex.height};
-    Vector2 origin = {tex.width * 0.5f, tex.height * 0.5f};
+    float scale = diameter / (float)std::max(tex.width, tex.height);
+    Rectangle dest = {center.x, center.y, tex.width * scale, tex.height * scale};
+    Vector2 origin = {tex.width * scale * 0.5f, tex.height * scale * 0.5f};
 
     DrawTexturePro(tex, source, dest, origin, bullet.rotation, WHITE);
-
     // debug hitbox
-    DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
-    DrawCircleLinesV(center, bullet.hitbox.circle.radius, RED);
+    // DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
+    // DrawCircleLinesV(center, bullet.hitbox.circle.radius, YELLOW);
 }
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,
