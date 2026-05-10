@@ -18,7 +18,8 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              540.0f, // spinSpeed
-             .20f    // cooldown}
+             .20f,   // cooldown
+             1.25f,  // bulletTexScale
          }},
         {CharacterId::Hodge, // CharacterId
          300.0f,             // moveSpeed
@@ -32,7 +33,8 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              360.0f, // spinSpeed
-             .20f    // cooldown}
+             .20f,   // cooldown
+             1.25f,  // bulletTexScale
          }},
         {CharacterId::Raff, // CharacterId
          300.0f,            // moveSpeed
@@ -46,7 +48,8 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              360.0f, // spinSpeed
-             .20f    // cooldown}
+             .20f,   // cooldown
+             1.25f,  // bulletTexScale
          }},
         {CharacterId::JJ, // CharacterId
          300.0f,          // moveSpeed
@@ -60,7 +63,8 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              0.0f,   // spinSpeed
-             .20f    // cooldown}
+             .20f,   // cooldown
+             2.50f,  // bulletTexScale
          }},
     };
     return roster[static_cast<uint8_t>(id)];

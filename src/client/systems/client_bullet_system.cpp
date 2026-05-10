@@ -8,8 +8,8 @@ namespace System {
 void ClientBulletSystem::Load() {
     m_textures[Character::CharacterId::Tonts] = LoadTexture("assets/items/bottle_tonts_v2.png");
     m_textures[Character::CharacterId::Hodge] = LoadTexture("assets/items/meatball_hodges_v1.png");
-    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/items/steak_raff.png");
-    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/items/needle_j.png");
+    m_textures[Character::CharacterId::Raff] = LoadTexture("assets/items/steak_raff_v1.png");
+    m_textures[Character::CharacterId::JJ] = LoadTexture("assets/items/needle_j_v1.png");
 
     for (const auto &tex : m_textures) {
         SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);
@@ -70,8 +70,9 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     const Vector2 &center = bullet.hitbox.circle.center;
 
     // texture renders at 125% of hitbox radius
-    constexpr float kVisualScale = 1.25f;
-    float diameter = bullet.hitbox.circle.radius * 2.0f * kVisualScale;
+    // constexpr float kVisualScale = 1.25f;
+    Character::CharacterDef def = Character::GetCharacterDef(bullet.characterId);
+    float diameter = bullet.hitbox.circle.radius * 2.0f * def.bullet.bulletTexScale;
 
     Rectangle source = {0, 0, (float)tex.width, (float)tex.height};
     float scale = diameter / (float)std::max(tex.width, tex.height);
@@ -86,8 +87,10 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
 
 void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawnPos,
                                  Character::CharacterId characterId) {
+    Character::CharacterDef def = Character::GetCharacterDef(characterId);
     bullet.serverPosition = spawnPos;
     bullet.characterId = characterId;
+    bullet.bulletTexScale = def.bullet.bulletTexScale;
 }
 
 void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position) {

@@ -18,6 +18,7 @@ struct BulletDef {
     float lifetime;
     float spinSpeed;
     float cooldown;
+    float bulletTexScale;
 };
 
 struct CharacterDef {

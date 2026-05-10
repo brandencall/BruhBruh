@@ -9,6 +9,7 @@ struct ClientBulletState : public BulletState {
     Vector2 serverPosition;
     Character::CharacterId characterId;
     float lingerTimer = 0.0f;
+    float bulletTexScale = 1.0f;
 };
 
 } // namespace state
