@@ -172,19 +172,22 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
 void GameScene::HandleStateResponse(const char *buffer) {
     auto *pkt = (network::StatePacket *)buffer;
+
+    uint32_t ackedSeq = pkt->players[m_currentPlayerId].currentInput.sequence;
+    if (ackedSeq <= m_lastAckedSeq)
+        return;
+
     for (uint16_t i = 0; i < pkt->playerCount; ++i)
         m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
+
     m_worldState.m_gameTime = pkt->currentGameTime;
 
     if (!m_predictionInitialised)
         return;
 
-    uint32_t ackedSeq = pkt->players[m_currentPlayerId].currentInput.sequence;
-    if (ackedSeq > m_lastAckedSeq) {
-        m_lastAckedSeq = ackedSeq;
-        const state::PlayerState &lp = m_worldState.m_players[m_currentPlayerId];
-        Reconcile(lp.position, ackedSeq);
-    }
+    m_lastAckedSeq = ackedSeq;
+    const state::PlayerState &lp = m_worldState.m_players[m_currentPlayerId];
+    Reconcile(lp.position, ackedSeq);
 }
 
 void GameScene::HandleCurrentWorldState(const char *buffer) {
@@ -379,7 +382,7 @@ void GameScene::TickPrediction(float dt) {
 
         // Store in ring buffer (overwrite old slots — ring wraps by INPUT_BUFFER_SIZE)
         size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
-        m_inputBuffer[slot] = {pkt, m_sendInterval};
+        m_inputBuffer[slot] = {pkt, dt};
 
         m_sendAccumulator -= m_sendInterval;
     }
@@ -449,21 +452,19 @@ network::InputPacket GameScene::CollectInput() {
 }
 
 void GameScene::Reconcile(Vector2 serverPos, uint32_t ackedSeq) {
-    state::PlayerState ghost = m_worldState.m_players[m_worldState.m_currentPlayerId];
+    state::PlayerState ghost = m_worldState.m_players[m_currentPlayerId];
     ghost.position = serverPos;
 
+    std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
     for (size_t i = 0; i < INPUT_BUFFER_SIZE; ++i) {
         const PendingInput &pi = m_inputBuffer[i];
-        if (pi.packet.sequence == 0 || pi.packet.sequence <= ackedSeq)
+        if (pi.packet.sequence <= ackedSeq)
             continue;
 
         ghost.currentInput.moveX = pi.packet.moveX;
         ghost.currentInput.moveY = pi.packet.moveY;
-        Character::SimulateMove(ghost, pi.dt);
+        Character::SimulateMove(ghost, pi.dt, m_worldState.m_map.walls, dynamicColliders);
     }
 
     m_predictedPos = ghost.position;
-
-    if (Vector2Distance(m_smoothedPredictedPos, m_predictedPos) > SNAP_THRESHOLD)
-        m_smoothedPredictedPos = m_predictedPos;
 }

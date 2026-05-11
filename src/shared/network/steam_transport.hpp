@@ -2,6 +2,7 @@
 #include "../../network/packets/packet_header.hpp"
 #include "ITransport.hpp"
 #include "steam/steamclientpublic.h"
+#include "steam/steamnetworkingtypes.h"
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
@@ -73,7 +74,8 @@ class SteamTransport : public ITransport {
 
         auto *header = reinterpret_cast<const network::PacketHeader *>(data);
         bool reliable = IsReliablePacket(header->type);
-        int sendFlags = reliable ? k_nSteamNetworkingSend_Reliable : k_nSteamNetworkingSend_Unreliable;
+        int sendFlags = reliable ? k_nSteamNetworkingSend_Reliable
+                                 : k_nSteamNetworkingSend_Unreliable | k_nSteamNetworkingSend_UnreliableNoNagle;
         int channel = reliable ? 1 : 0;
 
         auto result =

@@ -69,8 +69,6 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     const Texture2D &tex = it->second;
     const Vector2 &center = bullet.hitbox.circle.center;
 
-    // texture renders at 125% of hitbox radius
-    // constexpr float kVisualScale = 1.25f;
     Character::CharacterDef def = Character::GetCharacterDef(bullet.characterId);
     float diameter = bullet.hitbox.circle.radius * 2.0f * def.bullet.bulletTexScale;
 
