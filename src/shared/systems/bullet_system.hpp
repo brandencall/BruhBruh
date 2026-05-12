@@ -85,21 +85,26 @@ template <typename TBulletState> class BulletSystem {
         OnSpawn(m_bullets[slot], position, character.id);
     }
 
-    void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
-                std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
+    virtual void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
+                        std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
         for (auto &bullet : m_bullets) {
-            if (!bullet.active)
-                continue;
-
-            UpdateBulletKinematics(bullet, dt);
-
-            if (bullet.lifetime <= 0.0f) {
-                Deactivate(bullet.id, bullet.hitbox.circle.center);
-                continue;
-            }
-
-            HandleCollisions(bullet, players, dynamicWalls, bullet.hitbox.circle.center);
+            Update(dt, players, dynamicWalls, bullet);
         }
+    }
+
+    void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
+                std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls,
+                TBulletState &bullet) {
+        if (!bullet.active)
+            return;
+
+        UpdateBulletKinematics(bullet, dt);
+        if (bullet.lifetime <= 0.0f) {
+            Deactivate(bullet.id, bullet.hitbox.circle.center);
+            return;
+        }
+        HandleCollisions(bullet, players, dynamicWalls, bullet.hitbox.circle.center);
+        OnBulletUpdate(bullet, dt);
     }
 
     void UpdateBulletKinematics(TBulletState &bullet, float dt) {
@@ -145,16 +150,20 @@ template <typename TBulletState> class BulletSystem {
 
     void SetMap(const Map::MapData &map) { m_map = &map; }
 
-    virtual void Deactivate(uint32_t id, Vector2 position) {
+    void Deactivate(uint32_t id, Vector2 position) {
         int slot = GetSlot(id);
         if (slot >= 0 && slot < MAX_BULLETS) {
             OnBulletDestroyed(slot, position);
+            TBulletState *bullet = Get(slot);
+            if (bullet) {
+                bullet->active = false;
+            }
         }
     }
 
     std::array<TBulletState, MAX_BULLETS> &GetBullets() { return m_bullets; }
 
-    const state::BulletState *Get(int slot) const {
+    TBulletState *Get(int slot) {
         if (slot < 0 || slot >= MAX_BULLETS || !m_bullets[slot].active)
             return nullptr;
         return &m_bullets[slot];
@@ -171,6 +180,7 @@ template <typename TBulletState> class BulletSystem {
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
                                Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {}
     virtual void OnBulletDestroyed(int slot, Vector2 position) {}
+    virtual void OnBulletUpdate(TBulletState &bullet, float dt) {}
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos, Character::CharacterId characterId) {}

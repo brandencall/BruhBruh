@@ -10,6 +10,8 @@ struct ClientBulletState : public BulletState {
     Character::CharacterId characterId;
     float lingerTimer = 0.0f;
     float bulletTexScale = 1.0f;
+    float age = 0.0f;
+    bool skipFirstDraw = false;
 };
 
 } // namespace state

@@ -22,13 +22,16 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     void Draw();
     void Draw(const state::ClientBulletState &bullet);
     void AssignId(int slot, uint32_t id);
-    void Update(float dt);
+    // void Update(float dt);
+    void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
+                std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) override;
     int SpawnFromServerEvent(const network::BulletSpawnPacket &bullet);
     void ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId);
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
     void OnBulletDestroyed(int slot, Vector2 position) override;
+    void OnBulletUpdate(state::ClientBulletState &bullet, float dt) override;
 
   private:
     static constexpr float BULLET_INTERP_SPEED = 5.0f;

@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 namespace System {
 
@@ -40,34 +41,19 @@ int ClientBulletSystem::Spawn(const BulletSpawnDef &bulletDef) {
     bullet.active = true;
     bullet.serverPosition = bulletDef.position;
     bullet.bulletTexScale = bulletDef.character.bullet.bulletTexScale;
+    bullet.age = 0.0f;
     m_predictedBullets[bulletDef.predSequence] = bullet;
     return 0;
 }
 
-void ClientBulletSystem::Update(float dt) {
+void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
+                                std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
     for (auto &bullet : m_bullets) {
-        if (!bullet.active)
-            continue;
-
-        if (bullet.lingerTimer > 0.0f) {
-            bullet.lingerTimer -= dt;
-            if (bullet.lingerTimer <= 0.0f)
-                bullet.active = false;
-            continue; // don't move it
-        }
-
-        UpdateBulletKinematics(bullet, dt);
-
-        if (bullet.lifetime <= 0.0f) {
-            bullet.active = false;
-            continue;
-        }
+        bullet.skipFirstDraw = false;
+        BulletSystem::Update(dt, players, dynamicWalls, bullet);
     }
-
-    for (auto &bullet : m_predictedBullets) {
-        if (!bullet.second.active)
-            continue;
-        UpdateBulletKinematics(bullet.second, dt);
+    for (auto &[seq, bullet] : m_predictedBullets) {
+        BulletSystem::Update(dt, players, dynamicWalls, bullet);
     }
 
     for (auto &fx : m_hitEffects)
@@ -78,7 +64,7 @@ void ClientBulletSystem::Update(float dt) {
 
 void ClientBulletSystem::Draw() {
     for (const auto &bullet : m_bullets) {
-        if (!bullet.active)
+        if (!bullet.active || bullet.skipFirstDraw)
             continue;
         Draw(bullet);
     }
@@ -124,14 +110,22 @@ void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawn
     bullet.serverPosition = spawnPos;
     bullet.characterId = characterId;
     bullet.bulletTexScale = def.bullet.bulletTexScale;
+    bullet.skipFirstDraw = true;
 }
 
 void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position) {
+    if (slot < 0 || slot >= MAX_BULLETS)
+        return;
+    if (!m_bullets[slot].active)
+        return;
+
     m_bullets[slot].serverPosition = position;
     m_bullets[slot].hitbox.circle.center = position;
     m_bullets[slot].lingerTimer = 0.02f;
     m_hitEffects.push_back({position, 0.15f, 0.15f});
 }
+
+void ClientBulletSystem::OnBulletUpdate(state::ClientBulletState &bullet, float dt) { bullet.age += dt; }
 
 int ClientBulletSystem::SpawnFromServerEvent(const network::BulletSpawnPacket &bullet) {
     int slot = GetSlot(bullet.bulletId);
@@ -146,10 +140,30 @@ int ClientBulletSystem::SpawnFromServerEvent(const network::BulletSpawnPacket &b
 
 void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId) {
     auto it = m_predictedBullets.find(bullet.bulletPredSequence);
-    if (it != m_predictedBullets.end() && it->second.ownerId == ownerId) {
-        SpawnFromServerEvent(bullet);
+    if (it == m_predictedBullets.end() || it->second.ownerId != ownerId)
+        return;
+
+    if (!it->second.active) {
         m_predictedBullets.erase(it);
+        return;
     }
+
+    float predictedAge = it->second.age; // how long client has been simulating this bullet
+    int slot = SpawnFromServerEvent(bullet);
+    std::cout << "Should be spawning bullet from predicted bullet" << std::endl;
+    if (slot >= 0) {
+        // Fast-forward the confirmed bullet to match where the predicted one was
+        // Use a fixed small sub-step to avoid tunnelling through walls
+        constexpr float STEP = 1.0f / 120.0f;
+        float remaining = predictedAge;
+        while (remaining > 0.0f) {
+            float step = std::min(remaining, STEP);
+            UpdateBulletKinematics(m_bullets[slot], step);
+            remaining -= step;
+        }
+    }
+
+    m_predictedBullets.erase(it);
 }
 
 void ClientBulletSystem::AssignId(int slot, uint32_t id) {

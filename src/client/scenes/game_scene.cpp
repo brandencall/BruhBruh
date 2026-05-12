@@ -45,6 +45,7 @@ void GameScene::OnEnter() {
     m_characterRender.Load();
     m_wallRender.Load();
     m_bulletSystem.Load();
+    m_bulletSystem.SetMap(m_worldState.m_map);
 
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
@@ -93,7 +94,7 @@ uint32_t GameScene::GetCurrentPlayerId() const { return m_worldState.m_currentPl
 
 void GameScene::Update(float dt) {
     Sync(dt);
-    m_bulletSystem.Update(dt);
+    m_bulletSystem.Update(dt, m_worldState.m_players, m_wallManager.GetAllWalls());
     m_ui.Update(dt);
     if (m_ui.BlocksGameInput())
         return;
@@ -447,7 +448,7 @@ network::InputPacket GameScene::CollectInput() {
             packet.aimX = aimDir.x;
             packet.aimY = aimDir.y;
             packet.predBulletSequence = m_localBulletSeq;
-            m_bulletSystem.Spawn({m_currentPlayerId, playerPos, aimDir, charDef, m_localBulletSeq});
+            m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
             m_localBulletSeq++;
         } else if (buttons & (1 << 1)) {
             // Send raw world position for wall placement
