@@ -21,6 +21,29 @@ void ClientBulletSystem::Unload() {
         UnloadTexture(tex);
 }
 
+int ClientBulletSystem::Spawn(const BulletSpawnDef &bulletDef) {
+
+    Vector2 velocity = Vector2Scale(Vector2Normalize(bulletDef.direction), bulletDef.character.bullet.speed);
+    component::Hitbox hitbox = {
+        .circle = {.center = {bulletDef.position.x, bulletDef.position.y}, .radius = bulletDef.character.bullet.radius},
+        .damage = bulletDef.character.bullet.damage,
+    };
+    state::ClientBulletState bullet{};
+    bullet.id = -1;
+    bullet.ownerId = bulletDef.ownerId;
+    bullet.characterId = bulletDef.character.id;
+    bullet.predId = bulletDef.predSequence;
+    bullet.velocity = velocity;
+    bullet.lifetime = bulletDef.character.bullet.lifetime;
+    bullet.rotation = atan2f(velocity.y, velocity.x) * RAD2DEG;
+    bullet.hitbox = hitbox;
+    bullet.active = true;
+    bullet.serverPosition = bulletDef.position;
+    bullet.bulletTexScale = bulletDef.character.bullet.bulletTexScale;
+    m_predictedBullets[bulletDef.predSequence] = bullet;
+    return 0;
+}
+
 void ClientBulletSystem::Update(float dt) {
     for (auto &bullet : m_bullets) {
         if (!bullet.active)
@@ -41,17 +64,29 @@ void ClientBulletSystem::Update(float dt) {
         }
     }
 
+    for (auto &bullet : m_predictedBullets) {
+        if (!bullet.second.active)
+            continue;
+        UpdateBulletKinematics(bullet.second, dt);
+    }
+
     for (auto &fx : m_hitEffects)
         fx.timer -= dt;
 
     std::erase_if(m_hitEffects, [](const HitEffect &fx) { return fx.timer <= 0.0f; });
 }
 
-void ClientBulletSystem::Draw(const std::array<state::ClientBulletState, MAX_BULLETS> &bullets) {
-    for (const auto &bullet : bullets) {
+void ClientBulletSystem::Draw() {
+    for (const auto &bullet : m_bullets) {
         if (!bullet.active)
             continue;
         Draw(bullet);
+    }
+
+    for (const auto &bullet : m_predictedBullets) {
+        if (!bullet.second.active)
+            continue;
+        Draw(bullet.second);
     }
 
     for (const auto &fx : m_hitEffects) {
@@ -98,15 +133,23 @@ void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position) {
     m_hitEffects.push_back({position, 0.15f, 0.15f});
 }
 
-int ClientBulletSystem::SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                                             const Character::CharacterDef &character) {
-    int slot = GetSlot(serverId);
+int ClientBulletSystem::SpawnFromServerEvent(const network::BulletSpawnPacket &bullet) {
+    int slot = GetSlot(bullet.bulletId);
     if (slot < 0 || slot >= MAX_BULLETS)
         return -1;
 
-    InitBulletSlot(slot, serverId, ownerId, position, velocity, character);
+    Character::CharacterDef character = Character::GetCharacterDef(bullet.characterId);
+    InitBulletSlot(slot, bullet.bulletId, bullet.ownerId, bullet.position, bullet.velocity, character);
 
     return slot;
+}
+
+void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId) {
+    auto it = m_predictedBullets.find(bullet.bulletPredSequence);
+    if (it != m_predictedBullets.end() && it->second.ownerId == ownerId) {
+        SpawnFromServerEvent(bullet);
+        m_predictedBullets.erase(it);
+    }
 }
 
 void ClientBulletSystem::AssignId(int slot, uint32_t id) {

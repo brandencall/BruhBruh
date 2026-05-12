@@ -39,6 +39,7 @@ struct InputPacket {
     uint8_t buttons;
 
     uint32_t sequence;
+    uint32_t predBulletSequence = -1;
 };
 
 struct StatePacket {
@@ -68,6 +69,7 @@ struct BulletSpawnPacket {
     uint32_t bulletId;
     uint32_t ownerId;
     Character::CharacterId characterId;
+    uint32_t bulletPredSequence;
     Vector2 position;
     Vector2 velocity;
 };

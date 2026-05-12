@@ -1,5 +1,5 @@
 #pragma once
-
+#include "../../network/packets/gameplay_packets.hpp"
 #include "../../shared/systems/bullet_system.hpp"
 #include "../state/client_bullet_state.hpp"
 #include <cstdint>
@@ -18,12 +18,13 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
   public:
     void Load();
     void Unload();
-    void Draw(const std::array<state::ClientBulletState, MAX_BULLETS> &bullets);
+    int Spawn(const BulletSpawnDef &bulletDef) override;
+    void Draw();
     void Draw(const state::ClientBulletState &bullet);
     void AssignId(int slot, uint32_t id);
     void Update(float dt);
-    int SpawnFromServerEvent(uint32_t serverId, uint32_t ownerId, Vector2 position, Vector2 velocity,
-                             const Character::CharacterDef &character);
+    int SpawnFromServerEvent(const network::BulletSpawnPacket &bullet);
+    void ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId);
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
@@ -33,5 +34,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     static constexpr float BULLET_INTERP_SPEED = 5.0f;
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
     std::vector<HitEffect> m_hitEffects;
+    // std::vector<state::ClientBulletState> m_predictedBullets;
+    std::unordered_map<uint32_t, state::ClientBulletState> m_predictedBullets;
 };
 } // namespace System

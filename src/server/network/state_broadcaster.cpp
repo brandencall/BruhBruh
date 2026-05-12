@@ -129,6 +129,7 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         pkt.bulletId = e.bulletId;
         pkt.ownerId = e.ownerId;
         pkt.characterId = e.characterId;
+        pkt.bulletPredSequence = e.bulletPredSequence;
         pkt.position = e.position;
         pkt.velocity = e.velocity;
         BroadcastAll(&pkt, sizeof(pkt));

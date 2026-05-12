@@ -9,6 +9,7 @@ struct BulletState {
     uint32_t id;
     uint32_t ownerId;
     Character::CharacterId characterId;
+    uint32_t predId;
     Vector2 velocity;
     float lifetime;
     float rotation;

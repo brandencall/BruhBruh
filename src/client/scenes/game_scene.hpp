@@ -88,7 +88,6 @@ class GameScene : public Scene {
     uint16_t m_inputSequence = 1;
     uint8_t m_lastButtons = 0;
     uint32_t m_localBulletSeq = 0;
-    uint32_t m_localBulletConfirmSeq = 0; // increments when server confirms a spawn
     float m_sendAccumulator = 0.0f;
     float m_sendInterval = 1.0f / 60.0f;
 

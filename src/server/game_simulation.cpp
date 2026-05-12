@@ -49,8 +49,9 @@ void GameSimulation::SetupBulletSystem() {
     });
 
     m_bulletSystem.SetOnBulletSpawn([this](uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
-                                           Vector2 position, Vector2 velocity) {
-        m_eventBus->publish(event::BulletSpawnEvent{bulletId, ownerId, characterId, position, velocity});
+                                           Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {
+        m_eventBus->publish(
+            event::BulletSpawnEvent{bulletId, ownerId, characterId, bulletPredSequence, position, velocity});
     });
     m_bulletSystem.SetOnBulletDestroyed([this](uint32_t bulletId, Vector2 position) {
         m_eventBus->publish(event::BulletDestroyedEvent{bulletId, position});
@@ -157,7 +158,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     bool shootPrev = player.lastButtons & (1 << 0);
     if (shootNow && !shootPrev && player.shootTimer <= 0.0f) {
         Vector2 aimDir = {input.aimX, input.aimY};
-        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef});
+        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, input.predBulletSequence});
         player.shootTimer = charDef.bullet.cooldown;
     }
     bool placeNow = input.buttons & (1 << 1);

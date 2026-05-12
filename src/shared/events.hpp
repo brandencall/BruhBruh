@@ -12,6 +12,7 @@ struct BulletSpawnEvent {
     uint32_t bulletId;
     uint32_t ownerId;
     Character::CharacterId characterId;
+    uint32_t bulletPredSequence;
     Vector2 position;
     Vector2 velocity;
 };

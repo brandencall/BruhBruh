@@ -20,6 +20,7 @@ struct BulletSpawnDef {
     Vector2 position;
     Vector2 direction;
     const Character::CharacterDef &character;
+    uint32_t predSequence;
 };
 
 template <typename TBulletState> class BulletSystem {
@@ -38,13 +39,32 @@ template <typename TBulletState> class BulletSystem {
             uint16_t gen = ++m_generations[i];
             uint32_t id = MakeId(i, gen);
             Vector2 velocity = Vector2Scale(Vector2Normalize(bulletDef.direction), bulletDef.character.bullet.speed);
-            InitBulletSlot(i, id, bulletDef.ownerId, bulletDef.position, velocity, bulletDef.character);
+            InitBulletSlot(bulletDef, i, id, velocity);
 
             OnBulletSpawn(m_bullets[i].id, bulletDef.ownerId, bulletDef.character.id, bulletDef.position,
-                          m_bullets[i].velocity);
+                          m_bullets[i].velocity, bulletDef.predSequence);
             return i;
         }
         return -1;
+    }
+
+    void InitBulletSlot(const BulletSpawnDef &bulletDef, int slot, uint32_t id, Vector2 velocity) {
+        component::Hitbox hitbox = {
+            .circle = {.center = {bulletDef.position.x, bulletDef.position.y},
+                       .radius = bulletDef.character.bullet.radius},
+            .damage = bulletDef.character.bullet.damage,
+        };
+        m_bullets[slot] = TBulletState{};
+        m_bullets[slot].id = id;
+        m_bullets[slot].ownerId = bulletDef.ownerId;
+        m_bullets[slot].characterId = bulletDef.character.id;
+        m_bullets[slot].predId = bulletDef.predSequence;
+        m_bullets[slot].velocity = velocity;
+        m_bullets[slot].lifetime = bulletDef.character.bullet.lifetime;
+        m_bullets[slot].rotation = atan2f(velocity.y, velocity.x) * RAD2DEG;
+        m_bullets[slot].hitbox = hitbox;
+        m_bullets[slot].active = true;
+        OnSpawn(m_bullets[slot], bulletDef.position, bulletDef.character.id);
     }
 
     void InitBulletSlot(int slot, uint32_t id, uint32_t ownerId, Vector2 position, Vector2 velocity,
@@ -149,7 +169,7 @@ template <typename TBulletState> class BulletSystem {
     virtual void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) {}
     virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
-                               Vector2 position, Vector2 velocity) {}
+                               Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {}
     virtual void OnBulletDestroyed(int slot, Vector2 position) {}
 
   protected:

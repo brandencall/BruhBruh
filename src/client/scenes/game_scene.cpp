@@ -10,6 +10,7 @@
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 #include <cstdint>
+#include <iostream>
 
 GameScene::GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
                      state::LobbySlotState currentPlayerState)
@@ -206,12 +207,15 @@ void GameScene::HandleCurrentWorldState(const char *buffer) {
 void GameScene::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
     Character::CharacterDef character = Character::GetCharacterDef(pkt->characterId);
-    m_bulletSystem.SpawnFromServerEvent(pkt->bulletId, pkt->ownerId, pkt->position, pkt->velocity, character);
+    if (pkt->ownerId == m_currentPlayerId) {
+        m_bulletSystem.ResolveLocalPredictedBullet(*pkt, m_currentPlayerId);
+    } else {
+        m_bulletSystem.SpawnFromServerEvent(*pkt);
+    }
 }
 
 void GameScene::HandleBulletDestroyed(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
-    // m_bulletSystem.Deactivate(pkt->bulletId);
     m_bulletSystem.Deactivate(pkt->bulletId, pkt->position);
 }
 
@@ -311,7 +315,7 @@ void GameScene::Render() {
 
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
     m_characterRender.Draw(m_worldState.m_players);
-    m_bulletSystem.Draw(m_bulletSystem.GetBullets());
+    m_bulletSystem.Draw();
     m_wallRender.Draw(m_wallManager.GetAllWalls());
 
     EndMode2D();
@@ -434,11 +438,17 @@ network::InputPacket GameScene::CollectInput() {
         Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
         packet.facingAngle = atan2f(mouseWorld.y - playerPos.y, mouseWorld.x - playerPos.x);
 
-        if (buttons & (1 << 0)) {
+        bool shootNow = buttons & (1 << 0);
+        bool shootPrev = m_lastButtons & (1 << 0);
+        if (shootNow && !shootPrev && currPlayer.shootTimer <= 0.0f) {
+            const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
             // Send aim direction for shooting
             Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
             packet.aimX = aimDir.x;
             packet.aimY = aimDir.y;
+            packet.predBulletSequence = m_localBulletSeq;
+            m_bulletSystem.Spawn({m_currentPlayerId, playerPos, aimDir, charDef, m_localBulletSeq});
+            m_localBulletSeq++;
         } else if (buttons & (1 << 1)) {
             // Send raw world position for wall placement
             packet.aimX = mouseWorld.x;

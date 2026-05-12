@@ -24,6 +24,7 @@ struct PlayerInput {
     // bitmask (shoot, place_wall, etc.)
     uint8_t buttons;
     uint32_t sequence;
+    uint32_t predBulletSequence;
 };
 
 struct PlayerState {
