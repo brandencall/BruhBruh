@@ -150,7 +150,6 @@ void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnP
 
     float predictedAge = it->second.age; // how long client has been simulating this bullet
     int slot = SpawnFromServerEvent(bullet);
-    std::cout << "Should be spawning bullet from predicted bullet" << std::endl;
     if (slot >= 0) {
         // Fast-forward the confirmed bullet to match where the predicted one was
         // Use a fixed small sub-step to avoid tunnelling through walls

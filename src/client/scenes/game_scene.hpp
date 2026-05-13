@@ -55,7 +55,8 @@ class GameScene : public Scene {
     void RenderConnecting();
 
     void TickPrediction(float dt);
-    network::InputPacket CollectInput();
+    void PredictLocalActions();
+    network::InputPacket BuildInputPacket();
 
     void Reconcile(Vector2 serverPos, uint32_t ackedSeq);
 

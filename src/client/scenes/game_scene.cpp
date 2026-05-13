@@ -353,12 +353,11 @@ void GameScene::TickPrediction(float dt) {
         return;
 
     const state::PlayerState &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];
-
-    // Don't predict while dead
     if (lp.state == state::State::Dead)
         return;
 
     float moveX = 0.0f, moveY = 0.0f;
+
     if (IsKeyDown(KEY_W))
         moveY -= 1.0f;
     if (IsKeyDown(KEY_S))
@@ -368,24 +367,29 @@ void GameScene::TickPrediction(float dt) {
     if (IsKeyDown(KEY_D))
         moveX += 1.0f;
 
-    state::PlayerState predicted = m_worldState.m_players[m_worldState.m_currentPlayerId];
+    PredictLocalActions();
+
+    state::PlayerState predicted = lp;
     predicted.position = m_predictedPos;
     predicted.currentInput.moveX = moveX;
     predicted.currentInput.moveY = moveY;
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
+
     Character::SimulateMove(predicted, dt, m_worldState.m_map.walls, dynamicColliders);
 
     m_predictedPos = predicted.position;
 
     m_sendAccumulator += dt;
+
     if (m_sendAccumulator >= m_sendInterval) {
-        auto pkt = CollectInput();
+        network::InputPacket pkt = BuildInputPacket();
+
         pkt.moveX = moveX;
         pkt.moveY = moveY;
+
         m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
 
-        // Store in ring buffer (overwrite old slots — ring wraps by INPUT_BUFFER_SIZE)
         size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
         m_inputBuffer[slot] = {pkt, dt};
 
@@ -397,23 +401,54 @@ void GameScene::TickPrediction(float dt) {
 
     float dist = Vector2Distance(m_smoothedPredictedPos, m_predictedPos);
 
-    // If the correction is large (e.g. respawn or big reconciliation), snap immediately
-    // Otherwise smoothly close the gap each frame
     if (dist > SNAP_THRESHOLD) {
         m_smoothedPredictedPos = m_predictedPos;
     } else {
-        // Exponential decay — fast enough to feel instant, slow enough to hide jitter
         float t = 1.0f - std::exp(-20.0f * dt);
+
         m_smoothedPredictedPos = Vector2Lerp(m_smoothedPredictedPos, m_predictedPos, t);
     }
 
     state::PlayerState fakeLp = lp;
     fakeLp.position = m_smoothedPredictedPos;
+
     m_characterRender.SnapToPosition(fakeLp);
 }
 
-network::InputPacket GameScene::CollectInput() {
+void GameScene::PredictLocalActions() {
+    uint8_t buttons = 0;
+
+    if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
+        buttons |= 1 << 0;
+
+    if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+        buttons |= 1 << 1;
+
+    Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
+
+    const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
+
+    Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
+
+    bool shootNow = buttons & (1 << 0);
+    bool shootPrev = m_lastButtons & (1 << 0);
+
+    if (shootNow && !shootPrev && currPlayer.shootTimer <= 0.0f) {
+        const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
+
+        Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
+
+        m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
+
+        m_localBulletSeq++;
+    }
+
+    m_lastButtons = buttons;
+}
+
+network::InputPacket GameScene::BuildInputPacket() {
     network::InputPacket packet{};
+
     if (!m_joined)
         return packet;
 
@@ -422,42 +457,38 @@ network::InputPacket GameScene::CollectInput() {
     packet.characterId = m_currenCharacterId;
 
     uint8_t buttons = 0;
+
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON))
-        buttons |= 1 << 0; // shoot
+        buttons |= 1 << 0;
+
     if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
-        buttons |= 1 << 1; // place_wall
+        buttons |= 1 << 1;
 
     packet.buttons = buttons;
     packet.sequence = m_inputSequence++;
 
-    // Aim direction
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
 
     if (m_worldState.m_currentPlayerId != -1) {
-        // Use server position for aim calculation to match where server will spawn bullet
         const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
+
         Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
+
         packet.facingAngle = atan2f(mouseWorld.y - playerPos.y, mouseWorld.x - playerPos.x);
 
-        bool shootNow = buttons & (1 << 0);
-        bool shootPrev = m_lastButtons & (1 << 0);
-        if (shootNow && !shootPrev && currPlayer.shootTimer <= 0.0f) {
-            const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
-            // Send aim direction for shooting
+        if (buttons & (1 << 0)) {
             Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
+
             packet.aimX = aimDir.x;
             packet.aimY = aimDir.y;
-            packet.predBulletSequence = m_localBulletSeq;
-            m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
-            m_localBulletSeq++;
+
+            // match predicted bullet
+            packet.predBulletSequence = m_localBulletSeq - 1;
         } else if (buttons & (1 << 1)) {
-            // Send raw world position for wall placement
             packet.aimX = mouseWorld.x;
             packet.aimY = mouseWorld.y;
         }
     }
-
-    m_lastButtons = buttons;
 
     return packet;
 }
