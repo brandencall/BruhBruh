@@ -39,7 +39,7 @@ struct InputPacket {
     uint8_t buttons;
 
     uint32_t sequence;
-    uint32_t predBulletSequence = -1;
+    uint32_t predBulletSequence = UINT32_MAX;
 };
 
 struct StatePacket {
