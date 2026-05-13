@@ -405,7 +405,6 @@ void GameScene::TickPrediction(float dt) {
         m_smoothedPredictedPos = m_predictedPos;
     } else {
         float t = 1.0f - std::exp(-20.0f * dt);
-
         m_smoothedPredictedPos = Vector2Lerp(m_smoothedPredictedPos, m_predictedPos, t);
     }
 
