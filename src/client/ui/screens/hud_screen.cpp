@@ -1,5 +1,4 @@
 #include "hud_screen.hpp"
-#include "../../utils/text_utils.hpp"
 #include "raylib.h"
 #include <string>
 
@@ -47,17 +46,34 @@ void HudScreen::Render() {
 
         DrawText(line.c_str(), padding, feedBaseY - ((int)feed.size() - 1 - i) * feedLineH, feedFontSize, color);
     }
-    RenderGameTime(screenW, padding, fontSize);
+    RenderGameTime(screenW);
 }
 
-void HudScreen::RenderGameTime(int screenW, int padding, int fontSize) {
+void HudScreen::RenderGameTime(int screenW) {
     if (m_gameTime < 0)
         return;
 
+    int fontSize = 30;
+    int padding = 14;
     int lobbyMins = (int)(m_gameTime / 60);
     int lobbySeconds = (int)m_gameTime % 60;
-    std::string lobbyTime = "Time: " + std::to_string(lobbyMins) + ":" + std::to_string(lobbySeconds);
-    utils::DrawTextCentered(lobbyTime.c_str(), screenW * 0.5, 1 + padding, fontSize, RAYWHITE);
+
+    char buffer[32];
+    snprintf(buffer, sizeof(buffer), "Time: %d:%02d", lobbyMins, lobbySeconds);
+
+    int textWidth = MeasureText(buffer, fontSize);
+    int textX = (screenW - textWidth) / 2;
+    int textY = 1 + padding;
+
+    int rectPaddingX = 12;
+    int rectPaddingY = 6;
+
+    Rectangle rect = {(float)(textX - rectPaddingX), (float)(textY - rectPaddingY),
+                      (float)(textWidth + rectPaddingX * 2), (float)(fontSize + rectPaddingY * 2)};
+
+    DrawRectangleRounded(rect, 0.3f, 8, Fade(BLACK, 0.5f));
+
+    DrawText(buffer, textX, textY, fontSize, RAYWHITE);
 }
 
 } // namespace UI

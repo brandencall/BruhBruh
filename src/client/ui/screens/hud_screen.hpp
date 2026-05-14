@@ -16,7 +16,7 @@ class HudScreen : public UIScreen {
     bool IsDone() const override { return false; }
 
   private:
-    void RenderGameTime(int screenW, int padding, int fontSize);
+    void RenderGameTime(int screenW);
 
   private:
     const state::PlayerState &m_localPlayer;
