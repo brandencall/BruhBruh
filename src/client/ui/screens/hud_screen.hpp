@@ -3,6 +3,7 @@
 #include "../../event_hub.hpp"
 #include "../../systems/kill_feed.hpp"
 #include "../ui_manager.hpp"
+#include "raylib.h"
 
 namespace UI {
 
@@ -16,6 +17,9 @@ class HudScreen : public UIScreen {
     bool IsDone() const override { return false; }
 
   private:
+    void RenderHealthBar(const Rectangle &container, const std::string &healthText, int padding, int barHeight,
+                         int barWidth, int fontSize);
+    void RenderWalls(const Rectangle &container, int padding, int barHeight, int fontSize);
     void RenderGameTime(int screenW);
 
   private:

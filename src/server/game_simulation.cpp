@@ -210,7 +210,7 @@ void GameSimulation::CreatePlayer(uint32_t playerId, Character::CharacterId char
                                  .health = def.maxHealth,
                                  .hurtbox = {.radius = charDef.hurtboxRadius},
                                  .lastButtons = 0,
-                                 .currentAvaliableWalls = 5,
+                                 .currentAvaliableWalls = def.maxWalls,
                                  .active = true};
     strncpy(player.name, name, sizeof(player.name) - 1);
     player.name[sizeof(player.name) - 1] = '\0';

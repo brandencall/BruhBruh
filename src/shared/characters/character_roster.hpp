@@ -10,6 +10,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
          300.0f,             // moveSpeed
          12.0f,              // hurtboxRadius
          100.0f,             // maxHealth
+         5,                  // maxWalls
          .50f,               // wallCooldown
          // BulletDef
          {
@@ -25,6 +26,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
          300.0f,             // moveSpeed
          12.0f,              // hurtboxRadius
          100.0f,             // maxHealth
+         5,                  // maxWalls
          .50f,               // wallCooldown
          // BulletDef
          {
@@ -40,6 +42,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
          300.0f,            // moveSpeed
          12.0f,             // hurtboxRadius
          100.0f,            // maxHealth
+         5,                 // maxWalls
          .50f,              // wallCooldown
          // BulletDef
          {
@@ -55,6 +58,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
          300.0f,          // moveSpeed
          12.0f,           // hurtboxRadius
          100.0f,          // maxHealth
+         5,               // maxWalls
          .50f,            // wallCooldown
          // BulletDef
          {
