@@ -20,6 +20,7 @@ class HudScreen : public UIScreen {
     void RenderHealthBar(const Rectangle &container, const std::string &healthText, int padding, int barHeight,
                          int barWidth, int fontSize);
     void RenderWalls(const Rectangle &container, int padding, int barHeight, int fontSize);
+    void RenderWallCooldown(int x, int y, int padding, int fontSize, int barHeight);
     void RenderGameTime(int screenW);
 
   private:

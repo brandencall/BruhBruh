@@ -116,7 +116,26 @@ void HudScreen::RenderWalls(const Rectangle &container, int padding, int barHeig
     // Walls text
     std::string wallsText = std::to_string((int)m_localPlayer.currentAvaliableWalls) + "/" + std::to_string(maxWalls);
 
-    DrawText(wallsText.c_str(), wallsX + (maxWalls * (wallSize + wallGap)) + 10, barY, fontSize, RAYWHITE);
+    int wallIconsSize = wallsX + (maxWalls * (wallSize + wallGap)) + 10;
+    DrawText(wallsText.c_str(), wallIconsSize, barY, fontSize, RAYWHITE);
+    RenderWallCooldown(wallIconsSize + MeasureText(wallsText.c_str(), fontSize), barY, padding, fontSize, barHeight);
+}
+
+void HudScreen::RenderWallCooldown(int x, int y, int padding, int fontSize, int barHeight) {
+    float wallCooldown = Character::GetCharacterDef(m_localPlayer.characterId).wallCooldown;
+    float centerX = x + padding + 10.0f;
+    float centerY = y + ((float)barHeight / 2);
+    float radius = fontSize * 0.6f;
+    float t = 1.0f - (m_localPlayer.wallTimer / wallCooldown);
+
+    // Background ring
+    DrawCircleLines((int)centerX, (int)centerY, radius, Fade(RAYWHITE, 0.2f));
+
+    // Filled arc representing cooldown progress
+    DrawRing({centerX, centerY}, radius - 2.0f, radius,
+             -90.0f,                // start at top
+             -90.0f + (360.0f * t), // sweep clockwise as it fills
+             32, t >= 1.0f ? GREEN : SKYBLUE);
 }
 
 void HudScreen::RenderGameTime(int screenW) {
