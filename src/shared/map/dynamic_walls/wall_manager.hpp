@@ -76,21 +76,31 @@ class WallManager {
         DynamicWall &wall = m_walls[gridPos];
         wall.health -= damage;
         if (wall.health <= 0.0f) {
-            RemoveWall(gridPos, wall.ownerId);
+            DestroyWall(gridPos, wall.ownerId);
             return true;
         }
         OnWallDamaged(gridPos, wall.health, wall.ownerId);
         return true;
     }
 
-    bool RemoveWall(const Vector2i &gridPos, uint32_t ownerId) {
+    bool PickUpWall(const Vector2i &gridPos, uint32_t ownerId) {
         auto it = m_walls.find(gridPos);
-        if (it == m_walls.end())
+        if (it == m_walls.end() || it->second.ownerId != ownerId)
             return false;
 
         m_walls.erase(it);
-        OnWallDestroyed(gridPos, ownerId);
+        OnWallPickedUp(gridPos, ownerId);
         return true;
+    }
+
+    void DestroyWall(const Vector2i &gridPos, uint32_t ownerId) {
+        auto it = m_walls.find(gridPos);
+        if (it == m_walls.end())
+            return;
+
+        m_walls.erase(it);
+        OnWallDestroyed(gridPos, ownerId);
+        return;
     }
 
     int GetOwnerId(const Vector2i &gridPos) {
@@ -123,6 +133,7 @@ class WallManager {
     virtual void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) {}
     virtual void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {}
     virtual void OnWallDestroyed(Map::Vector2i gridPos, uint32_t ownerId) {}
+    virtual void OnWallPickedUp(Map::Vector2i gridPos, uint32_t ownerId) {}
 
   private:
     std::unordered_map<Vector2i, DynamicWall, GridHash> m_walls;

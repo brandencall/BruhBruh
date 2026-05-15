@@ -1,6 +1,7 @@
 #include "state_broadcaster.hpp"
 #include "../network/packets/lobby_packets.hpp"
 #include "characters/character_types.hpp"
+#include "events.hpp"
 #include "state/player_state.hpp"
 #include <cstddef>
 #include <cstdint>
@@ -181,6 +182,13 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
     eventBus.DrainDestroyWall([&](const event::DestroyWallEvent &e) {
         network::WallDestroyedPacket pkt{};
         pkt.header.type = network::PacketType::WallDestroyed;
+        pkt.gridPos = e.gridPos;
+        pkt.player = e.player;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+    eventBus.DrainWallPickedUp([&](const event::WallPickedUpEvent &e) {
+        network::WallPickedUpPacket pkt{};
+        pkt.header.type = network::PacketType::WallPickedUp;
         pkt.gridPos = e.gridPos;
         pkt.player = e.player;
         BroadcastAll(&pkt, sizeof(pkt));

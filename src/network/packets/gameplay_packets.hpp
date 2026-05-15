@@ -119,4 +119,10 @@ struct WallDestroyedPacket {
     state::PlayerState player;
 };
 
+struct WallPickedUpPacket {
+    PacketHeader header;
+    Map::Vector2i gridPos;
+    state::PlayerState player;
+};
+
 } // namespace network

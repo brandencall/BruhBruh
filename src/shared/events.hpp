@@ -48,6 +48,11 @@ struct DestroyWallEvent {
     state::PlayerState player;
 };
 
+struct WallPickedUpEvent {
+    Map::Vector2i gridPos;
+    state::PlayerState player;
+};
+
 struct DamageWallEvent {
     Map::Vector2i gridPos;
     float currentHealth;

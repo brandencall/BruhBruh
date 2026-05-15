@@ -48,6 +48,7 @@ class GameScene : public Scene {
     void HandlePlaceWall(const char *buf);
     void HandleWallDamaged(const char *buf);
     void HandleDestroyWall(const char *buf);
+    void HandleWallPickedUp(const char *buf);
     void HandleGameEnd(const char *buf);
     void HandleSwitchToLobby(const char *buf);
     void HandleHostDisconnected(const char *buf);
@@ -87,8 +88,6 @@ class GameScene : public Scene {
     Vector2 m_predictedPos{0.0f, 0.0f};
     Vector2 m_smoothedPredictedPos{0.0f, 0.0f};
     bool m_predictionInitialised = false;
-    bool m_pendingShot = false;
-    uint32_t m_pendingBulletSeq = 0;
 
     uint16_t m_inputSequence = 1;
     uint8_t m_lastButtons = 0;

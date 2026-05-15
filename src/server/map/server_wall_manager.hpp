@@ -27,6 +27,10 @@ class ServerWallManager : public WallManager {
         m_onWallDestroyed = std::move(callback);
     }
 
+    void SetOnWallPickedUp(std::function<void(Map::Vector2i, uint32_t)> callback) {
+        m_onWallPickedUp = std::move(callback);
+    }
+
   protected:
     void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) override {
         if (m_onWallPlaced)
@@ -43,12 +47,18 @@ class ServerWallManager : public WallManager {
             m_onWallDestroyed(gridPos, ownerId);
     }
 
+    void OnWallPickedUp(Map::Vector2i gridPos, uint32_t ownerId) override {
+        if (m_onWallPickedUp)
+            m_onWallPickedUp(gridPos, ownerId);
+    }
+
   private:
     EventBus *m_eventBus = nullptr;
 
     std::function<void(Map::Vector2i gridPos, float health, const state::PlayerState &player)> m_onWallPlaced;
     std::function<void(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId)> m_onWallDamaged;
     std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallDestroyed;
+    std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallPickedUp;
 };
 
 } // namespace Map

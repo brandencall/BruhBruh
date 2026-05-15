@@ -1,4 +1,5 @@
 #include "wall_renderer.hpp"
+#include "raylib.h"
 #include <unordered_map>
 
 namespace Render {
@@ -20,6 +21,11 @@ void WallRenderer::Unload() {
 }
 
 void WallRenderer::Draw(const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &walls) {
+    DrawWalls(walls);
+    DrawDyingWalls();
+}
+
+void WallRenderer::DrawWalls(const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &walls) {
     for (const auto &[gridPos, wall] : walls) {
         if (!wall.active)
             continue;
@@ -48,6 +54,41 @@ void WallRenderer::Draw(const std::unordered_map<Map::Vector2i, Map::DynamicWall
         Rectangle dst = {x + offset, y + offset, size, size};
         DrawTexturePro(tex, src, dst, {0, 0}, 0.0f, WHITE);
     }
+}
+
+void WallRenderer::DrawDyingWalls() {
+    const float animDuration = 0.25f;
+    float now = (float)GetTime();
+
+    std::erase_if(m_dyingWalls, [&](const auto &pair) { return (now - pair.second.deathTime) >= animDuration; });
+
+    for (const auto &[gridPos, dw] : m_dyingWalls) {
+        auto it = m_textures.find(dw.ownerCharacter);
+        if (it == m_textures.end())
+            continue;
+        Texture2D &tex = it->second;
+
+        float elapsed = now - dw.deathTime;
+        float t = elapsed / animDuration;
+
+        // Shrinks and fades out
+        float scale = 1.0f - (t * t); // ease-in shrink
+        float alpha = 1.0f - t;
+
+        float x = floorf(dw.gridPos.x * Map::GRID_CELL_SIZE);
+        float y = floorf(dw.gridPos.y * Map::GRID_CELL_SIZE);
+        float size = Map::GRID_CELL_SIZE * scale;
+        float offset = (Map::GRID_CELL_SIZE - size) * 0.5f;
+
+        Rectangle src = {0, 0, (float)tex.width, (float)tex.height};
+        Rectangle dst = {x + offset, y + offset, size, size};
+        DrawTexturePro(tex, src, dst, {0, 0}, 0.0f, Fade(WHITE, alpha));
+    }
+}
+
+void WallRenderer::AddDyingWall(const Map::Vector2i &gridPos, Character::CharacterId ownerCharacter) {
+    m_dyingWalls[gridPos] =
+        DyingWall{.gridPos = gridPos, .ownerCharacter = ownerCharacter, .deathTime = (float)GetTime()};
 }
 
 } // namespace Render

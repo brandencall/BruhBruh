@@ -33,6 +33,8 @@ enum class PacketType : uint8_t {
     PlaceWall,
     WallDamaged,
     WallDestroyed,
+    WallPickedUp,
+
     GameEnd,
     SwitchToLobby
 };

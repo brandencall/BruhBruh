@@ -82,6 +82,11 @@ void GameSimulation::SetupWallManager() {
         player.currentAvaliableWalls++;
         m_eventBus->publish(event::DestroyWallEvent{gridPos, player});
     });
+    m_wallManager.SetOnWallPickedUp([this](Map::Vector2i gridPos, uint32_t ownerId) {
+        state::PlayerState &player = m_players[ownerId];
+        player.currentAvaliableWalls++;
+        m_eventBus->publish(event::WallPickedUpEvent{gridPos, player});
+    });
 }
 
 void GameSimulation::Update(float tickRate) {
@@ -181,8 +186,7 @@ void GameSimulation::HandleWallInput(state::PlayerState &player, const state::Pl
         return;
     }
 
-    const int wallOwnerId = m_wallManager.GetOwnerId(gridPos);
-    if (wallOwnerId == player.id && m_wallManager.RemoveWall(gridPos, player.id)) {
+    if (m_wallManager.PickUpWall(gridPos, player.id)) {
         player.wallTimer = charDef.wallCooldown;
     }
 }

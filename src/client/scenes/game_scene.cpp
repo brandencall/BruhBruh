@@ -33,6 +33,7 @@ void GameScene::OnEnter() {
     m_handler.Register(PT::PlaceWall, [this](const char *b) { HandlePlaceWall(b); });
     m_handler.Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
     m_handler.Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
+    m_handler.Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
     m_handler.Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
     m_handler.Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
     m_handler.Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
@@ -269,7 +270,14 @@ void GameScene::HandleWallDamaged(const char *buffer) {
 
 void GameScene::HandleDestroyWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
-    m_wallManager.RemoveWall(pkt->gridPos, pkt->player.id);
+    m_wallManager.DestroyWall(pkt->gridPos, pkt->player.id);
+    m_worldState.m_players[pkt->player.id] = pkt->player;
+}
+
+void GameScene::HandleWallPickedUp(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
+    m_wallRender.AddDyingWall(pkt->gridPos, pkt->player.characterId);
+    m_wallManager.PickUpWall(pkt->gridPos, pkt->player.id);
     m_worldState.m_players[pkt->player.id] = pkt->player;
 }
 
