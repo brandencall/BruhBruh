@@ -47,11 +47,8 @@ void GameScene::OnEnter() {
     m_bulletSystem.Load();
     m_bulletSystem.SetMap(m_worldState.m_map);
 
-    int screenW = GetScreenWidth();
-    int screenH = GetScreenHeight();
-    m_camera.offset = {std::round(screenW / 2.0f), std::round(screenH / 2.0f)};
-    m_camera.rotation = 0.0f;
-    m_camera.zoom = 1.5f;
+    m_camera.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
+
     m_audioAvailable = IsAudioDeviceReady();
 
     Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
@@ -96,6 +93,7 @@ void GameScene::Update(float dt) {
     Sync(dt);
     m_bulletSystem.Update(dt, m_worldState.m_players, m_wallManager.GetAllWalls());
     m_ui.Update(dt);
+    m_camera.Update(dt);
     if (m_ui.BlocksGameInput())
         return;
 
@@ -124,15 +122,15 @@ void GameScene::Sync(float dt) {
         if (lp.position.x == 0.0f && lp.position.y == 0.0f)
             return;
 
-        m_camera.target = lp.position;
+        m_camera.SetPosition(lp.position);
         m_initialSnapDone = true;
     }
 
     // Smoothly follow the renderer position (which tracks predicted pos for local player)
     Vector2 rendererPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
     float smoothFactor = 1.0f - std::exp(-15.0f * dt);
-    Vector2 smoothed = Vector2Lerp(m_camera.target, rendererPos, smoothFactor);
-    m_camera.target = {std::round(smoothed.x), std::round(smoothed.y)};
+    Vector2 smoothed = Vector2Lerp(m_camera.GetCamera()->target, rendererPos, smoothFactor);
+    m_camera.SetPosition({std::round(smoothed.x), std::round(smoothed.y)});
 }
 
 void GameScene::HandleScoreboardInput() {
@@ -162,7 +160,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_predictionInitialised = true;
 
         m_characterRender.SnapToPosition(lp);
-        m_camera.target = lp.position;
+        m_camera.SetPosition(lp.position);
         m_initialSnapDone = true;
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
@@ -233,7 +231,7 @@ void GameScene::HandlePlayerRespawned(const char *buffer) {
         m_inputBuffer = {};
         m_lastAckedSeq = 0;
 
-        m_camera.target = pkt->player.position;
+        m_camera.SetPosition(pkt->player.position);
     }
 }
 
@@ -242,14 +240,14 @@ void GameScene::HandlePlayerDamaged(const char *buffer) {
     m_worldState.m_players[pkt->vitimId].health = pkt->currentHealth;
 
     m_events.onHit.Publish(
-        {pkt->attackerId, pkt->vitimId, m_worldState.m_players[m_currentPlayerId].characterId, m_currentPlayerId});
+        {pkt->attackerId, pkt->vitimId, m_worldState.m_players[pkt->attackerId].characterId, m_currentPlayerId});
 }
 
 void GameScene::HandlePlayerDied(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerDiedPacket *>(buffer);
     m_worldState.m_players[pkt->victim.id] = pkt->victim;
     m_events.onHit.Publish(
-        {pkt->killer.id, pkt->victim.id, m_worldState.m_players[m_currentPlayerId].characterId, m_currentPlayerId});
+        {pkt->killer.id, pkt->victim.id, m_worldState.m_players[pkt->killer.id].characterId, m_currentPlayerId});
     m_events.playerDied.Publish({pkt->victim, pkt->killer, m_worldState.m_players[m_currentPlayerId]});
 }
 
@@ -257,6 +255,7 @@ void GameScene::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
     m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->player);
     m_worldState.m_players[pkt->player.id] = pkt->player;
+    m_events.onWallPlaced.Publish({pkt->player.id, pkt->gridPos, m_currentPlayerId});
 }
 
 void GameScene::HandleWallDamaged(const char *buffer) {
@@ -310,7 +309,7 @@ void GameScene::Render() {
     BeginDrawing();
 
     ClearBackground(DARKGRAY);
-    BeginMode2D(m_camera);
+    BeginMode2D(*m_camera.GetCamera());
 
     DrawMap(m_worldState.m_map);
 
@@ -423,7 +422,7 @@ void GameScene::PredictLocalActions() {
     if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
         buttons |= 1 << 1;
 
-    Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
+    Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), *m_camera.GetCamera());
 
     const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
 
@@ -466,7 +465,7 @@ network::InputPacket GameScene::BuildInputPacket() {
     packet.buttons = buttons;
     packet.sequence = m_inputSequence++;
 
-    Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), m_camera);
+    Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), *m_camera.GetCamera());
 
     if (m_worldState.m_currentPlayerId != -1) {
         const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];

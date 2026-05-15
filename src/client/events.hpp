@@ -18,4 +18,10 @@ struct HitEvent {
     uint32_t localPlayerId;
 };
 
+struct WallPlacedEvent {
+    uint32_t wallPlacerId;
+    Map::Vector2i gridPos;
+    uint32_t localPlayerId;
+};
+
 } // namespace client

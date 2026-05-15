@@ -10,6 +10,7 @@
 #include "../session_manager.hpp"
 #include "../state/world_state.hpp"
 #include "../systems/audio_system.hpp"
+#include "../systems/character_camera.hpp"
 #include "../systems/client_bullet_system.hpp"
 #include "../ui/ui_manager.hpp"
 #include "raylib.h"
@@ -98,5 +99,5 @@ class GameScene : public Scene {
     bool m_gameEndScreenActive = false;
     bool m_audioAvailable = false;
 
-    Camera2D m_camera{};
+    System::CharacterCamera m_camera{};
 };
