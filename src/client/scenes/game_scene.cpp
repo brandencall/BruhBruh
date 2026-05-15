@@ -178,16 +178,17 @@ void GameScene::HandleGameBegin(const char *buffer) {
 void GameScene::HandleStateResponse(const char *buffer) {
     auto *pkt = (network::StatePacket *)buffer;
 
-    uint32_t ackedSeq = pkt->players[m_currentPlayerId].currentInput.sequence;
-    if (ackedSeq <= m_lastAckedSeq)
-        return;
-
     for (uint16_t i = 0; i < pkt->playerCount; ++i)
         m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
 
     m_worldState.m_gameTime = pkt->currentGameTime;
 
     if (!m_predictionInitialised)
+        return;
+
+    uint32_t ackedSeq = pkt->players[m_currentPlayerId].currentInput.sequence;
+
+    if (ackedSeq <= m_lastAckedSeq)
         return;
 
     m_lastAckedSeq = ackedSeq;
