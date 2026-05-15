@@ -13,6 +13,7 @@ struct DynamicWall {
     uint32_t ownerId;
     Character::CharacterId ownerCharacter;
     Collision::AABB collider;
+    float spawnTime;
     bool active = false;
 };
 

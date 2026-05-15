@@ -21,13 +21,15 @@ class WallManager {
   public:
     WallManager() = default;
 
-    void PlaceWall(const Map::Vector2i &gridPos, float health, const state::PlayerState &player) {
+    void PlaceWall(const Map::Vector2i &gridPos, float health, const state::PlayerState &player,
+                   float spawnTime = 0.0f) {
         m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
                                        .health = health,
                                        .maxHealth = health,
                                        .ownerId = player.id,
                                        .ownerCharacter = player.characterId,
                                        .collider = GridCellToAABB(gridPos),
+                                       .spawnTime = spawnTime,
                                        .active = true};
         OnWallPlaced(gridPos, health, player);
     }

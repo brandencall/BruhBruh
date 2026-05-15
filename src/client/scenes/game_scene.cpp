@@ -257,7 +257,7 @@ void GameScene::HandlePlayerDied(const char *buffer) {
 
 void GameScene::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
-    m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->player);
+    m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->player, (float)GetTime());
     m_worldState.m_players[pkt->player.id] = pkt->player;
     m_events.onWallPlaced.Publish({pkt->player.id, pkt->gridPos, m_currentPlayerId});
 }
