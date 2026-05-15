@@ -461,7 +461,7 @@ void GameScene::PredictLocalActions() {
     bool shootNow = buttons & (1 << 0);
     bool shootPrev = m_lastButtons & (1 << 0);
 
-    if (shootNow && !shootPrev && currPlayer.shootTimer <= 0.0f) {
+    if (shootNow && !shootPrev) {
         const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
 
         Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);

@@ -19,7 +19,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              540.0f, // spinSpeed
-             .20f,   // cooldown
+             .10f,   // cooldown
              1.25f,  // bulletTexScale
          }},
         {CharacterId::Hodge, // CharacterId
@@ -35,7 +35,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              360.0f, // spinSpeed
-             .20f,   // cooldown
+             .10f,   // cooldown
              1.25f,  // bulletTexScale
          }},
         {CharacterId::Raff, // CharacterId
@@ -51,7 +51,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              360.0f, // spinSpeed
-             .20f,   // cooldown
+             .10f,   // cooldown
              1.25f,  // bulletTexScale
          }},
         {CharacterId::JJ, // CharacterId
@@ -67,7 +67,7 @@ inline const CharacterDef &GetCharacterDef(CharacterId id) {
              10.0f,  // damage
              3.0f,   // lifetime
              0.0f,   // spinSpeed
-             .20f,   // cooldown
+             .10f,   // cooldown
              2.50f,  // bulletTexScale
          }},
     };

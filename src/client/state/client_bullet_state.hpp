@@ -12,6 +12,7 @@ struct ClientBulletState : public BulletState {
     float bulletTexScale = 1.0f;
     float age = 0.0f;
     bool skipFirstDraw = false;
+    bool confirmed = false;
 };
 
 } // namespace state

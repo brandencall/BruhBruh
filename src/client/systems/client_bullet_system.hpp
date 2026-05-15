@@ -37,7 +37,6 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     static constexpr float BULLET_INTERP_SPEED = 5.0f;
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
     std::vector<HitEffect> m_hitEffects;
-    // std::vector<state::ClientBulletState> m_predictedBullets;
     std::unordered_map<uint32_t, state::ClientBulletState> m_predictedBullets;
 };
 } // namespace System

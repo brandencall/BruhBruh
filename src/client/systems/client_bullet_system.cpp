@@ -41,6 +41,7 @@ int ClientBulletSystem::Spawn(const BulletSpawnDef &bulletDef) {
     bullet.serverPosition = bulletDef.position;
     bullet.bulletTexScale = bulletDef.character.bullet.bulletTexScale;
     bullet.age = 0.0f;
+    bullet.confirmed = false;
     m_predictedBullets[bulletDef.predSequence] = bullet;
     return 0;
 }
@@ -59,6 +60,8 @@ void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLA
         fx.timer -= dt;
 
     std::erase_if(m_hitEffects, [](const HitEffect &fx) { return fx.timer <= 0.0f; });
+    std::erase_if(m_predictedBullets,
+                  [](const auto &bullet) { return !bullet.second.confirmed && bullet.second.age > 0.5; });
 }
 
 void ClientBulletSystem::Draw() {
@@ -148,6 +151,7 @@ void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnP
         return;
     }
 
+    it->second.confirmed = true;
     float predictedAge = it->second.age; // how long client has been simulating this bullet
     int slot = SpawnFromServerEvent(bullet);
     if (slot >= 0) {
