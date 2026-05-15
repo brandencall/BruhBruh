@@ -54,6 +54,7 @@ class GameScene : public Scene {
 
     void DrawMap(const Map::MapData &map);
     void RenderConnecting();
+    void RenderCursor();
 
     void TickPrediction(float dt);
     void PredictLocalActions();

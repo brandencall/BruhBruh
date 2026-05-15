@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
-#include <iostream>
 
 namespace System {
 
@@ -99,6 +98,7 @@ void ClientBulletSystem::Draw(const state::ClientBulletState &bullet) {
     Vector2 origin = {tex.width * scale * 0.5f, tex.height * scale * 0.5f};
 
     DrawTexturePro(tex, source, dest, origin, bullet.rotation, WHITE);
+
     // debug hitbox
     // DrawCircleV(center, bullet.hitbox.circle.radius, {255, 0, 0, 80});
     // DrawCircleLinesV(center, bullet.hitbox.circle.radius, YELLOW);

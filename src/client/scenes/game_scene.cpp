@@ -18,6 +18,8 @@ GameScene::GameScene(network::ITransport &transport, NetworkMessageHandler &hand
       m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
+    HideCursor();
+
     // Register packet handlers
     using PT = network::PacketType;
     m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
@@ -83,6 +85,8 @@ void GameScene::OnExit() {
     m_bulletSystem.Unload();
     m_audioSystem.Unload();
     m_ui.Clear();
+
+    ShowCursor();
 
     Scene::OnExit();
 }
@@ -337,6 +341,7 @@ void GameScene::Render() {
     int textWidth = MeasureText(fpsText.c_str(), 20);
     DrawText(fpsText.c_str(), screenW - textWidth - 10, 10, 20, GREEN);
 
+    RenderCursor();
     EndDrawing();
 }
 
@@ -345,6 +350,31 @@ void GameScene::RenderConnecting() {
     ClearBackground(BLACK);
     DrawText("Connecting...", 560, 350, 20, WHITE);
     EndDrawing();
+}
+
+void GameScene::RenderCursor() {
+    Vector2 mouse = GetMousePosition();
+    float shootCooldownTimer = m_worldState.m_players[m_currentPlayerId].shootTimer;
+    float shootCooldown = Character::GetCharacterDef(m_currenCharacterId).bullet.cooldown;
+    float t = 1.0f - (shootCooldownTimer / shootCooldown); // 1 = ready, 0 = just shot
+    bool ready = t >= 1.0f;
+
+    // Crosshair lines
+    float gap = 4.0f;
+    float len = 8.0f;
+    Color crossColor = ready ? RAYWHITE : Fade(RAYWHITE, 0.4f);
+
+    DrawLineV({mouse.x - gap - len, mouse.y}, {mouse.x - gap, mouse.y}, crossColor);
+    DrawLineV({mouse.x + gap, mouse.y}, {mouse.x + gap + len, mouse.y}, crossColor);
+    DrawLineV({mouse.x, mouse.y - gap - len}, {mouse.x, mouse.y - gap}, crossColor);
+    DrawLineV({mouse.x, mouse.y + gap}, {mouse.x, mouse.y + gap + len}, crossColor);
+
+    // Cooldown ring — only visible when on cooldown
+    if (!ready) {
+        float radius = 14.0f;
+        DrawCircleLines((int)mouse.x, (int)mouse.y, radius, Fade(RAYWHITE, 0.15f));
+        DrawRing(mouse, radius - 2.0f, radius, -90.0f, -90.0f + (360.0f * t), 32, SKYBLUE);
+    }
 }
 
 void GameScene::TickPrediction(float dt) {
