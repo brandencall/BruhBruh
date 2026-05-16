@@ -34,6 +34,7 @@ void SessionManager::Shutdown() {
     m_client.reset();
     m_server.reset();
     m_lobbyManager.reset();
+    m_audioSystem.Unload();
     m_transport = nullptr;
 }
 
@@ -114,7 +115,8 @@ void SessionManager::CreateLobby() {
 }
 
 void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
-    m_sceneManager.Replace(std::make_unique<GameScene>(*m_transport, *m_handler, *this, currentPlayerState));
+    m_sceneManager.Replace(
+        std::make_unique<GameScene>(*m_transport, *m_handler, *this, m_audioSystem, currentPlayerState));
 }
 
 void SessionManager::ReturnToStart() {

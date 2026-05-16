@@ -7,6 +7,7 @@
 #include "network/network_message_handler.hpp"
 #include "scene_manager.hpp"
 #include "steam/steamclientpublic.h"
+#include "systems/audio_system.hpp"
 #include <memory>
 #include <thread>
 
@@ -49,6 +50,7 @@ class SessionManager {
     NetworkMessageHandler *m_handler = nullptr;
     std::unique_ptr<SteamLobbyManager> m_lobbyManager;
     network::ITransport *m_transport = nullptr;
+    System::AudioSystem m_audioSystem;
     std::unique_ptr<GameClient> m_client;
     std::unique_ptr<GameServer> m_server;
     std::thread m_serverThread;

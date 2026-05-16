@@ -4,9 +4,13 @@
 
 namespace System {
 
-void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
-                       Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
-                       Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus) {
+void AudioSystem::InitGamePlay(Client::EventBus<client::HitEvent> &hitBus,
+                               Client::EventBus<client::PlayerDiedEvent> &deathBus,
+                               Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
+                               Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus) {
+    if (!IsAudioDeviceReady())
+        return;
+
     m_hitmarkerSound = LoadSound("assets/sounds/hitmarker.wav");
     m_deathSound = LoadSound("assets/sounds/dramatic_death.wav");
     m_killRewardSound = LoadSound("assets/sounds/kill_reward.wav");
@@ -27,18 +31,20 @@ void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::Event
         m_wallPickedUpAliases[i] = LoadSoundAlias(m_wallPickedUpSound);
     }
 
-    m_hitSub = hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); });
-    m_deathSub = deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); });
-    m_wallPlacedSub = wallPlacedBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); });
-    m_wallPickedUpSub = wallPickedUpBus.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); });
+    m_gameplaySubs.clear();
+    m_gameplaySubs.emplace_back(hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
+    m_gameplaySubs.emplace_back(deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); }));
+    m_gameplaySubs.emplace_back(wallPlacedBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
+    m_gameplaySubs.emplace_back(
+        wallPickedUpBus.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); }));
 }
 
-void AudioSystem::Unload() {
-    UnloadSound(m_hitmarkerSound);
-    UnloadSound(m_deathSound);
-    UnloadSound(m_killRewardSound);
-    UnloadSound(m_wallPlacedConcreteSound);
-    UnloadSound(m_wallPlacedKickDrumSound);
+void AudioSystem::UnloadGamePlay() {
+    SafeUnload(m_hitmarkerSound);
+    SafeUnload(m_deathSound);
+    SafeUnload(m_killRewardSound);
+    SafeUnload(m_wallPlacedConcreteSound);
+    SafeUnload(m_wallPlacedKickDrumSound);
 
     for (Sound &s : m_hitmarkerAliases) {
         UnloadSoundAlias(s);
@@ -51,6 +57,16 @@ void AudioSystem::Unload() {
     }
     for (Sound &s : m_wallPickedUpAliases) {
         UnloadSoundAlias(s);
+    }
+    m_gameplaySubs.clear();
+}
+
+void AudioSystem::Unload() { UnloadGamePlay(); }
+
+void AudioSystem::SafeUnload(Sound &s) {
+    if (s.stream.buffer != nullptr) {
+        UnloadSound(s);
+        s = {};
     }
 }
 

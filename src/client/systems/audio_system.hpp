@@ -8,14 +8,17 @@ namespace System {
 class AudioSystem {
 
   public:
-    void Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
-              Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
-              Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus);
+    void InitGamePlay(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
+                      Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
+                      Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus);
     void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos);
     void Play(Sound sound);
+    void UnloadGamePlay();
     void Unload();
 
   private:
+    void SafeUnload(Sound &s);
+
     void OnHit(const client::HitEvent &e);
     void OnPlayerDied(const client::PlayerDiedEvent &e);
     void OnWallPlaced(const client::WallPlacedEvent &e);
@@ -25,10 +28,7 @@ class AudioSystem {
     float GetSpatialPan2D(Vector2 soundPos, Vector2 localPlayerPos);
 
   private:
-    Client::Subscription m_hitSub;
-    Client::Subscription m_deathSub;
-    Client::Subscription m_wallPlacedSub;
-    Client::Subscription m_wallPickedUpSub;
+    std::vector<Client::Subscription> m_gameplaySubs;
 
     Sound m_hitmarkerSound;
     static constexpr int HITMARKER_POOL_SIZE = 8;

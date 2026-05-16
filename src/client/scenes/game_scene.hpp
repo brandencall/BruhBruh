@@ -25,7 +25,7 @@ struct PendingInput {
 class GameScene : public Scene {
   public:
     GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
-              state::LobbySlotState currentPlayerState);
+              System::AudioSystem &autioSystem, state::LobbySlotState currentPlayerState);
 
     void OnEnter() override;
     void OnExit() override;
@@ -68,6 +68,7 @@ class GameScene : public Scene {
     network::ITransport &m_transport;
     NetworkMessageHandler &m_handler;
     SessionManager &m_sessionManager;
+    System::AudioSystem &m_audioSystem;
     uint32_t m_currentPlayerId = UINT32_MAX;
     Character::CharacterId m_currenCharacterId = Character::CharacterId::None;
 
@@ -79,7 +80,6 @@ class GameScene : public Scene {
     Render::CharacterRenderer m_characterRender;
     Render::WallRenderer m_wallRender;
     UI::UIManager m_ui;
-    System::AudioSystem m_audioSystem;
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;
     static constexpr float SNAP_THRESHOLD = 64.0f; // pixels — tune to your tile size
@@ -99,7 +99,6 @@ class GameScene : public Scene {
     float m_gameBeginTimer = 0.0f;
     bool m_initialSnapDone = false;
     bool m_gameEndScreenActive = false;
-    bool m_audioAvailable = false;
 
     System::CharacterCamera m_camera{};
 };

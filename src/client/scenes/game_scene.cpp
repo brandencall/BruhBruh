@@ -13,9 +13,10 @@
 #include <iostream>
 
 GameScene::GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
-                     state::LobbySlotState currentPlayerState)
+                     System::AudioSystem &audioSystem, state::LobbySlotState currentPlayerState)
     : m_transport(transport), m_handler(handler), m_sessionManager(sessionManager),
-      m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
+      m_currentPlayerId(currentPlayerState.id), m_audioSystem(audioSystem),
+      m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
     HideCursor();
@@ -52,8 +53,6 @@ void GameScene::OnEnter() {
 
     m_camera.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
 
-    m_audioAvailable = IsAudioDeviceReady();
-
     Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
         if (e.data.victim.id == m_worldState.m_currentPlayerId) {
             m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.data.victim.id]));
@@ -84,7 +83,7 @@ void GameScene::OnExit() {
     m_characterRender.Unload();
     m_wallRender.Unload();
     m_bulletSystem.Unload();
-    m_audioSystem.Unload();
+    m_audioSystem.UnloadGamePlay();
     m_ui.Clear();
 
     ShowCursor();
@@ -170,8 +169,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
-        if (m_audioAvailable)
-            m_audioSystem.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced, m_events.onWallPickedUp);
+        m_audioSystem.InitGamePlay(m_events.onHit, m_events.playerDied, m_events.onWallPlaced, m_events.onWallPickedUp);
     }
 }
 
