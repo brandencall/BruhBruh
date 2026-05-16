@@ -4,24 +4,44 @@
 
 namespace System {
 
-void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus,
-                       Client::EventBus<client::PlayerDiedEvent> &deathBus) {
+void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
+                       Client::EventBus<client::WallPlacedEvent> &wallBus) {
     m_hitmarkerSound = LoadSound("assets/sounds/hitmarker.wav");
-    SetSoundVolume(m_hitmarkerSound, 0.3);
     m_deathSound = LoadSound("assets/sounds/dramatic_death.wav");
     m_killRewardSound = LoadSound("assets/sounds/kill_reward.wav");
+    m_wallPlacedConcreteSound = LoadSound("assets/sounds/wall_placed_concrete.wav");
+    m_wallPlacedKickDrumSound = LoadSound("assets/sounds/wall_placed_kick_drum.wav");
 
     for (int i = 0; i < HITMARKER_POOL_SIZE; ++i) {
         m_hitmarkerAliases[i] = LoadSoundAlias(m_hitmarkerSound);
     }
+
+    for (int i = 0; i < WALLPLACEMENT_POOL_SIZE; ++i) {
+        m_wallPlacementConcreteAliases[i] = LoadSoundAlias(m_wallPlacedConcreteSound);
+        m_wallPlacementKickDrumAliases[i] = LoadSoundAlias(m_wallPlacedKickDrumSound);
+    }
+
     m_hitSub = hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); });
     m_deathSub = deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); });
+    m_wallSub = wallBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); });
 }
 
 void AudioSystem::Unload() {
     UnloadSound(m_hitmarkerSound);
     UnloadSound(m_deathSound);
     UnloadSound(m_killRewardSound);
+    UnloadSound(m_wallPlacedConcreteSound);
+    UnloadSound(m_wallPlacedKickDrumSound);
+
+    for (Sound &s : m_hitmarkerAliases) {
+        UnloadSoundAlias(s);
+    }
+    for (Sound &s : m_wallPlacementConcreteAliases) {
+        UnloadSoundAlias(s);
+    }
+    for (Sound &s : m_wallPlacementKickDrumAliases) {
+        UnloadSoundAlias(s);
+    }
 }
 
 void AudioSystem::OnHit(const client::HitEvent &e) {
@@ -38,6 +58,24 @@ void AudioSystem::OnPlayerDied(const client::PlayerDiedEvent &e) {
         PlaySound(m_killRewardSound);
 
     PlaySpatialSound2D(m_deathSound, e.data.victim.position, 800.0, e.localPlayer.position);
+}
+
+void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
+    Sound &concreteAlias = m_wallPlacementConcreteAliases[m_wallPlacementIndex];
+    Sound &kickDrumAlias = m_wallPlacementKickDrumAliases[m_wallPlacementIndex];
+    m_wallPlacementIndex = (m_wallPlacementIndex + 1) % WALLPLACEMENT_POOL_SIZE;
+
+    float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
+
+    SetSoundPitch(concreteAlias, pitch);
+    SetSoundPitch(kickDrumAlias, pitch);
+
+    SetSoundVolume(concreteAlias, 0.2f);
+    SetSoundVolume(kickDrumAlias, 1.0f);
+
+    Vector2 wallPlacedPosition = Map::GridToWorld(event.gridPos);
+    PlaySpatialSound2D(concreteAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
+    PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
 }
 
 void AudioSystem::PlayHitmarker() {

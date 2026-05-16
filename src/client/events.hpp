@@ -2,6 +2,7 @@
 
 #include "../shared/characters/character_types.hpp"
 #include "../shared/events.hpp"
+#include "raylib.h"
 #include <stdint.h>
 
 namespace client {
@@ -22,6 +23,7 @@ struct WallPlacedEvent {
     uint32_t wallPlacerId;
     Map::Vector2i gridPos;
     uint32_t localPlayerId;
+    Vector2 localPlayerPosition;
 };
 
 } // namespace client

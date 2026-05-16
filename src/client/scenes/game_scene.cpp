@@ -171,7 +171,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
         if (m_audioAvailable)
-            m_audioSystem.Init(m_events.onHit, m_events.playerDied);
+            m_audioSystem.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
     }
 }
 
@@ -261,7 +261,8 @@ void GameScene::HandlePlaceWall(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlaceWallPacket *>(buffer);
     m_wallManager.PlaceWall(pkt->gridPos, pkt->maxHealth, pkt->player, (float)GetTime());
     m_worldState.m_players[pkt->player.id] = pkt->player;
-    m_events.onWallPlaced.Publish({pkt->player.id, pkt->gridPos, m_currentPlayerId});
+    m_events.onWallPlaced.Publish(
+        {pkt->player.id, pkt->gridPos, m_currentPlayerId, m_worldState.m_players[m_currentPlayerId].position});
 }
 
 void GameScene::HandleWallDamaged(const char *buffer) {
