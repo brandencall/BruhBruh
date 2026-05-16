@@ -18,6 +18,7 @@ class AudioSystem {
 
   private:
     void SafeUnload(Sound &s);
+    void SafeUnloadAlias(Sound &s);
 
     void OnHit(const client::HitEvent &e);
     void OnPlayerDied(const client::PlayerDiedEvent &e);

@@ -40,24 +40,25 @@ void AudioSystem::InitGamePlay(Client::EventBus<client::HitEvent> &hitBus,
 }
 
 void AudioSystem::UnloadGamePlay() {
+    for (Sound &s : m_hitmarkerAliases) {
+        SafeUnloadAlias(s);
+    }
+    for (Sound &s : m_wallPlacementConcreteAliases) {
+        SafeUnloadAlias(s);
+    }
+    for (Sound &s : m_wallPlacementKickDrumAliases) {
+        SafeUnloadAlias(s);
+    }
+    for (Sound &s : m_wallPickedUpAliases) {
+        SafeUnloadAlias(s);
+    }
+
     SafeUnload(m_hitmarkerSound);
     SafeUnload(m_deathSound);
     SafeUnload(m_killRewardSound);
     SafeUnload(m_wallPlacedConcreteSound);
     SafeUnload(m_wallPlacedKickDrumSound);
 
-    for (Sound &s : m_hitmarkerAliases) {
-        UnloadSoundAlias(s);
-    }
-    for (Sound &s : m_wallPlacementConcreteAliases) {
-        UnloadSoundAlias(s);
-    }
-    for (Sound &s : m_wallPlacementKickDrumAliases) {
-        UnloadSoundAlias(s);
-    }
-    for (Sound &s : m_wallPickedUpAliases) {
-        UnloadSoundAlias(s);
-    }
     m_gameplaySubs.clear();
 }
 
@@ -66,6 +67,13 @@ void AudioSystem::Unload() { UnloadGamePlay(); }
 void AudioSystem::SafeUnload(Sound &s) {
     if (s.stream.buffer != nullptr) {
         UnloadSound(s);
+        s = {};
+    }
+}
+
+void AudioSystem::SafeUnloadAlias(Sound &s) {
+    if (s.stream.buffer != nullptr) {
+        UnloadSoundAlias(s);
         s = {};
     }
 }
