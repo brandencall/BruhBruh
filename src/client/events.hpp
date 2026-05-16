@@ -26,4 +26,10 @@ struct WallPlacedEvent {
     Vector2 localPlayerPosition;
 };
 
+struct WallPickedUpEvent {
+    Map::Vector2i gridPos;
+    uint32_t localPlayerId;
+    Vector2 localPlayerPosition;
+};
+
 } // namespace client

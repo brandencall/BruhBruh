@@ -171,7 +171,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
         if (m_audioAvailable)
-            m_audioSystem.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
+            m_audioSystem.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced, m_events.onWallPickedUp);
     }
 }
 
@@ -281,6 +281,8 @@ void GameScene::HandleWallPickedUp(const char *buffer) {
     m_wallRender.AddDyingWall(pkt->gridPos, pkt->player.characterId);
     m_wallManager.PickUpWall(pkt->gridPos, pkt->player.id);
     m_worldState.m_players[pkt->player.id] = pkt->player;
+    m_events.onWallPickedUp.Publish(
+        {pkt->gridPos, m_currentPlayerId, m_worldState.m_players[m_currentPlayerId].position});
 }
 
 void GameScene::HandleGameEnd(const char *buffer) {

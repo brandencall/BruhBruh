@@ -5,25 +5,32 @@
 namespace System {
 
 void AudioSystem::Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
-                       Client::EventBus<client::WallPlacedEvent> &wallBus) {
+                       Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
+                       Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus) {
     m_hitmarkerSound = LoadSound("assets/sounds/hitmarker.wav");
     m_deathSound = LoadSound("assets/sounds/dramatic_death.wav");
     m_killRewardSound = LoadSound("assets/sounds/kill_reward.wav");
     m_wallPlacedConcreteSound = LoadSound("assets/sounds/wall_placed_concrete.wav");
     m_wallPlacedKickDrumSound = LoadSound("assets/sounds/wall_placed_kick_drum.wav");
+    m_wallPickedUpSound = LoadSound("assets/sounds/wall_whoosh.wav");
 
     for (int i = 0; i < HITMARKER_POOL_SIZE; ++i) {
         m_hitmarkerAliases[i] = LoadSoundAlias(m_hitmarkerSound);
     }
 
-    for (int i = 0; i < WALLPLACEMENT_POOL_SIZE; ++i) {
+    for (int i = 0; i < WALL_PLACEMENT_POOL_SIZE; ++i) {
         m_wallPlacementConcreteAliases[i] = LoadSoundAlias(m_wallPlacedConcreteSound);
         m_wallPlacementKickDrumAliases[i] = LoadSoundAlias(m_wallPlacedKickDrumSound);
     }
 
+    for (int i = 0; i < WALL_PICKEDUP_POOL_SIZE; ++i) {
+        m_wallPickedUpAliases[i] = LoadSoundAlias(m_wallPickedUpSound);
+    }
+
     m_hitSub = hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); });
     m_deathSub = deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); });
-    m_wallSub = wallBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); });
+    m_wallPlacedSub = wallPlacedBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); });
+    m_wallPickedUpSub = wallPickedUpBus.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); });
 }
 
 void AudioSystem::Unload() {
@@ -40,6 +47,9 @@ void AudioSystem::Unload() {
         UnloadSoundAlias(s);
     }
     for (Sound &s : m_wallPlacementKickDrumAliases) {
+        UnloadSoundAlias(s);
+    }
+    for (Sound &s : m_wallPickedUpAliases) {
         UnloadSoundAlias(s);
     }
 }
@@ -63,7 +73,7 @@ void AudioSystem::OnPlayerDied(const client::PlayerDiedEvent &e) {
 void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
     Sound &concreteAlias = m_wallPlacementConcreteAliases[m_wallPlacementIndex];
     Sound &kickDrumAlias = m_wallPlacementKickDrumAliases[m_wallPlacementIndex];
-    m_wallPlacementIndex = (m_wallPlacementIndex + 1) % WALLPLACEMENT_POOL_SIZE;
+    m_wallPlacementIndex = (m_wallPlacementIndex + 1) % WALL_PLACEMENT_POOL_SIZE;
 
     float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
 
@@ -76,6 +86,19 @@ void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
     Vector2 wallPlacedPosition = Map::GridToWorld(event.gridPos);
     PlaySpatialSound2D(concreteAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
     PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
+}
+
+void AudioSystem::OnWallPickedUp(const client::WallPickedUpEvent &event) {
+    Sound &alias = m_wallPickedUpAliases[m_wallPickedUpIndex];
+    m_wallPickedUpIndex = (m_wallPickedUpIndex + 1) % WALL_PICKEDUP_POOL_SIZE;
+    float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
+
+    SetSoundPitch(alias, pitch);
+
+    SetSoundVolume(alias, 0.2f);
+
+    Vector2 wallPickedUpPosition = Map::GridToWorld(event.gridPos);
+    PlaySpatialSound2D(alias, wallPickedUpPosition, 800.0, event.localPlayerPosition);
 }
 
 void AudioSystem::PlayHitmarker() {

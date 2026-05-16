@@ -8,6 +8,7 @@ struct EventHub {
     EventBus<client::PlayerDiedEvent> playerDied;
     EventBus<client::HitEvent> onHit;
     EventBus<client::WallPlacedEvent> onWallPlaced;
+    EventBus<client::WallPickedUpEvent> onWallPickedUp;
 };
 
 } // namespace Client
