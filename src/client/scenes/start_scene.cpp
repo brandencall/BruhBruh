@@ -2,20 +2,18 @@
 #include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/join_screen.hpp"
 #include "../utils/text_utils.hpp"
-#include "lobby_scene.hpp"
 #include "raylib.h"
 #include <cassert>
 #include <iostream>
 
-StartScene::StartScene(Game &game, SessionManager &session, SceneManager &sceneManager)
-    : m_game(game), m_session(session), m_sceneManager(sceneManager) {}
+StartScene::StartScene(Game &game) : m_game(game) {}
 
 void StartScene::OnEnter() {
     m_state = State::Idle;
     m_statusText.clear();
     m_pendingInvite.active = false;
     m_ui.Clear();
-    m_session.GetLobby()->SetCallbacks({
+    m_game.GetSessionManager()->GetLobby()->SetCallbacks({
         .onInviteAccepted = [this](CSteamID from, CSteamID lobbyId) { m_pendingInvite = {from, lobbyId, true}; },
         .onJoinRequested =
             [this](CSteamID lobbyId) {
@@ -28,7 +26,7 @@ void StartScene::OnEnter() {
 void StartScene::OnExit() {
     Scene::OnExit();
     m_pendingInvite.active = false;
-    m_session.GetLobby()->SetCallbacks({});
+    m_game.GetSessionManager()->GetLobby()->SetCallbacks({});
     m_ui.Clear();
 }
 
@@ -94,6 +92,9 @@ void StartScene::Update(float dt) {
 
     if (m_pendingInvite.active)
         UpdateInviteToast(mouse);
+
+    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.BlocksGameInput())
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.RequestQuit(); }));
 }
 
 void StartScene::UpdateMenuButtons(Vector2 mouse) {
@@ -104,13 +105,12 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
         SetStatus("Creating lobby...");
         m_state = State::WaitingForLobby;
 
-        m_session.HostGame(
+        m_game.GetSessionManager()->HostGame(
             [this]() {
                 // onLobbyCreated fires on the Steam callback thread — push scene safely
                 assert(m_session.GetTransport());
                 assert(m_session.GetHandler());
-                m_sceneManager.Push(
-                    std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
+                m_game.GetSessionManager()->CreateLobby();
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);
@@ -123,15 +123,14 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
         m_ui.Push(std::make_unique<UI::JoinScreen>([this](CSteamID lobbyId) {
             SetStatus("Joining lobby...");
             m_state = State::WaitingForLobby;
-            m_session.JoinLobby(
+            m_game.GetSessionManager()->JoinLobby(
                 lobbyId,
                 [this]() {
                     std::cout << "Pushing the lobby scene when the join button was pushed" << std::endl;
                     // JoinScreen will be cleaned up when StartScene exits
                     assert(m_session.GetTransport());
                     assert(m_session.GetHandler());
-                    m_sceneManager.Push(
-                        std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
+                    m_game.GetSessionManager()->CreateLobby();
                 },
                 [this](const char *err) {
                     SetStatus(std::string("Error: ") + err);
@@ -151,15 +150,14 @@ void StartScene::UpdateInviteToast(Vector2 mouse) {
         CSteamID lobbyId = m_pendingInvite.lobbyId;
         m_pendingInvite.active = false;
 
-        m_session.JoinLobby(
+        m_game.GetSessionManager()->JoinLobby(
             lobbyId,
             [this]() {
                 std::cout << SteamFriends()->GetPersonaName() << ": Join lobby called.. pushing lobby scene"
                           << std::endl;
                 assert(m_session.GetTransport());
                 assert(m_session.GetHandler());
-                m_sceneManager.Push(
-                    std::make_unique<LobbyScene>(*m_session.GetTransport(), *m_session.GetHandler(), m_session));
+                m_game.GetSessionManager()->CreateLobby();
             },
             [this](const char *err) {
                 SetStatus(std::string("Error: ") + err);
@@ -246,9 +244,6 @@ void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
 
     // Quit hint bottom-right
     DrawText("ESC  Quit", screenW - MeasureText("ESC  Quit", 14) - 16, screenH - 28, 14, {60, 60, 80, 255});
-
-    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.BlocksGameInput())
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.RequestQuit(); }));
 }
 
 void StartScene::RenderStatusText(int screenW, int screenH) {

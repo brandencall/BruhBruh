@@ -1,6 +1,10 @@
 #include "game.hpp"
 #include "game_client.hpp"
+#include "lobby_scene.hpp"
 #include "raylib.h"
+#include "scene_manager.hpp"
+#include "scenes/game_scene.hpp"
+#include "scenes/lobby_scene.hpp"
 #include "scenes/start_scene.hpp"
 #include <cassert>
 
@@ -8,13 +12,19 @@ void Game::Run() {
     CreateWindow();
     InitAudioDevice();
     m_session.Initialize();
+    m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
+        m_sceneManager.Replace(std::make_unique<GameScene>(*this, currentPlayerState));
+        // m_sceneManager.Replace(std::make_unique<GameScene>(*m_session.GetTransport(), *m_session.GetHandler(),
+        //                                                   m_session, m_audioSystem, currentPlayerState));
+    });
 
     // Push the start screen — it holds a ref to session and scenemanager
-    m_sceneManager.Push(std::make_unique<StartScene>(*this, m_session, m_sceneManager));
+    m_sceneManager.Push(std::make_unique<StartScene>(*this));
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         SteamAPI_RunCallbacks();
-        assert(m_session.GetTransport());
+        assert(m_session.GetTransport() && "The m_session.GetTransport() assert failed...");
         m_session.GetTransport()->Pump();
 
         float dt = GetFrameTime();
@@ -24,6 +34,7 @@ void Game::Run() {
     }
 
     m_session.Shutdown();
+    m_audioSystem.Unload();
     CloseAudioDevice();
     CloseWindow();
 }
@@ -32,6 +43,10 @@ void Game::RunLocal(GameClient &client) {
     CreateWindow();
     InitAudioDevice();
     m_session.InitializeClientTransport(*client.GetTransport(), *client.GetHandler());
+    m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
+        m_sceneManager.Replace(std::make_unique<GameScene>(*this, currentPlayerState));
+    });
 
     m_session.CreateLobby();
 
@@ -42,6 +57,7 @@ void Game::RunLocal(GameClient &client) {
         m_sceneManager.Render();
     }
 
+    m_audioSystem.Unload();
     CloseAudioDevice();
     CloseWindow();
 }
@@ -72,3 +88,13 @@ void Game::CreateWindow() {
 
     SetTargetFPS(hz);
 }
+
+SessionManager *Game::GetSessionManager() { return &m_session; }
+
+SceneManager *Game::GetSceneManager() { return &m_sceneManager; }
+
+System::AudioSystem *Game::GetAudioSystem() { return &m_audioSystem; }
+
+NetworkMessageHandler *Game::GetNetworkMessageHandler() { return m_session.GetHandler(); }
+
+network::ITransport *Game::GetTransport() { return m_session.GetTransport(); }

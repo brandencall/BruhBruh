@@ -1,16 +1,13 @@
 #pragma once
-#include "../event_hub.hpp"
 #include "../game.hpp"
-#include "../session_manager.hpp"
 #include "../ui/ui_manager.hpp"
 #include "scene.hpp"
-#include "scene_manager.hpp"
 #include <steam/steam_api.h>
 #include <string>
 
 class StartScene : public Scene {
   public:
-    StartScene(Game &game, SessionManager &session, SceneManager &sceneManager);
+    StartScene(Game &game);
 
     void OnEnter() override;
     void OnExit() override;
@@ -38,8 +35,6 @@ class StartScene : public Scene {
 
   private:
     Game &m_game;
-    SessionManager &m_session;
-    SceneManager &m_sceneManager;
     UI::UIManager m_ui;
 
     enum class State { Idle, WaitingForLobby };

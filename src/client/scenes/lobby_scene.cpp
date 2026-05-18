@@ -9,21 +9,21 @@
 #include <memory>
 #include <unordered_map>
 
-LobbyScene::LobbyScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager)
-    : m_transport(transport), m_handler(handler), m_sessionManager(sessionManager) {}
+LobbyScene::LobbyScene(Game &game) : m_game(game) {}
 
 void LobbyScene::OnEnter() {
     using PT = network::PacketType;
-    m_handler.Register(PT::JoinResponse, [this](const char *b) { HandleJoinResponse(b); });
-    m_handler.Register(PT::PlayerJoined, [this](const char *b) { HandlePlayerJoined(b); });
-    m_handler.Register(PT::PlayerReady, [this](const char *b) { HandlePlayerReady(b); });
-    m_handler.Register(PT::CharacterSelected, [this](const char *b) { HandleCharacterSelected(b); });
-    m_handler.Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
-    m_handler.Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
-    m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
+    NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
+    handler->Register(PT::JoinResponse, [this](const char *b) { HandleJoinResponse(b); });
+    handler->Register(PT::PlayerJoined, [this](const char *b) { HandlePlayerJoined(b); });
+    handler->Register(PT::PlayerReady, [this](const char *b) { HandlePlayerReady(b); });
+    handler->Register(PT::CharacterSelected, [this](const char *b) { HandleCharacterSelected(b); });
+    handler->Register(PT::LobbyState, [this](const char *b) { HandleLobbyState(b); });
+    handler->Register(PT::StartGame, [this](const char *b) { HandleGameStarting(b); });
+    handler->Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
     // Host Disconnect needs to be handled in both lobby and game scenes.
     // TODO: Might not have to register it and Unregister it every scene
-    m_handler.Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
+    handler->Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
 
     // TODO: Replace these with the actual character icons
     m_icons[Character::CharacterId::Tonts] = LoadTexture("assets/characters/tmp/Tonts.png");
@@ -31,24 +31,25 @@ void LobbyScene::OnEnter() {
     m_icons[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/Hodge.png");
     m_icons[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/Big_J.png");
 
-    if (!m_sessionManager.GetLobby())
+    if (!m_game.GetSessionManager()->GetLobby())
         SendLocalJoin();
-    else if (!m_sessionManager.GetLobby()->IsLocalPlayerHost())
+    else if (!m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         SendJoin();
 }
 
 void LobbyScene::OnExit() {
     Scene::OnExit();
 
+    NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
     using PT = network::PacketType;
-    m_handler.Unregister(PT::JoinResponse);
-    m_handler.Unregister(PT::PlayerJoined);
-    m_handler.Unregister(PT::PlayerReady);
-    m_handler.Unregister(PT::CharacterSelected);
-    m_handler.Unregister(PT::LobbyState);
-    m_handler.Unregister(PT::StartGame);
-    m_handler.Unregister(PT::GameBegin);
-    m_handler.Unregister(PT::HostDisconnected);
+    handler->Unregister(PT::JoinResponse);
+    handler->Unregister(PT::PlayerJoined);
+    handler->Unregister(PT::PlayerReady);
+    handler->Unregister(PT::CharacterSelected);
+    handler->Unregister(PT::LobbyState);
+    handler->Unregister(PT::StartGame);
+    handler->Unregister(PT::GameBegin);
+    handler->Unregister(PT::HostDisconnected);
 
     m_ui.Clear();
 
@@ -57,7 +58,7 @@ void LobbyScene::OnExit() {
 }
 
 void LobbyScene::Update(float dt) {
-    if (!m_joined && !m_sessionManager.GetLobby()) {
+    if (!m_joined && !m_game.GetSessionManager()->GetLobby()) {
         SendLocalJoin();
         return;
     }
@@ -81,13 +82,13 @@ void LobbyScene::Update(float dt) {
 
     UpdateCharacterSelection(mousePos, takenCharacters);
 
-    if (m_sessionManager.GetLobby() && m_sessionManager.GetLobby()->IsLocalPlayerHost())
+    if (m_game.GetSessionManager()->GetLobby() && m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         UpdateInviteButton(mousePos);
 
     if (IsKeyPressed(KEY_ESCAPE))
         m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
             SendDisconnect();
-            m_sessionManager.ReturnToStart();
+            m_game.GetSessionManager()->ReturnToStart();
         }));
 }
 
@@ -134,7 +135,7 @@ void LobbyScene::UpdateInviteButton(Vector2 mousePos) {
     Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f, (float)btnW, (float)btnH};
 
     if (CheckCollisionPointRec(mousePos, btnRect))
-        m_ui.Push(std::make_unique<UI::FriendsInviteScreen>(*m_sessionManager.GetLobby()));
+        m_ui.Push(std::make_unique<UI::FriendsInviteScreen>(*m_game.GetSessionManager()->GetLobby()));
 }
 
 void LobbyScene::Render() {
@@ -167,7 +168,7 @@ void LobbyScene::Render() {
         utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize, YELLOW);
     }
 
-    if (m_sessionManager.GetLobby() && m_sessionManager.GetLobby()->IsLocalPlayerHost())
+    if (m_game.GetSessionManager()->GetLobby() && m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         RenderInviteButton(screenW, screenH, mousePos);
 
     m_ui.Render();
@@ -229,7 +230,7 @@ void LobbyScene::SendJoin() {
     pkt.header.type = network::PacketType::JoinLobby;
     const char *name = SteamFriends()->GetPersonaName();
     strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
-    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+    m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::SendLocalJoin() {
@@ -237,13 +238,13 @@ void LobbyScene::SendLocalJoin() {
     pkt.header.type = network::PacketType::JoinLobby;
     const char *name = "Player";
     strncpy(pkt.name, name, MAX_PLAYER_NAME_LEN - 1);
-    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+    m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::SendDisconnect() {
     network::DisconnectPacket packet{};
     packet.header.type = network::PacketType::Disconnect;
-    m_transport.send(network::PEER_SERVER, &packet, sizeof(packet));
+    m_game.GetTransport()->send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 void LobbyScene::FlipReadyState() {
@@ -251,7 +252,7 @@ void LobbyScene::FlipReadyState() {
     pkt.header.type = network::PacketType::PlayerReady;
     pkt.playerId = m_localPlayerId;
     pkt.playerReady = !m_ready;
-    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+    m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::OnCharacterSelected(const Character::CharacterId &character) {
@@ -259,7 +260,7 @@ void LobbyScene::OnCharacterSelected(const Character::CharacterId &character) {
     pkt.header.type = network::PacketType::CharacterSelected;
     pkt.playerId = m_localPlayerId;
     pkt.characterId = character;
-    m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+    m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 }
 
 void LobbyScene::HandleJoinResponse(const char *buf) {
@@ -305,9 +306,11 @@ void LobbyScene::HandleGameStarting(const char *buf) {
     m_gameStarting = true;
 }
 
-void LobbyScene::HandleGameBegin(const char *buf) { m_sessionManager.CreateGame(m_players[m_localPlayerId]); }
+void LobbyScene::HandleGameBegin(const char *buf) {
+    m_game.GetSessionManager()->CreateGame(m_players[m_localPlayerId]);
+}
 
-void LobbyScene::HandleHostDisconnected(const char *buf) { m_sessionManager.ReturnToStart(); }
+void LobbyScene::HandleHostDisconnected(const char *buf) { m_game.GetSessionManager()->ReturnToStart(); }
 
 void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW,
                                   int screenH) {

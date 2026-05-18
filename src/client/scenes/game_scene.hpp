@@ -1,15 +1,12 @@
 #pragma once
 #include "../../network/packets/gameplay_packets.hpp"
-#include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../event_hub.hpp"
-#include "../network/network_message_handler.hpp"
+#include "../game.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
 #include "../renderers/wall_renderer.hpp"
-#include "../session_manager.hpp"
 #include "../state/world_state.hpp"
-#include "../systems/audio_system.hpp"
 #include "../systems/character_camera.hpp"
 #include "../systems/client_bullet_system.hpp"
 #include "../ui/ui_manager.hpp"
@@ -24,8 +21,7 @@ struct PendingInput {
 
 class GameScene : public Scene {
   public:
-    GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
-              System::AudioSystem &autioSystem, state::LobbySlotState currentPlayerState);
+    GameScene(Game &game, state::LobbySlotState currentPlayerState);
 
     void OnEnter() override;
     void OnExit() override;
@@ -64,11 +60,8 @@ class GameScene : public Scene {
     void Reconcile(Vector2 serverPos, uint32_t ackedSeq);
 
   private:
+    Game &m_game;
     Client::EventHub m_events;
-    network::ITransport &m_transport;
-    NetworkMessageHandler &m_handler;
-    SessionManager &m_sessionManager;
-    System::AudioSystem &m_audioSystem;
     uint32_t m_currentPlayerId = UINT32_MAX;
     Character::CharacterId m_currenCharacterId = Character::CharacterId::None;
 

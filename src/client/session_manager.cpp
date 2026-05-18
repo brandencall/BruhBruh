@@ -3,8 +3,6 @@
 #include "network/network_message_handler.hpp"
 #include "network/steam_lobby_manager.hpp"
 #include "network/steam_transport.hpp"
-#include "scenes/game_scene.hpp"
-#include "scenes/lobby_scene.hpp"
 #include <iostream>
 #include <memory>
 
@@ -15,6 +13,21 @@ void SessionManager::Initialize() {
     m_handler = new NetworkMessageHandler();
     m_lobbyManager = std::make_unique<SteamLobbyManager>(dynamic_cast<network::SteamTransport &>(*m_transport));
 }
+
+void SessionManager::SetLobbyFactory(LobbyFactory f) { m_createLobby = f; }
+
+void SessionManager::CreateLobby() { m_createLobby(); }
+// void SessionManager::CreateLobby() { m_sceneManager.Push(std::make_unique<LobbyScene>(m_game)); }
+
+void SessionManager::SetGameSceneFactory(GameSceneFactory f) { m_createGameScene = f; }
+
+void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
+    m_createGameScene(currentPlayerState);
+}
+// void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
+//     m_sceneManager.Replace(
+//         std::make_unique<GameScene>(*m_transport, *m_handler, *this, m_audioSystem, currentPlayerState));
+// }
 
 void SessionManager::InitializeClientTransport(network::ITransport &transport, NetworkMessageHandler &handler) {
     m_transport = &transport;
@@ -34,7 +47,6 @@ void SessionManager::Shutdown() {
     m_client.reset();
     m_server.reset();
     m_lobbyManager.reset();
-    m_audioSystem.Unload();
     m_transport = nullptr;
 }
 
@@ -109,15 +121,6 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
 }
 
 SteamLobbyManager *SessionManager::GetLobby() { return m_lobbyManager.get(); }
-
-void SessionManager::CreateLobby() {
-    m_sceneManager.Push(std::make_unique<LobbyScene>(*m_transport, *m_handler, *this));
-}
-
-void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
-    m_sceneManager.Replace(
-        std::make_unique<GameScene>(*m_transport, *m_handler, *this, m_audioSystem, currentPlayerState));
-}
 
 void SessionManager::ReturnToStart() {
     m_returningToStart = true;

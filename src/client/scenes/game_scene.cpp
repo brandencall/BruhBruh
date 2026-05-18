@@ -3,6 +3,7 @@
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
+#include "../game.hpp"
 #include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/death_screen.hpp"
 #include "../ui/screens/game_end_screen.hpp"
@@ -12,32 +13,30 @@
 #include <cstdint>
 #include <iostream>
 
-GameScene::GameScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager,
-                     System::AudioSystem &audioSystem, state::LobbySlotState currentPlayerState)
-    : m_transport(transport), m_handler(handler), m_sessionManager(sessionManager),
-      m_currentPlayerId(currentPlayerState.id), m_audioSystem(audioSystem),
-      m_currenCharacterId(currentPlayerState.characterId) {}
+GameScene::GameScene(Game &game, state::LobbySlotState currentPlayerState)
+    : m_game(game), m_currentPlayerId(currentPlayerState.id), m_currenCharacterId(currentPlayerState.characterId) {}
 
 void GameScene::OnEnter() {
     HideCursor();
 
     // Register packet handlers
     using PT = network::PacketType;
-    m_handler.Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
-    m_handler.Register(PT::State, [this](const char *b) { HandleStateResponse(b); });
-    m_handler.Register(PT::CurrentWorldState, [this](const char *b) { HandleCurrentWorldState(b); });
-    m_handler.Register(PT::BulletSpawn, [this](const char *b) { HandleBulletSpawn(b); });
-    m_handler.Register(PT::BulletDestroyed, [this](const char *b) { HandleBulletDestroyed(b); });
-    m_handler.Register(PT::PlayerRespawned, [this](const char *b) { HandlePlayerRespawned(b); });
-    m_handler.Register(PT::PlayerDamaged, [this](const char *b) { HandlePlayerDamaged(b); });
-    m_handler.Register(PT::PlayerDied, [this](const char *b) { HandlePlayerDied(b); });
-    m_handler.Register(PT::PlaceWall, [this](const char *b) { HandlePlaceWall(b); });
-    m_handler.Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
-    m_handler.Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
-    m_handler.Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
-    m_handler.Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
-    m_handler.Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
-    m_handler.Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
+    NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
+    handler->Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
+    handler->Register(PT::State, [this](const char *b) { HandleStateResponse(b); });
+    handler->Register(PT::CurrentWorldState, [this](const char *b) { HandleCurrentWorldState(b); });
+    handler->Register(PT::BulletSpawn, [this](const char *b) { HandleBulletSpawn(b); });
+    handler->Register(PT::BulletDestroyed, [this](const char *b) { HandleBulletDestroyed(b); });
+    handler->Register(PT::PlayerRespawned, [this](const char *b) { HandlePlayerRespawned(b); });
+    handler->Register(PT::PlayerDamaged, [this](const char *b) { HandlePlayerDamaged(b); });
+    handler->Register(PT::PlayerDied, [this](const char *b) { HandlePlayerDied(b); });
+    handler->Register(PT::PlaceWall, [this](const char *b) { HandlePlaceWall(b); });
+    handler->Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
+    handler->Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
+    handler->Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
+    handler->Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
+    handler->Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
+    handler->Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
 
     // Load map + assets
     Map::MapData mapData = Map::LoadMap(ACTIVE_MAP);
@@ -64,26 +63,28 @@ void GameScene::OnExit() {
     std::cout << "GameScene::CleanUp()" << std::endl;
     // Unregister packet handlers
     using PT = network::PacketType;
-    m_handler.Unregister(PT::GameBegin);
-    m_handler.Unregister(PT::State);
-    m_handler.Unregister(PT::CurrentWorldState);
-    m_handler.Unregister(PT::BulletSpawn);
-    m_handler.Unregister(PT::BulletDestroyed);
-    m_handler.Unregister(PT::PlayerRespawned);
-    m_handler.Unregister(PT::PlayerDamaged);
-    m_handler.Unregister(PT::PlayerDied);
-    m_handler.Unregister(PT::PlaceWall);
-    m_handler.Unregister(PT::WallDamaged);
-    m_handler.Unregister(PT::WallDestroyed);
-    m_handler.Unregister(PT::GameEnd);
-    m_handler.Unregister(PT::SwitchToLobby);
-    m_handler.Unregister(PT::HostDisconnected);
+    NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
+    handler->Unregister(PT::GameBegin);
+    handler->Unregister(PT::State);
+    handler->Unregister(PT::CurrentWorldState);
+    handler->Unregister(PT::BulletSpawn);
+    handler->Unregister(PT::BulletDestroyed);
+    handler->Unregister(PT::PlayerRespawned);
+    handler->Unregister(PT::PlayerDamaged);
+    handler->Unregister(PT::PlayerDied);
+    handler->Unregister(PT::PlaceWall);
+    handler->Unregister(PT::WallDamaged);
+    handler->Unregister(PT::WallDestroyed);
+    handler->Unregister(PT::GameEnd);
+    handler->Unregister(PT::SwitchToLobby);
+    handler->Unregister(PT::HostDisconnected);
 
     m_tilemapRenderer.Unload();
     m_characterRender.Unload();
     m_wallRender.Unload();
     m_bulletSystem.Unload();
-    m_audioSystem.UnloadGamePlay();
+
+    m_game.GetAudioSystem()->UnloadGamePlay();
     m_ui.Clear();
 
     ShowCursor();
@@ -104,7 +105,7 @@ void GameScene::Update(float dt) {
     HandleScoreboardInput();
 
     if (IsKeyPressed(KEY_ESCAPE))
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_sessionManager.ReturnToStart(); }));
+        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.GetSessionManager()->ReturnToStart(); }));
 
     TickPrediction(dt);
 }
@@ -169,7 +170,8 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
-        m_audioSystem.InitGamePlay(m_events.onHit, m_events.playerDied, m_events.onWallPlaced, m_events.onWallPickedUp);
+        m_game.GetAudioSystem()->InitGamePlay(m_events.onHit, m_events.playerDied, m_events.onWallPlaced,
+                                              m_events.onWallPickedUp);
     }
 }
 
@@ -299,11 +301,11 @@ void GameScene::HandleGameEnd(const char *buffer) {
     }
 }
 
-void GameScene::HandleSwitchToLobby(const char *buf) { m_sessionManager.CreateLobby(); }
+void GameScene::HandleSwitchToLobby(const char *buf) { m_game.GetSessionManager()->CreateLobby(); }
 
 void GameScene::HandleHostDisconnected(const char *buf) {
     std::cout << "Calling m_sessionManager.ReturnToStart() from GameScene::HandleHostDisconnected()" << std::endl;
-    m_sessionManager.ReturnToStart();
+    m_game.GetSessionManager()->ReturnToStart();
 }
 
 void GameScene::DrawMap(const Map::MapData &map) {
@@ -427,7 +429,7 @@ void GameScene::TickPrediction(float dt) {
         pkt.moveX = moveX;
         pkt.moveY = moveY;
 
-        m_transport.send(network::PEER_SERVER, &pkt, sizeof(pkt));
+        m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 
         size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
         m_inputBuffer[slot] = {pkt, dt};

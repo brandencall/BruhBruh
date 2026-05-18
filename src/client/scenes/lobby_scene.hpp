@@ -2,6 +2,7 @@
 #include "../../config.hpp"
 #include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
+#include "../game.hpp"
 #include "../network/network_message_handler.hpp"
 #include "../session_manager.hpp"
 #include "../ui/ui_manager.hpp"
@@ -11,7 +12,7 @@
 
 class LobbyScene : public Scene {
   public:
-    LobbyScene(network::ITransport &transport, NetworkMessageHandler &handler, SessionManager &sessionManager);
+    LobbyScene(Game &game);
 
     void OnEnter() override;
     void OnExit() override;
@@ -54,9 +55,8 @@ class LobbyScene : public Scene {
     float m_joinRetryAccumulator = 0.0f;
     float m_countdownTimer = 0.0f;
     bool m_gameStarting = false;
-    network::ITransport &m_transport;
-    NetworkMessageHandler &m_handler;
-    SessionManager &m_sessionManager;
+
+    Game &m_game;
     UI::UIManager m_ui;
 
     std::array<state::LobbySlotState, MAX_PLAYERS> m_players{};

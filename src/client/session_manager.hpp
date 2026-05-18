@@ -8,12 +8,21 @@
 #include "scene_manager.hpp"
 #include "steam/steamclientpublic.h"
 #include "systems/audio_system.hpp"
+#include <functional>
 #include <memory>
 #include <thread>
 
 class SessionManager {
   public:
+    using LobbyFactory = std::function<void()>;
+    using GameSceneFactory = std::function<void(const state::LobbySlotState &currentPlayerState)>;
+
     SessionManager(SceneManager &sceneManager);
+
+    void SetLobbyFactory(LobbyFactory f);
+    void CreateLobby();
+    void SetGameSceneFactory(GameSceneFactory f);
+    void CreateGame(const state::LobbySlotState &currentPlayerState);
 
     void Initialize();
     void InitializeClientTransport(network::ITransport &transport, NetworkMessageHandler &handler);
@@ -24,7 +33,6 @@ class SessionManager {
     void TickClient();
     void HostGame();
     void JoinLobby(CSteamID lobbyId);
-    void CreateGame(const state::LobbySlotState &currentPlayerState);
     void ReturnToStart();
 
     void HostGame(std::function<void()> onSuccess, std::function<void(const char *)> onError);
@@ -33,7 +41,6 @@ class SessionManager {
 
     // Remove below methods
     SteamLobbyManager *GetLobby();
-    void CreateLobby();
 
   private:
     void StartServerThread();
@@ -46,11 +53,13 @@ class SessionManager {
     bool m_shouldStartHost = false;
     bool m_returningToStart = false;
 
+    LobbyFactory m_createLobby;
+    GameSceneFactory m_createGameScene;
+
     SceneManager &m_sceneManager;
     NetworkMessageHandler *m_handler = nullptr;
     std::unique_ptr<SteamLobbyManager> m_lobbyManager;
     network::ITransport *m_transport = nullptr;
-    System::AudioSystem m_audioSystem;
     std::unique_ptr<GameClient> m_client;
     std::unique_ptr<GameServer> m_server;
     std::thread m_serverThread;
