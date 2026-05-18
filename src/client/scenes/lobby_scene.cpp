@@ -92,10 +92,6 @@ void LobbyScene::Update(float dt) {
         cfg.onQuitDesktop = [this]() { SendDisconnect(); };
         m_ui.Push(std::make_unique<UI::PauseMenu>(m_game, m_ui, cfg));
     }
-    // m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
-    //     SendDisconnect();
-    //     m_game.GetSessionManager()->ReturnToStart();
-    // }));
 }
 
 void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,
@@ -316,7 +312,7 @@ void LobbyScene::HandleGameBegin(const char *buf) {
     m_game.GetSessionManager()->CreateGame(m_players[m_localPlayerId]);
 }
 
-void LobbyScene::HandleHostDisconnected(const char *buf) { m_game.GetSessionManager()->ReturnToStart(); }
+void LobbyScene::HandleHostDisconnected(const char *buf) { m_game.GetSessionManager()->ReturnToMainMenu(); }
 
 void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW,
                                   int screenH) {

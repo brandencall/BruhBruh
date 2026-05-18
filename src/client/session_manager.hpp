@@ -32,7 +32,7 @@ class SessionManager {
     void TickClient();
     void HostGame();
     void JoinLobby(CSteamID lobbyId);
-    void ReturnToStart();
+    void ReturnToMainMenu();
 
     void HostGame(std::function<void()> onSuccess, std::function<void(const char *)> onError);
     // Joins an existing lobby by ID, calls onSuccess/onError when done

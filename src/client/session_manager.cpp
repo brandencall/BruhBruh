@@ -17,17 +17,12 @@ void SessionManager::Initialize() {
 void SessionManager::SetLobbyFactory(LobbyFactory f) { m_createLobby = f; }
 
 void SessionManager::CreateLobby() { m_createLobby(); }
-// void SessionManager::CreateLobby() { m_sceneManager.Push(std::make_unique<LobbyScene>(m_game)); }
 
 void SessionManager::SetGameSceneFactory(GameSceneFactory f) { m_createGameScene = f; }
 
 void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
     m_createGameScene(currentPlayerState);
 }
-// void SessionManager::CreateGame(const state::LobbySlotState &currentPlayerState) {
-//     m_sceneManager.Replace(
-//         std::make_unique<GameScene>(*m_transport, *m_handler, *this, m_audioSystem, currentPlayerState));
-// }
 
 void SessionManager::InitializeClientTransport(network::ITransport &transport, NetworkMessageHandler &handler) {
     m_transport = &transport;
@@ -122,7 +117,7 @@ void SessionManager::JoinLobby(CSteamID lobbyId, std::function<void()> onSuccess
 
 SteamLobbyManager *SessionManager::GetLobby() { return m_lobbyManager.get(); }
 
-void SessionManager::ReturnToStart() {
+void SessionManager::ReturnToMainMenu() {
     m_returningToStart = true;
     m_sceneManager.RequestPop();
 }

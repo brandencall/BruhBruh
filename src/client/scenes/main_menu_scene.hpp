@@ -5,9 +5,9 @@
 #include <steam/steam_api.h>
 #include <string>
 
-class StartScene : public Scene {
+class MainMenuScene : public Scene {
   public:
-    StartScene(Game &game);
+    MainMenuScene(Game &game);
 
     void OnEnter() override;
     void OnExit() override;
@@ -27,7 +27,7 @@ class StartScene : public Scene {
     void RenderStatusText(int screenW, int screenH);
 
     // Steam invite callback — fires when the game is already running
-    STEAM_CALLBACK(StartScene, OnJoinRequested, GameRichPresenceJoinRequested_t);
+    STEAM_CALLBACK(MainMenuScene, OnJoinRequested, GameRichPresenceJoinRequested_t);
 
     // Helpers
     void ComputeLayout(int screenW, int screenH);

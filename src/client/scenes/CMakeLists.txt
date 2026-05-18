@@ -1,7 +1,7 @@
 add_library(scenes
     game_scene.cpp
     lobby_scene.cpp
-    start_scene.cpp
+    main_menu_scene.cpp
 )
 
 target_include_directories(scenes

@@ -1,4 +1,4 @@
-#include "start_scene.hpp"
+#include "main_menu_scene.hpp"
 #include "../ui/screens/join_screen.hpp"
 #include "../ui/screens/pause_menu_screen.hpp"
 #include "../utils/text_utils.hpp"
@@ -6,9 +6,9 @@
 #include <cassert>
 #include <iostream>
 
-StartScene::StartScene(Game &game) : m_game(game) {}
+MainMenuScene::MainMenuScene(Game &game) : m_game(game) {}
 
-void StartScene::OnEnter() {
+void MainMenuScene::OnEnter() {
     m_state = State::Idle;
     m_statusText.clear();
     m_pendingInvite.active = false;
@@ -23,7 +23,7 @@ void StartScene::OnEnter() {
     });
 }
 
-void StartScene::OnExit() {
+void MainMenuScene::OnExit() {
     Scene::OnExit();
     m_pendingInvite.active = false;
     m_game.GetSessionManager()->GetLobby()->SetCallbacks({});
@@ -34,7 +34,7 @@ void StartScene::OnExit() {
 // Layout — recomputed only when window size changes
 // ─────────────────────────────────────────────────────────────────────────────
 
-void StartScene::ComputeLayout(int screenW, int screenH) {
+void MainMenuScene::ComputeLayout(int screenW, int screenH) {
     if (screenW == m_cachedW && screenH == m_cachedH)
         return;
     m_cachedW = screenW;
@@ -65,7 +65,7 @@ void StartScene::ComputeLayout(int screenW, int screenH) {
 // Steam callback — game already running when invite arrives
 // ─────────────────────────────────────────────────────────────────────────────
 
-void StartScene::OnJoinRequested(GameRichPresenceJoinRequested_t *pCallback) {
+void MainMenuScene::OnJoinRequested(GameRichPresenceJoinRequested_t *pCallback) {
     // pCallback->m_rgchConnect holds the lobby ID string set via SetRichPresence
     std::cout << "Got join request" << std::endl;
     uint64 lobbyRaw = std::stoull(pCallback->m_rgchConnect);
@@ -76,7 +76,7 @@ void StartScene::OnJoinRequested(GameRichPresenceJoinRequested_t *pCallback) {
 // Update — all input here
 // ─────────────────────────────────────────────────────────────────────────────
 
-void StartScene::Update(float dt) {
+void MainMenuScene::Update(float dt) {
     m_ui.Update(dt);
     if (m_ui.BlocksGameInput())
         return;
@@ -100,7 +100,7 @@ void StartScene::Update(float dt) {
     }
 }
 
-void StartScene::UpdateMenuButtons(Vector2 mouse) {
+void MainMenuScene::UpdateMenuButtons(Vector2 mouse) {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         return;
 
@@ -130,7 +130,7 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
                 lobbyId,
                 [this]() {
                     std::cout << "Pushing the lobby scene when the join button was pushed" << std::endl;
-                    // JoinScreen will be cleaned up when StartScene exits
+                    // JoinScreen will be cleaned up when MainMenuScene exits
                     assert(m_session.GetTransport());
                     assert(m_session.GetHandler());
                     m_game.GetSessionManager()->CreateLobby();
@@ -143,7 +143,7 @@ void StartScene::UpdateMenuButtons(Vector2 mouse) {
     }
 }
 
-void StartScene::UpdateInviteToast(Vector2 mouse) {
+void MainMenuScene::UpdateInviteToast(Vector2 mouse) {
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         return;
 
@@ -178,7 +178,7 @@ void StartScene::UpdateInviteToast(Vector2 mouse) {
 // Render — draw only, no input queries
 // ─────────────────────────────────────────────────────────────────────────────
 
-void StartScene::Render() {
+void MainMenuScene::Render() {
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
     ComputeLayout(screenW, screenH);
@@ -202,7 +202,7 @@ void StartScene::Render() {
     EndDrawing();
 }
 
-void StartScene::RenderBackground(int screenW, int screenH) {
+void MainMenuScene::RenderBackground(int screenW, int screenH) {
     // Subtle vignette — concentric darkening rings from centre
     for (int r = screenH; r > 0; r -= screenH / 8) {
         unsigned char alpha = (unsigned char)(80.0f * (1.0f - (float)r / screenH));
@@ -210,7 +210,7 @@ void StartScene::RenderBackground(int screenW, int screenH) {
     }
 }
 
-void StartScene::RenderTitle(int screenW, int screenH) {
+void MainMenuScene::RenderTitle(int screenW, int screenH) {
     // Game title
     const char *title = "BRUHBRUH";
     int titleSz = screenH * 0.10f;
@@ -228,7 +228,7 @@ void StartScene::RenderTitle(int screenW, int screenH) {
     utils::DrawTextCentered(steamName, screenW * 0.5f, screenH * 0.385f, nameSz, {160, 160, 180, 255});
 }
 
-void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
+void MainMenuScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
     auto drawBtn = [&](Rectangle r, const char *label, bool primary) {
         bool hovered = CheckCollisionPointRec(mouse, r) && !m_ui.BlocksGameInput();
 
@@ -249,7 +249,7 @@ void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
     DrawText("ESC  Quit", screenW - MeasureText("ESC  Quit", 14) - 16, screenH - 28, 14, {60, 60, 80, 255});
 }
 
-void StartScene::RenderStatusText(int screenW, int screenH) {
+void MainMenuScene::RenderStatusText(int screenW, int screenH) {
     if (m_statusText.empty())
         return;
 
@@ -263,7 +263,7 @@ void StartScene::RenderStatusText(int screenW, int screenH) {
     utils::DrawTextCentered(display.c_str(), screenW * 0.5f, screenH * 0.72f, screenH * 0.022f, {160, 160, 180, 255});
 }
 
-void StartScene::RenderInviteToast(int screenW, int screenH, Vector2 mouse) {
+void MainMenuScene::RenderInviteToast(int screenW, int screenH, Vector2 mouse) {
     const auto &p = m_layout.toastPanel;
 
     // Panel

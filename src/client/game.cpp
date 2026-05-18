@@ -5,7 +5,7 @@
 #include "scene_manager.hpp"
 #include "scenes/game_scene.hpp"
 #include "scenes/lobby_scene.hpp"
-#include "scenes/start_scene.hpp"
+#include "scenes/main_menu_scene.hpp"
 #include <cassert>
 
 void Game::Run() {
@@ -18,7 +18,7 @@ void Game::Run() {
     });
 
     // Push the start screen — it holds a ref to session and scenemanager
-    m_sceneManager.Push(std::make_unique<StartScene>(*this));
+    m_sceneManager.Push(std::make_unique<MainMenuScene>(*this));
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         SteamAPI_RunCallbacks();

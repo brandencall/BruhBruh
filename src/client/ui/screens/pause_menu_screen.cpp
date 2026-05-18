@@ -70,7 +70,7 @@ void PauseMenu::OnLeave() {
     m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
         if (m_cfg.onLeave)
             m_cfg.onLeave();
-        m_game.GetSessionManager()->ReturnToStart();
+        m_game.GetSessionManager()->ReturnToMainMenu();
     }));
 }
 

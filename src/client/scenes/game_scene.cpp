@@ -311,7 +311,7 @@ void GameScene::HandleSwitchToLobby(const char *buf) { m_game.GetSessionManager(
 
 void GameScene::HandleHostDisconnected(const char *buf) {
     std::cout << "Calling m_sessionManager.ReturnToStart() from GameScene::HandleHostDisconnected()" << std::endl;
-    m_game.GetSessionManager()->ReturnToStart();
+    m_game.GetSessionManager()->ReturnToMainMenu();
 }
 
 void GameScene::DrawMap(const Map::MapData &map) {
