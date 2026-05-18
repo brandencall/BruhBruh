@@ -5,16 +5,23 @@
 #include "raylib.h"
 
 namespace System {
-class AudioSystem {
 
+enum class SoundCategory { Music, Effects };
+
+class AudioSystem {
   public:
     void InitGamePlay(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
                       Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
                       Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus);
-    void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos);
-    void Play(Sound sound);
+    void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos,
+                            SoundCategory category, float soundVolume = 1.0f);
+    void Play(Sound sound, SoundCategory category, float soundVolume = 1.0f);
     void UnloadGamePlay();
     void Unload();
+
+    void SetMasterVolume(float volume);
+    void SetMusicVolume(float volume);
+    void SetEffectsVolume(float volume);
 
   private:
     void SafeUnload(Sound &s);
@@ -30,6 +37,10 @@ class AudioSystem {
 
   private:
     std::vector<Client::Subscription> m_gameplaySubs;
+
+    float m_masterVolume = 1.0f;
+    float m_musicVolume = 1.0f;
+    float m_effectsVolume = 1.0f;
 
     Sound m_hitmarkerSound;
     static constexpr int HITMARKER_POOL_SIZE = 8;

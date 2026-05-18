@@ -78,6 +78,12 @@ void AudioSystem::SafeUnloadAlias(Sound &s) {
     }
 }
 
+void AudioSystem::SetMasterVolume(float volume) { m_masterVolume = volume; }
+
+void AudioSystem::SetMusicVolume(float volume) { m_musicVolume = volume; }
+
+void AudioSystem::SetEffectsVolume(float volume) { m_effectsVolume = volume; }
+
 void AudioSystem::OnHit(const client::HitEvent &e) {
     if (e.attackerId == e.localPlayerId) {
         PlayHitmarker();
@@ -91,10 +97,11 @@ void AudioSystem::OnPlayerDied(const client::PlayerDiedEvent &e) {
     if (e.data.killer.id == e.localPlayer.id)
         PlaySound(m_killRewardSound);
 
-    PlaySpatialSound2D(m_deathSound, e.data.victim.position, 800.0, e.localPlayer.position);
+    PlaySpatialSound2D(m_deathSound, e.data.victim.position, 800.0, e.localPlayer.position, SoundCategory::Effects);
 }
 
 void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
+    float concreteSoundVolume = 0.2f;
     Sound &concreteAlias = m_wallPlacementConcreteAliases[m_wallPlacementIndex];
     Sound &kickDrumAlias = m_wallPlacementKickDrumAliases[m_wallPlacementIndex];
     m_wallPlacementIndex = (m_wallPlacementIndex + 1) % WALL_PLACEMENT_POOL_SIZE;
@@ -104,25 +111,23 @@ void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
     SetSoundPitch(concreteAlias, pitch);
     SetSoundPitch(kickDrumAlias, pitch);
 
-    SetSoundVolume(concreteAlias, 0.2f);
-    SetSoundVolume(kickDrumAlias, 1.0f);
-
     Vector2 wallPlacedPosition = Map::GridToWorld(event.gridPos);
-    PlaySpatialSound2D(concreteAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
-    PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, 800.0, event.localPlayerPosition);
+    PlaySpatialSound2D(concreteAlias, wallPlacedPosition, 800.0, event.localPlayerPosition, SoundCategory::Effects,
+                       concreteSoundVolume);
+    PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, 800.0, event.localPlayerPosition, SoundCategory::Effects);
 }
 
 void AudioSystem::OnWallPickedUp(const client::WallPickedUpEvent &event) {
+    float pickUpSoundVolume = 0.2f;
     Sound &alias = m_wallPickedUpAliases[m_wallPickedUpIndex];
     m_wallPickedUpIndex = (m_wallPickedUpIndex + 1) % WALL_PICKEDUP_POOL_SIZE;
     float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
 
     SetSoundPitch(alias, pitch);
 
-    SetSoundVolume(alias, 0.2f);
-
     Vector2 wallPickedUpPosition = Map::GridToWorld(event.gridPos);
-    PlaySpatialSound2D(alias, wallPickedUpPosition, 800.0, event.localPlayerPosition);
+    PlaySpatialSound2D(alias, wallPickedUpPosition, 800.0, event.localPlayerPosition, SoundCategory::Effects,
+                       pickUpSoundVolume);
 }
 
 void AudioSystem::PlayHitmarker() {
@@ -134,7 +139,7 @@ void AudioSystem::PlayHitmarker() {
     SetSoundPitch(alias, pitch);
     SetSoundVolume(alias, 0.3f);
 
-    PlaySound(alias);
+    Play(alias, SoundCategory::Effects);
 }
 
 float AudioSystem::GetSpatialVolume2D(Vector2 soundPos, float maxRange, Vector2 localPlayerPos) {
@@ -150,18 +155,27 @@ float AudioSystem::GetSpatialPan2D(Vector2 soundPos, Vector2 localPlayerPos) {
     return toSound.x;
 }
 
-void AudioSystem::PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos) {
-    float volume = GetSpatialVolume2D(soundPos, maxRange, localPlayerPos);
+void AudioSystem::PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos,
+                                     SoundCategory category, float soundVolume) {
+    float volume = GetSpatialVolume2D(soundPos, maxRange, localPlayerPos) * soundVolume;
     if (volume <= 0.0f)
         return;
 
     float pan = GetSpatialPan2D(soundPos, localPlayerPos);
 
-    SetSoundVolume(sound, volume);
     SetSoundPan(sound, (pan + 1.0f) / 2.0f);
-    PlaySound(sound);
+    Play(sound, category, volume);
 }
 
-void AudioSystem::Play(Sound sound) {}
+void AudioSystem::Play(Sound sound, SoundCategory category, float soundVolume) {
+    float volume = soundVolume * m_masterVolume;
+    if (category == SoundCategory::Music) {
+        volume *= m_musicVolume;
+    } else if (category == SoundCategory::Effects) {
+        volume *= m_effectsVolume;
+    }
+    SetSoundVolume(sound, volume);
+    PlaySound(sound);
+}
 
 } // namespace System
