@@ -1,10 +1,12 @@
 #include "confirm_quit_screen.hpp"
 #include "../../utils/text_utils.hpp"
 
-bool UI::ConfirmQuitScreen::BlocksGameInput() const { return true; }
-bool UI::ConfirmQuitScreen::IsDone() const { return m_done; }
+namespace UI {
 
-void UI::ConfirmQuitScreen::Update(float dt) {
+bool ConfirmQuitScreen::BlocksGameInput() const { return true; }
+bool ConfirmQuitScreen::IsDone() const { return m_done; }
+
+void ConfirmQuitScreen::Update(float dt) {
     if (IsKeyPressed(KEY_ESCAPE))
         m_done = true;
 
@@ -21,7 +23,7 @@ void UI::ConfirmQuitScreen::Update(float dt) {
     }
 }
 
-void UI::ConfirmQuitScreen::Render() {
+void ConfirmQuitScreen::Render() {
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
     ComputeLayout();
@@ -52,7 +54,7 @@ void UI::ConfirmQuitScreen::Render() {
     utils::DrawTextCentered("No", m_noBtn.x + m_noBtn.width * 0.5f, m_noBtn.y + m_noBtn.height * 0.5f - 8, 18, WHITE);
 }
 
-void UI::ConfirmQuitScreen::ComputeLayout() {
+void ConfirmQuitScreen::ComputeLayout() {
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
 
@@ -68,3 +70,5 @@ void UI::ConfirmQuitScreen::ComputeLayout() {
     m_yesBtn = {cx - btnW - screenW * 0.012f, btnY, btnW, btnH};
     m_noBtn = {cx + screenW * 0.012f, btnY, btnW, btnH};
 }
+
+} // namespace UI

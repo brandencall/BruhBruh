@@ -15,8 +15,6 @@ void Game::Run() {
     m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
     m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
         m_sceneManager.Replace(std::make_unique<GameScene>(*this, currentPlayerState));
-        // m_sceneManager.Replace(std::make_unique<GameScene>(*m_session.GetTransport(), *m_session.GetHandler(),
-        //                                                   m_session, m_audioSystem, currentPlayerState));
     });
 
     // Push the start screen — it holds a ref to session and scenemanager

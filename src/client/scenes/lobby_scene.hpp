@@ -1,10 +1,7 @@
 #pragma once
 #include "../../config.hpp"
-#include "../../shared/network/ITransport.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../game.hpp"
-#include "../network/network_message_handler.hpp"
-#include "../session_manager.hpp"
 #include "../ui/ui_manager.hpp"
 #include "scene.hpp"
 #include <array>

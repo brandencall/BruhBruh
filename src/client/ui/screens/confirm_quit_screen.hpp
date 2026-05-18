@@ -14,7 +14,6 @@ class ConfirmQuitScreen : public UIScreen {
     bool IsDone() const override;
 
     void Update(float dt) override;
-
     void Render() override;
 
   private:

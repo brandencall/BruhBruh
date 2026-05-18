@@ -6,6 +6,7 @@ add_library(screens
     friends_invite_screen.cpp
     join_screen.cpp
     confirm_quit_screen.cpp
+    pause_menu_screen.cpp
 )
 
 target_include_directories(screens

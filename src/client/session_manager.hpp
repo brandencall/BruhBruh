@@ -5,9 +5,8 @@
 #include "event_hub.hpp"
 #include "game_client.hpp"
 #include "network/network_message_handler.hpp"
-#include "scene_manager.hpp"
+#include "scenes/scene_manager.hpp"
 #include "steam/steamclientpublic.h"
-#include "systems/audio_system.hpp"
 #include <functional>
 #include <memory>
 #include <thread>

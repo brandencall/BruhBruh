@@ -4,10 +4,10 @@
 #include "../../shared/characters/character_types.hpp"
 #include "../../shared/map/map_loader.hpp"
 #include "../game.hpp"
-#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/death_screen.hpp"
 #include "../ui/screens/game_end_screen.hpp"
 #include "../ui/screens/hud_screen.hpp"
+#include "../ui/screens/pause_menu_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
 #include <cstdint>
@@ -104,8 +104,14 @@ void GameScene::Update(float dt) {
 
     HandleScoreboardInput();
 
-    if (IsKeyPressed(KEY_ESCAPE))
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.GetSessionManager()->ReturnToStart(); }));
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        UI::PauseMenuConfig cfg;
+        cfg.context = UI::MenuContext::InGame;
+        // TODO: Implement callbacks for when a user leaves the game
+        // cfg.onLeave = [this]() { SendDisconnect(); };
+        // cfg.onQuitDesktop = [this]() { SendDisconnect(); };
+        m_ui.Push(std::make_unique<UI::PauseMenu>(m_game, m_ui, cfg));
+    }
 
     TickPrediction(dt);
 }

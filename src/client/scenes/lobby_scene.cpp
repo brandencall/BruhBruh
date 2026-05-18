@@ -1,7 +1,7 @@
 #include "lobby_scene.hpp"
 #include "../../network/packets/lobby_packets.hpp"
-#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/friends_invite_screen.hpp"
+#include "../ui/screens/pause_menu_screen.hpp"
 #include "../utils/text_utils.hpp"
 #include "raylib.h"
 #include <cstdint>
@@ -85,11 +85,17 @@ void LobbyScene::Update(float dt) {
     if (m_game.GetSessionManager()->GetLobby() && m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         UpdateInviteButton(mousePos);
 
-    if (IsKeyPressed(KEY_ESCAPE))
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
-            SendDisconnect();
-            m_game.GetSessionManager()->ReturnToStart();
-        }));
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        UI::PauseMenuConfig cfg;
+        cfg.context = UI::MenuContext::Lobby;
+        cfg.onLeave = [this]() { SendDisconnect(); };
+        cfg.onQuitDesktop = [this]() { SendDisconnect(); };
+        m_ui.Push(std::make_unique<UI::PauseMenu>(m_game, m_ui, cfg));
+    }
+    // m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
+    //     SendDisconnect();
+    //     m_game.GetSessionManager()->ReturnToStart();
+    // }));
 }
 
 void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,

@@ -1,6 +1,6 @@
 #include "start_scene.hpp"
-#include "../ui/screens/confirm_quit_screen.hpp"
 #include "../ui/screens/join_screen.hpp"
+#include "../ui/screens/pause_menu_screen.hpp"
 #include "../utils/text_utils.hpp"
 #include "raylib.h"
 #include <cassert>
@@ -93,8 +93,11 @@ void StartScene::Update(float dt) {
     if (m_pendingInvite.active)
         UpdateInviteToast(mouse);
 
-    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.BlocksGameInput())
-        m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() { m_game.RequestQuit(); }));
+    if (IsKeyPressed(KEY_ESCAPE) && !m_ui.BlocksGameInput()) {
+        UI::PauseMenuConfig cfg;
+        cfg.context = UI::MenuContext::MainMenu;
+        m_ui.Push(std::make_unique<UI::PauseMenu>(m_game, m_ui, cfg));
+    }
 }
 
 void StartScene::UpdateMenuButtons(Vector2 mouse) {
@@ -227,7 +230,7 @@ void StartScene::RenderTitle(int screenW, int screenH) {
 
 void StartScene::RenderMenuButtons(int screenW, int screenH, Vector2 mouse) {
     auto drawBtn = [&](Rectangle r, const char *label, bool primary) {
-        bool hovered = CheckCollisionPointRec(mouse, r);
+        bool hovered = CheckCollisionPointRec(mouse, r) && !m_ui.BlocksGameInput();
 
         Color fill = primary ? (hovered ? Color{70, 120, 220, 255} : Color{45, 80, 160, 255})
                              : (hovered ? Color{55, 55, 75, 255} : Color{30, 30, 45, 255});
@@ -274,7 +277,7 @@ void StartScene::RenderInviteToast(int screenW, int screenH, Vector2 mouse) {
     utils::DrawTextCentered(msg.c_str(), p.x + p.width * 0.5f, p.y + p.height * 0.18f, msgSz, WHITE);
 
     // Accept button
-    bool acceptHovered = CheckCollisionPointRec(mouse, m_layout.toastAccept);
+    bool acceptHovered = CheckCollisionPointRec(mouse, m_layout.toastAccept) && !m_ui.BlocksGameInput();
     DrawRectangleRec(m_layout.toastAccept, acceptHovered ? Color{60, 160, 80, 255} : Color{35, 100, 50, 255});
     DrawRectangleLinesEx(m_layout.toastAccept, 1, {80, 200, 100, 255});
     utils::DrawTextCentered("Accept", m_layout.toastAccept.x + m_layout.toastAccept.width * 0.5f,
