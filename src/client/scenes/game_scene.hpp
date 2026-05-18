@@ -31,6 +31,9 @@ class GameScene : public Scene {
 
   private:
     void Sync(float dt);
+
+    void SendDisconnect();
+
     void HandleScoreboardInput();
     // Packet handlers — registered with NetworkMessageHandler
     void HandleGameBegin(const char *buf);

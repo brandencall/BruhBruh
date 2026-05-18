@@ -1,4 +1,5 @@
 #include "game_scene.hpp"
+#include "../../network/packets/lobby_packets.hpp"
 #include "../../shared/characters/character_movement.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
@@ -108,8 +109,8 @@ void GameScene::Update(float dt) {
         UI::PauseMenuConfig cfg;
         cfg.context = UI::MenuContext::InGame;
         // TODO: Implement callbacks for when a user leaves the game
-        // cfg.onLeave = [this]() { SendDisconnect(); };
-        // cfg.onQuitDesktop = [this]() { SendDisconnect(); };
+        cfg.onLeave = [this]() { SendDisconnect(); };
+        cfg.onQuitDesktop = [this]() { SendDisconnect(); };
         m_ui.Push(std::make_unique<UI::PauseMenu>(m_game, m_ui, cfg));
     }
 
@@ -142,6 +143,12 @@ void GameScene::Sync(float dt) {
     float smoothFactor = 1.0f - std::exp(-15.0f * dt);
     Vector2 smoothed = Vector2Lerp(m_camera.GetCamera()->target, rendererPos, smoothFactor);
     m_camera.SetPosition({std::round(smoothed.x), std::round(smoothed.y)});
+}
+
+void GameScene::SendDisconnect() {
+    network::DisconnectPacket packet{};
+    packet.header.type = network::PacketType::Disconnect;
+    m_game.GetTransport()->send(network::PEER_SERVER, &packet, sizeof(packet));
 }
 
 void GameScene::HandleScoreboardInput() {
