@@ -40,7 +40,7 @@ class PauseMenu : public UIScreen {
     bool IsDone() const override;
 
     // Call every frame while the menu is open
-    void Update(float _) override;
+    void Update(float dt) override;
     void Render() override;
 
   private:

@@ -1,8 +1,8 @@
 #include "pause_menu_screen.hpp"
 #include "confirm_quit_screen.hpp"
+#include "option_menu_screen.hpp"
 #include "raylib.h"
 #include <algorithm>
-#include <iostream>
 
 namespace UI {
 
@@ -77,7 +77,7 @@ bool PauseMenu::IsDone() const { return m_done; }
 
 void PauseMenu::OnResume() { m_done = true; }
 
-void PauseMenu::OnOptions() { std::cout << "The Options button was pressed" << std::endl; }
+void PauseMenu::OnOptions() { m_ui.Push(std::make_unique<UI::OptionMenu>(m_game)); }
 
 void PauseMenu::OnLeave() {
     m_ui.Push(std::make_unique<UI::ConfirmQuitScreen>([this]() {
@@ -98,8 +98,7 @@ void PauseMenu::OnQuitDesktop() {
 // ---------------------------------------------------------------------------
 // Update
 // ---------------------------------------------------------------------------
-void PauseMenu::Update(float _) {
-    float dt = GetFrameTime();
+void PauseMenu::Update(float dt) {
 
     m_openAnim = std::min(1.f, m_openAnim + dt * 7.f);
 

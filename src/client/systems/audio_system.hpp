@@ -3,6 +3,7 @@
 #include "../event_bus.hpp"
 #include "../events.hpp"
 #include "raylib.h"
+#include <string>
 
 namespace System {
 
@@ -10,14 +11,23 @@ enum class SoundCategory { Music, Effects };
 
 class AudioSystem {
   public:
+    void Load();
+    void Save();
+    std::string ConfigPath();
+
     void InitGamePlay(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
                       Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
                       Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus);
+
     void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos,
                             SoundCategory category, float soundVolume = 1.0f);
     void Play(Sound sound, SoundCategory category, float soundVolume = 1.0f);
     void UnloadGamePlay();
     void Unload();
+
+    float GetMasterVolume();
+    float GetMusicVolume();
+    float GetEffectsVolume();
 
     void SetMasterVolume(float volume);
     void SetMusicVolume(float volume);

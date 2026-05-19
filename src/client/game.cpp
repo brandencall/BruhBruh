@@ -11,6 +11,7 @@
 void Game::Run() {
     CreateWindow();
     InitAudioDevice();
+    m_audioSystem.Load();
     m_session.Initialize();
     m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
     m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
@@ -40,6 +41,7 @@ void Game::Run() {
 void Game::RunLocal(GameClient &client) {
     CreateWindow();
     InitAudioDevice();
+    m_audioSystem.Load();
     m_session.InitializeClientTransport(*client.GetTransport(), *client.GetHandler());
     m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
     m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {

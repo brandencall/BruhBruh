@@ -7,6 +7,7 @@ add_library(screens
     join_screen.cpp
     confirm_quit_screen.cpp
     pause_menu_screen.cpp
+    option_menu_screen.cpp
 )
 
 target_include_directories(screens

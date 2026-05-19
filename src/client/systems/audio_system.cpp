@@ -1,8 +1,60 @@
 #include "audio_system.hpp"
 #include "raylib.h"
 #include "raymath.h"
+#include <filesystem>
 
 namespace System {
+
+void AudioSystem::Load() {
+    if (!IsAudioDeviceReady())
+        return;
+
+    std::string path = ConfigPath();
+    FILE *f = std::fopen(path.c_str(), "r");
+    if (!f)
+        return; // first launch, defaults are fine
+
+    char line[128];
+    while (std::fgets(line, sizeof(line), f)) {
+        float v;
+        if (std::sscanf(line, "music_volume=%f", &v) == 1)
+            SetMusicVolume(v);
+        if (std::sscanf(line, "effects_volume=%f", &v) == 1)
+            SetEffectsVolume(v);
+        if (std::sscanf(line, "master_volume=%f", &v) == 1)
+            SetMasterVolume(v);
+    }
+    std::fclose(f);
+}
+
+void AudioSystem::Save() {
+    std::string path = ConfigPath();
+    // Make sure the directory exists first
+    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
+
+    FILE *f = std::fopen(path.c_str(), "w");
+    if (!f)
+        return;
+    std::fprintf(f, "[audio]\n");
+    std::fprintf(f, "music_volume=%.2f\n", m_musicVolume);
+    std::fprintf(f, "effects_volume=%.2f\n", m_effectsVolume);
+    std::fprintf(f, "master_volume=%.2f\n", m_masterVolume);
+    std::fclose(f);
+}
+
+std::string AudioSystem::ConfigPath() {
+#ifdef _WIN32
+    // e.g. C:\Users\You\AppData\Roaming\BruhBruh\config.ini
+    const char *appdata = std::getenv("APPDATA");
+    return std::string(appdata) + "\\BruhBruh\\config.ini";
+#elif __APPLE__
+    const char *home = std::getenv("HOME");
+    return std::string(home) + "/Library/Application Support/BruhBruh/config.ini";
+#else // Linux
+    const char *home = std::getenv("HOME");
+    return std::string(home) + "/.config/BruhBruh/config.ini";
+#endif
+}
 
 void AudioSystem::InitGamePlay(Client::EventBus<client::HitEvent> &hitBus,
                                Client::EventBus<client::PlayerDiedEvent> &deathBus,
@@ -77,6 +129,12 @@ void AudioSystem::SafeUnloadAlias(Sound &s) {
         s = {};
     }
 }
+
+float AudioSystem::GetMasterVolume() { return m_masterVolume; }
+
+float AudioSystem::GetMusicVolume() { return m_musicVolume; }
+
+float AudioSystem::GetEffectsVolume() { return m_effectsVolume; }
 
 void AudioSystem::SetMasterVolume(float volume) { m_masterVolume = volume; }
 
