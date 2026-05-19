@@ -35,6 +35,8 @@ void LobbyScene::OnEnter() {
         SendLocalJoin();
     else if (!m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         SendJoin();
+
+    m_game.GetAudioSystem()->InitLobby(onGameStarting);
 }
 
 void LobbyScene::OnExit() {
@@ -52,6 +54,7 @@ void LobbyScene::OnExit() {
     handler->Unregister(PT::HostDisconnected);
 
     m_ui.Clear();
+    m_game.GetAudioSystem()->UnloadLobby();
 
     for (auto &[id, tex] : m_icons)
         UnloadTexture(tex);
@@ -304,8 +307,11 @@ void LobbyScene::HandleLobbyState(const char *buf) {
 
 void LobbyScene::HandleGameStarting(const char *buf) {
     auto *pkt = reinterpret_cast<const network::StartGamePacket *>(buf);
-    m_countdownTimer = pkt->countdown;
+    m_previousCountdown = m_countdownTimer;
+    m_countdownTimer = (int)std::ceil(pkt->countdown);
+    m_maxCountdown = std::max(m_maxCountdown, m_countdownTimer);
     m_gameStarting = true;
+    onGameStarting.Publish({m_previousCountdown, m_countdownTimer, m_maxCountdown});
 }
 
 void LobbyScene::HandleGameBegin(const char *buf) {

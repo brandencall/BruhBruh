@@ -11,6 +11,7 @@
 #include "../ui/screens/pause_menu_screen.hpp"
 #include "../ui/screens/scoreboard.hpp"
 #include "raylib.h"
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 
@@ -58,6 +59,7 @@ void GameScene::OnEnter() {
             m_ui.Push(std::make_unique<UI::DeathScreen>(m_worldState.m_players[e.data.victim.id]));
         }
     });
+    m_game.GetAudioSystem()->InitGamePlay(m_events);
 }
 
 void GameScene::OnExit() {
@@ -162,7 +164,10 @@ void GameScene::HandleScoreboardInput() {
 
 void GameScene::HandleGameBegin(const char *buffer) {
     auto *pkt = (network::GameBeginPacket *)buffer;
-    m_gameBeginTimer = pkt->countdown;
+    m_previousGameBegin = m_gameBeginTimer;
+    m_gameBeginTimer = (int)std::ceil(pkt->countdown);
+    m_maxGameBeginTimer = std::max(m_maxGameBeginTimer, m_gameBeginTimer);
+    m_events.onGameStarting.Publish({m_previousGameBegin, m_gameBeginTimer, m_maxGameBeginTimer});
 
     if (!m_joined) {
         m_worldState.m_currentPlayerId = m_currentPlayerId;
@@ -183,8 +188,6 @@ void GameScene::HandleGameBegin(const char *buffer) {
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
-        m_game.GetAudioSystem()->InitGamePlay(m_events.onHit, m_events.playerDied, m_events.onWallPlaced,
-                                              m_events.onWallPickedUp);
     }
 }
 
@@ -355,7 +358,7 @@ void GameScene::Render() {
     int screenH = GetScreenHeight();
 
     if (m_gameBeginTimer > 0) {
-        const char *countdownText = TextFormat("%d", (int)std::ceil(m_gameBeginTimer));
+        const char *countdownText = TextFormat("%d", m_gameBeginTimer);
         int fontSize = 128;
         int textWidth = MeasureText(countdownText, fontSize);
         DrawText(countdownText, (screenW - textWidth) / 2, (screenH / 2) - (fontSize / 2), fontSize, YELLOW);
@@ -403,7 +406,7 @@ void GameScene::RenderCursor() {
 }
 
 void GameScene::TickPrediction(float dt) {
-    if (!m_joined || m_gameBeginTimer > 0.0f)
+    if (!m_joined || m_gameBeginTimer > 0)
         return;
 
     const state::PlayerState &lp = m_worldState.m_players[m_worldState.m_currentPlayerId];

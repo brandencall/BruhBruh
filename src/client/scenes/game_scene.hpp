@@ -92,7 +92,10 @@ class GameScene : public Scene {
     float m_sendInterval = 1.0f / 60.0f;
 
     bool m_joined = false;
-    float m_gameBeginTimer = 0.0f;
+    int m_gameBeginTimer = -1;
+    int m_previousGameBegin = -1;
+    int m_maxGameBeginTimer = -1;
+
     bool m_initialSnapDone = false;
     bool m_gameEndScreenActive = false;
 

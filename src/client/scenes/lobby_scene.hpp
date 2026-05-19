@@ -1,6 +1,7 @@
 #pragma once
 #include "../../config.hpp"
 #include "../../shared/state/lobby_slot_state.hpp"
+#include "../event_bus.hpp"
 #include "../game.hpp"
 #include "../ui/ui_manager.hpp"
 #include "scene.hpp"
@@ -48,16 +49,22 @@ class LobbyScene : public Scene {
     void RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y);
 
   private:
-    bool m_joined = false;
-    float m_joinRetryAccumulator = 0.0f;
-    float m_countdownTimer = 0.0f;
-    bool m_gameStarting = false;
-
     Game &m_game;
     UI::UIManager m_ui;
+
+    bool m_joined = false;
+    float m_joinRetryAccumulator = 0.0f;
+
+    int m_countdownTimer = -1;
+    int m_previousCountdown = -1;
+    int m_maxCountdown = -1;
+
+    bool m_gameStarting = false;
 
     std::array<state::LobbySlotState, MAX_PLAYERS> m_players{};
     std::map<Character::CharacterId, Texture2D> m_icons;
     int m_localPlayerId = -1;
     bool m_ready = false;
+
+    Client::EventBus<client::GameStartingEvent> onGameStarting;
 };

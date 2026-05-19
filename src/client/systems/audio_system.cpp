@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <filesystem>
+#include <iostream>
 
 namespace System {
 
@@ -56,13 +57,28 @@ std::string AudioSystem::ConfigPath() {
 #endif
 }
 
-void AudioSystem::InitGamePlay(Client::EventBus<client::HitEvent> &hitBus,
-                               Client::EventBus<client::PlayerDiedEvent> &deathBus,
-                               Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
-                               Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus) {
+void AudioSystem::LoadMatchSounds() {
     if (!IsAudioDeviceReady())
         return;
 
+    SafeLoad(m_countdownSound, "assets/sounds/countdown_beep.wav");
+}
+
+void AudioSystem::InitLobby(Client::EventBus<client::GameStartingEvent> &startingBus) {
+    if (!IsAudioDeviceReady())
+        return;
+
+    LoadMatchSounds();
+    m_countdownSub = startingBus.Subscribe([this](const client::GameStartingEvent &e) { OnCountdown(e); });
+}
+
+void AudioSystem::InitGamePlay(Client::EventHub &events) {
+    if (!IsAudioDeviceReady())
+        return;
+
+    LoadMatchSounds();
+    m_goBellSound = LoadSound("assets/sounds/go_bell_sound.wav");
+    m_goBellLoaded = true;
     m_hitmarkerSound = LoadSound("assets/sounds/hitmarker.wav");
     m_deathSound = LoadSound("assets/sounds/dramatic_death.wav");
     m_killRewardSound = LoadSound("assets/sounds/kill_reward.wav");
@@ -84,12 +100,20 @@ void AudioSystem::InitGamePlay(Client::EventBus<client::HitEvent> &hitBus,
     }
 
     m_gameplaySubs.clear();
-    m_gameplaySubs.emplace_back(hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
-    m_gameplaySubs.emplace_back(deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); }));
-    m_gameplaySubs.emplace_back(wallPlacedBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
+    m_gameplaySubs.emplace_back(events.onHit.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
     m_gameplaySubs.emplace_back(
-        wallPickedUpBus.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); }));
+        events.playerDied.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); }));
+    m_gameplaySubs.emplace_back(
+        events.onWallPlaced.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
+    m_gameplaySubs.emplace_back(
+        events.onWallPickedUp.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); }));
+    m_gameplaySubs.emplace_back(
+        events.onGameStarting.Subscribe([this](const client::GameStartingEvent &e) { OnCountdown(e); }));
 }
+
+void AudioSystem::UnloadMatch() { SafeUnload(m_countdownSound); }
+
+void AudioSystem::UnloadLobby() { m_countdownSub = {}; }
 
 void AudioSystem::UnloadGamePlay() {
     for (Sound &s : m_hitmarkerAliases) {
@@ -105,6 +129,8 @@ void AudioSystem::UnloadGamePlay() {
         SafeUnloadAlias(s);
     }
 
+    SafeUnload(m_goBellSound);
+    m_goBellLoaded = false;
     SafeUnload(m_hitmarkerSound);
     SafeUnload(m_deathSound);
     SafeUnload(m_killRewardSound);
@@ -114,7 +140,17 @@ void AudioSystem::UnloadGamePlay() {
     m_gameplaySubs.clear();
 }
 
-void AudioSystem::Unload() { UnloadGamePlay(); }
+void AudioSystem::Unload() {
+    UnloadMatch();
+    UnloadLobby();
+    UnloadGamePlay();
+}
+
+void AudioSystem::SafeLoad(Sound &s, const char *filename) {
+    if (s.stream.buffer != nullptr) {
+        s = LoadSound(filename);
+    }
+}
 
 void AudioSystem::SafeUnload(Sound &s) {
     if (s.stream.buffer != nullptr) {
@@ -141,6 +177,20 @@ void AudioSystem::SetMasterVolume(float volume) { m_masterVolume = volume; }
 void AudioSystem::SetMusicVolume(float volume) { m_musicVolume = volume; }
 
 void AudioSystem::SetEffectsVolume(float volume) { m_effectsVolume = volume; }
+
+void AudioSystem::OnCountdown(const client::GameStartingEvent &e) {
+    if (e.prevCountdown == e.countdown || e.countdown > 3)
+        return;
+
+    if (e.countdown == 0 && m_goBellLoaded) {
+        Play(m_goBellSound, SoundCategory::Effects);
+        return;
+    }
+
+    float pitch = GetCountdownPitch(e.countdown, e.max);
+    SetSoundPitch(m_countdownSound, pitch);
+    Play(m_countdownSound, SoundCategory::Effects);
+}
 
 void AudioSystem::OnHit(const client::HitEvent &e) {
     if (e.attackerId == e.localPlayerId) {
@@ -198,6 +248,12 @@ void AudioSystem::PlayHitmarker() {
     SetSoundVolume(alias, 0.3f);
 
     Play(alias, SoundCategory::Effects);
+}
+
+float AudioSystem::GetCountdownPitch(int value, int maxValue) {
+    float t = 1.0f - (float(value - 1) / float(maxValue - 1));
+    t = t * t; // ease-in
+    return 0.9f + t * 0.2f;
 }
 
 float AudioSystem::GetSpatialVolume2D(Vector2 soundPos, float maxRange, Vector2 localPlayerPos) {

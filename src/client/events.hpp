@@ -32,4 +32,10 @@ struct WallPickedUpEvent {
     Vector2 localPlayerPosition;
 };
 
+struct GameStartingEvent {
+    int prevCountdown;
+    int countdown;
+    int max;
+};
+
 } // namespace client

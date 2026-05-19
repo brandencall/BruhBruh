@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../event_bus.hpp"
+#include "../event_hub.hpp"
 #include "../events.hpp"
 #include "raylib.h"
 #include <string>
@@ -15,15 +16,18 @@ class AudioSystem {
     void Save();
     std::string ConfigPath();
 
-    void InitGamePlay(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
-                      Client::EventBus<client::WallPlacedEvent> &wallPlacedBus,
-                      Client::EventBus<client::WallPickedUpEvent> &wallPickedUpBus);
+    void LoadMatchSounds();
+    void InitLobby(Client::EventBus<client::GameStartingEvent> &startingBus);
+    void InitGamePlay(Client::EventHub &events);
+
+    void UnloadMatch();
+    void UnloadLobby();
+    void UnloadGamePlay();
+    void Unload();
 
     void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos,
                             SoundCategory category, float soundVolume = 1.0f);
     void Play(Sound sound, SoundCategory category, float soundVolume = 1.0f);
-    void UnloadGamePlay();
-    void Unload();
 
     float GetMasterVolume();
     float GetMusicVolume();
@@ -34,23 +38,33 @@ class AudioSystem {
     void SetEffectsVolume(float volume);
 
   private:
+    void SafeLoad(Sound &s, const char *filename);
     void SafeUnload(Sound &s);
     void SafeUnloadAlias(Sound &s);
 
+    void OnCountdown(const client::GameStartingEvent &e);
     void OnHit(const client::HitEvent &e);
     void OnPlayerDied(const client::PlayerDiedEvent &e);
     void OnWallPlaced(const client::WallPlacedEvent &e);
     void OnWallPickedUp(const client::WallPickedUpEvent &e);
+
     void PlayHitmarker();
+
+    float GetCountdownPitch(int value, int maxValue);
     float GetSpatialVolume2D(Vector2 soundPos, float maxRange, Vector2 localPlayerPos);
     float GetSpatialPan2D(Vector2 soundPos, Vector2 localPlayerPos);
 
   private:
+    Client::Subscription m_countdownSub;
     std::vector<Client::Subscription> m_gameplaySubs;
 
     float m_masterVolume = 1.0f;
     float m_musicVolume = 1.0f;
     float m_effectsVolume = 1.0f;
+
+    Sound m_countdownSound;
+    Sound m_goBellSound;
+    bool m_goBellLoaded;
 
     Sound m_hitmarkerSound;
     static constexpr int HITMARKER_POOL_SIZE = 8;
