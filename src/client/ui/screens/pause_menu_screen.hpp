@@ -70,6 +70,16 @@ class PauseMenu : public UIScreen {
     std::vector<PauseMenuButton> m_buttons;
     bool m_done = false;
     int m_selectedIndex = 0; // keyboard / gamepad nav
+                             //
+
+    float m_scaledPanelW = 0.0f;
+    float m_scaledBtnH = 0.0f;
+    float m_scaledBtnGap = 0.0f;
+    float m_scaledPadX = 0.0f;
+    float m_scaledPadTop = 0.0f;
+    float m_scaledHeaderH = 0.0f;
+    float m_scaledSepH = 0.0f;
+    float m_scaledLabelSz = 0.0f;
 
     // Cached rects (rebuilt on LayoutRects)
     Rectangle m_panelRect{};
@@ -92,13 +102,15 @@ class PauseMenu : public UIScreen {
     static constexpr float kFooterH = 38.f;
     static constexpr float kCornerLen = 10.f;
     static constexpr float kCornerThick = 2.f;
-    static constexpr Color kAccent = {224, 90, 30, 255};
-    static constexpr Color kDanger = {210, 50, 50, 255};
+
+    static constexpr Color kAccent = {45, 80, 160, 255};
+    static constexpr Color kBorder = {70, 70, 100, 255};
+    static constexpr Color kTextPrimary = {255, 255, 255, 255};
+    static constexpr Color kTextMuted = {160, 160, 180, 255};
+    static constexpr Color kDanger = {200, 80, 80, 255};
+
     static constexpr Color kBg = {13, 17, 23, 230};
     static constexpr Color kBgPanel = {18, 23, 32, 245};
-    static constexpr Color kBorder = {255, 255, 255, 20};
-    static constexpr Color kTextPrimary = {230, 230, 230, 255};
-    static constexpr Color kTextMuted = {255, 255, 255, 60};
 };
 
 } // namespace UI
