@@ -44,6 +44,7 @@ void PacketHandler::OnJoinLobby(char *buffer, size_t size, network::PeerId from)
     auto *pkt = reinterpret_cast<network::JoinLobbyPacket *>(buffer);
     auto *existing = m_registry.FindByPeer(from);
     if (existing) {
+        SendJoinResponse(from, existing->playerId, pkt->name);
         return;
     }
 

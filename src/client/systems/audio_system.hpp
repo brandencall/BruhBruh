@@ -64,7 +64,7 @@ class AudioSystem {
 
     Sound m_countdownSound;
     Sound m_goBellSound;
-    bool m_goBellLoaded;
+    bool m_goBellLoaded = false;
 
     Sound m_hitmarkerSound;
     static constexpr int HITMARKER_POOL_SIZE = 8;

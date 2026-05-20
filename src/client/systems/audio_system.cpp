@@ -2,7 +2,6 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <filesystem>
-#include <iostream>
 
 namespace System {
 
@@ -182,8 +181,10 @@ void AudioSystem::OnCountdown(const client::GameStartingEvent &e) {
     if (e.prevCountdown == e.countdown || e.countdown > 3)
         return;
 
-    if (e.countdown == 0 && m_goBellLoaded) {
-        Play(m_goBellSound, SoundCategory::Effects);
+    if (e.countdown == 0) {
+        if (m_goBellLoaded) {
+            Play(m_goBellSound, SoundCategory::Effects);
+        }
         return;
     }
 

@@ -6,6 +6,7 @@
 #include "raylib.h"
 #include <cstdint>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 
@@ -33,7 +34,7 @@ void LobbyScene::OnEnter() {
 
     if (!m_game.GetSessionManager()->GetLobby())
         SendLocalJoin();
-    else if (!m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
+    else
         SendJoin();
 
     m_game.GetAudioSystem()->InitLobby(onGameStarting);
@@ -102,6 +103,8 @@ void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,
 
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || m_ready)
         return;
+
+    std::cout << "Mouse position (Character selection): " << mousePos.x << ", " << mousePos.y << std::endl;
 
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();

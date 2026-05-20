@@ -18,8 +18,10 @@ class SessionManager {
 
     SessionManager(SceneManager &sceneManager);
 
-    void SetLobbyFactory(LobbyFactory f);
+    void SetCreateLobbyFactory(LobbyFactory f);
+    void SetReplaceLobbyFactory(LobbyFactory f);
     void CreateLobby();
+    void ReplaceSceneWithLobby();
     void SetGameSceneFactory(GameSceneFactory f);
     void CreateGame(const state::LobbySlotState &currentPlayerState);
 
@@ -53,6 +55,7 @@ class SessionManager {
     bool m_returningToStart = false;
 
     LobbyFactory m_createLobby;
+    LobbyFactory m_replaceSceneWithLobby;
     GameSceneFactory m_createGameScene;
 
     SceneManager &m_sceneManager;

@@ -14,9 +14,13 @@ void SessionManager::Initialize() {
     m_lobbyManager = std::make_unique<SteamLobbyManager>(dynamic_cast<network::SteamTransport &>(*m_transport));
 }
 
-void SessionManager::SetLobbyFactory(LobbyFactory f) { m_createLobby = f; }
+void SessionManager::SetCreateLobbyFactory(LobbyFactory f) { m_createLobby = f; }
+
+void SessionManager::SetReplaceLobbyFactory(LobbyFactory f) { m_replaceSceneWithLobby = f; }
 
 void SessionManager::CreateLobby() { m_createLobby(); }
+
+void SessionManager::ReplaceSceneWithLobby() { m_replaceSceneWithLobby(); }
 
 void SessionManager::SetGameSceneFactory(GameSceneFactory f) { m_createGameScene = f; }
 

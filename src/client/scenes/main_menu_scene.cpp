@@ -110,7 +110,6 @@ void MainMenuScene::UpdateMenuButtons(Vector2 mouse) {
 
         m_game.GetSessionManager()->HostGame(
             [this]() {
-                // onLobbyCreated fires on the Steam callback thread — push scene safely
                 assert(m_session.GetTransport());
                 assert(m_session.GetHandler());
                 m_game.GetSessionManager()->CreateLobby();
@@ -129,8 +128,6 @@ void MainMenuScene::UpdateMenuButtons(Vector2 mouse) {
             m_game.GetSessionManager()->JoinLobby(
                 lobbyId,
                 [this]() {
-                    std::cout << "Pushing the lobby scene when the join button was pushed" << std::endl;
-                    // JoinScreen will be cleaned up when MainMenuScene exits
                     assert(m_session.GetTransport());
                     assert(m_session.GetHandler());
                     m_game.GetSessionManager()->CreateLobby();
@@ -156,8 +153,6 @@ void MainMenuScene::UpdateInviteToast(Vector2 mouse) {
         m_game.GetSessionManager()->JoinLobby(
             lobbyId,
             [this]() {
-                std::cout << SteamFriends()->GetPersonaName() << ": Join lobby called.. pushing lobby scene"
-                          << std::endl;
                 assert(m_session.GetTransport());
                 assert(m_session.GetHandler());
                 m_game.GetSessionManager()->CreateLobby();

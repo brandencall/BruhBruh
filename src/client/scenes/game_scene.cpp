@@ -317,7 +317,7 @@ void GameScene::HandleGameEnd(const char *buffer) {
     }
 }
 
-void GameScene::HandleSwitchToLobby(const char *buf) { m_game.GetSessionManager()->CreateLobby(); }
+void GameScene::HandleSwitchToLobby(const char *buf) { m_game.GetSessionManager()->ReplaceSceneWithLobby(); }
 
 void GameScene::HandleHostDisconnected(const char *buf) {
     std::cout << "Calling m_sessionManager.ReturnToStart() from GameScene::HandleHostDisconnected()" << std::endl;

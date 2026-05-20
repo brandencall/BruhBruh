@@ -13,7 +13,8 @@ void Game::Run() {
     InitAudioDevice();
     m_audioSystem.Load();
     m_session.Initialize();
-    m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetCreateLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetReplaceLobbyFactory([this]() { m_sceneManager.Replace(std::make_unique<LobbyScene>(*this)); });
     m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
         m_sceneManager.Replace(std::make_unique<GameScene>(*this, currentPlayerState));
     });
@@ -43,7 +44,8 @@ void Game::RunLocal(GameClient &client) {
     InitAudioDevice();
     m_audioSystem.Load();
     m_session.InitializeClientTransport(*client.GetTransport(), *client.GetHandler());
-    m_session.SetLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetCreateLobbyFactory([this]() { m_sceneManager.Push(std::make_unique<LobbyScene>(*this)); });
+    m_session.SetReplaceLobbyFactory([this]() { m_sceneManager.Replace(std::make_unique<LobbyScene>(*this)); });
     m_session.SetGameSceneFactory([this](const state::LobbySlotState &currentPlayerState) {
         m_sceneManager.Replace(std::make_unique<GameScene>(*this, currentPlayerState));
     });
