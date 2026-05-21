@@ -3,6 +3,10 @@ add_library(network
     client.cpp
 )
 
+if (WIN32)
+    target_link_libraries(network PRIVATE ws2_32 wsock32)
+endif()
+
 target_include_directories(network
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}

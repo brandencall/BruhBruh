@@ -36,6 +36,7 @@ elseif(UNIX)
     )
 endif()
 
+
 # Link internal modules
 target_link_libraries(BruhBruh
     PRIVATE
@@ -46,6 +47,10 @@ target_link_libraries(BruhBruh
         raylib
         SteamSDK
 )
+
+if (WIN32)
+    target_link_libraries(network PRIVATE ws2_32 wsock32)
+endif()
 
 add_custom_command(TARGET BruhBruh POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
