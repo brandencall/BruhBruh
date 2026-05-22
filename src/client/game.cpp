@@ -24,7 +24,6 @@ void Game::Run() {
 
     while (!WindowShouldClose() && !m_shouldQuit) {
         SteamAPI_RunCallbacks();
-        assert(m_session.GetTransport() && "The m_session.GetTransport() assert failed...");
         m_session.GetTransport()->Pump();
 
         float dt = GetFrameTime();

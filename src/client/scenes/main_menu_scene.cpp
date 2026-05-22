@@ -108,16 +108,11 @@ void MainMenuScene::UpdateMenuButtons(Vector2 mouse) {
         SetStatus("Creating lobby...");
         m_state = State::WaitingForLobby;
 
-        m_game.GetSessionManager()->HostGame(
-            [this]() {
-                assert(m_session.GetTransport());
-                assert(m_session.GetHandler());
-                m_game.GetSessionManager()->CreateLobby();
-            },
-            [this](const char *err) {
-                SetStatus(std::string("Error: ") + err);
-                m_state = State::Idle;
-            });
+        m_game.GetSessionManager()->HostGame([&]() { m_game.GetSessionManager()->CreateLobby(); },
+                                             [&](const char *err) {
+                                                 SetStatus(std::string("Error: ") + err);
+                                                 m_state = State::Idle;
+                                             });
         return;
     }
 
@@ -126,13 +121,8 @@ void MainMenuScene::UpdateMenuButtons(Vector2 mouse) {
             SetStatus("Joining lobby...");
             m_state = State::WaitingForLobby;
             m_game.GetSessionManager()->JoinLobby(
-                lobbyId,
-                [this]() {
-                    assert(m_session.GetTransport());
-                    assert(m_session.GetHandler());
-                    m_game.GetSessionManager()->CreateLobby();
-                },
-                [this](const char *err) {
+                lobbyId, [&]() { m_game.GetSessionManager()->CreateLobby(); },
+                [&](const char *err) {
                     SetStatus(std::string("Error: ") + err);
                     m_state = State::Idle;
                 });
@@ -151,13 +141,8 @@ void MainMenuScene::UpdateInviteToast(Vector2 mouse) {
         m_pendingInvite.active = false;
 
         m_game.GetSessionManager()->JoinLobby(
-            lobbyId,
-            [this]() {
-                assert(m_session.GetTransport());
-                assert(m_session.GetHandler());
-                m_game.GetSessionManager()->CreateLobby();
-            },
-            [this](const char *err) {
+            lobbyId, [&]() { m_game.GetSessionManager()->CreateLobby(); },
+            [&](const char *err) {
                 SetStatus(std::string("Error: ") + err);
                 m_state = State::Idle;
             });

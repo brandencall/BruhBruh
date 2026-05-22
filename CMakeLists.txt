@@ -48,8 +48,13 @@ target_link_libraries(BruhBruh
         SteamSDK
 )
 
-if (WIN32)
-    target_link_libraries(network PRIVATE ws2_32 wsock32)
+if(WIN32)
+    target_link_libraries(BruhBruh PRIVATE ws2_32 wsock32)
+    target_link_options(BruhBruh PRIVATE
+        -static-libgcc
+        -static-libstdc++
+        -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
+    )
 endif()
 
 add_custom_command(TARGET BruhBruh POST_BUILD

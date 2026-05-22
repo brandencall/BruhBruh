@@ -17,6 +17,10 @@ class SessionManager {
     using GameSceneFactory = std::function<void(const state::LobbySlotState &currentPlayerState)>;
 
     SessionManager(SceneManager &sceneManager);
+    SessionManager(const SessionManager &) = delete;
+    SessionManager &operator=(const SessionManager &) = delete;
+    SessionManager(SessionManager &&) = delete;
+    SessionManager &operator=(SessionManager &&) = delete;
 
     void SetCreateLobbyFactory(LobbyFactory f);
     void SetReplaceLobbyFactory(LobbyFactory f);

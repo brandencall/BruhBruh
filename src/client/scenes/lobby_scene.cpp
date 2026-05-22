@@ -32,10 +32,7 @@ void LobbyScene::OnEnter() {
     m_icons[Character::CharacterId::Hodge] = LoadTexture("assets/characters/tmp/Hodge.png");
     m_icons[Character::CharacterId::JJ] = LoadTexture("assets/characters/tmp/Big_J.png");
 
-    if (!m_game.GetSessionManager()->GetLobby())
-        SendLocalJoin();
-    else
-        SendJoin();
+    m_pendingJoin = true;
 
     m_game.GetAudioSystem()->InitLobby(onGameStarting);
 }
@@ -62,6 +59,15 @@ void LobbyScene::OnExit() {
 }
 
 void LobbyScene::Update(float dt) {
+    if (m_pendingJoin) {
+        m_pendingJoin = false;
+        if (!m_game.GetSessionManager()->GetLobby())
+            SendLocalJoin();
+        else
+            SendJoin();
+        return;
+    }
+
     if (!m_joined && !m_game.GetSessionManager()->GetLobby()) {
         SendLocalJoin();
         return;

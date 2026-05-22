@@ -26,6 +26,11 @@ class SteamLobbyManager {
   public:
     explicit SteamLobbyManager(network::SteamTransport &transport) : m_transport(transport) {}
 
+    SteamLobbyManager(const SteamLobbyManager &) = delete;
+    SteamLobbyManager &operator=(const SteamLobbyManager &) = delete;
+    SteamLobbyManager(SteamLobbyManager &&) = delete;
+    SteamLobbyManager &operator=(SteamLobbyManager &&) = delete;
+
     ~SteamLobbyManager() {
         m_lobbyCreated.Cancel();
         m_lobbyEnter.Cancel();

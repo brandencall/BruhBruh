@@ -52,6 +52,7 @@ class LobbyScene : public Scene {
     Game &m_game;
     UI::UIManager m_ui;
 
+    bool m_pendingJoin = false;
     bool m_joined = false;
     float m_joinRetryAccumulator = 0.0f;
 
