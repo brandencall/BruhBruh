@@ -198,7 +198,7 @@ bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i grid
         return false;
 
     player.currentAvaliableWalls--;
-    m_wallManager.PlaceWall(gridPos, 20, player);
+    m_wallManager.PlaceWall(gridPos, 50, player);
     return true;
 }
 
