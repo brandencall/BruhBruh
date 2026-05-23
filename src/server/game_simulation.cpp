@@ -67,6 +67,7 @@ void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shoot
     auto &killer = m_players[shooterId];
     player.score.deaths++;
     killer.score.kills++;
+    m_wallManager.ClearWallsForPlayer(player.id);
     m_eventBus->publish(event::PlayerDiedEvent{player, killer});
 }
 
