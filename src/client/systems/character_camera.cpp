@@ -40,17 +40,17 @@ const Camera2D *CharacterCamera::GetCamera() const { return &m_camera; }
 
 void CharacterCamera::OnHit(const client::HitEvent &e) {
     if (e.victimId == e.localPlayerId)
-        AddShake(0.25);
+        AddShake(0.5);
 }
 
 void CharacterCamera::OnPlayerDied(const client::PlayerDiedEvent &e) {
     if (e.data.victim.id == e.localPlayer.id)
-        AddShake(1.5);
+        AddShake(2.5);
 }
 
 void CharacterCamera::OnWallPlaced(const client::WallPlacedEvent &e) {
     if (e.wallPlacerId == e.localPlayerId)
-        AddShake(.5);
+        AddShake(.75);
 }
 
 void CharacterCamera::AddShake(float amount) { m_shake = std::min(1.0f, m_shake + amount); }

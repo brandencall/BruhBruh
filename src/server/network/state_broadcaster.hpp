@@ -27,7 +27,6 @@ class StateBroadcaster {
     void BroadcastState(const GameSimulation &sim);
     void BroadcastLobbyState(const ServerLobby &lobby);
     void BroadcastSwitchToLobby();
-    void BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim);
     void DrainAndBroadcast(EventBus &eventBus);
     void BroadcastAll(const void *data, size_t size);
 

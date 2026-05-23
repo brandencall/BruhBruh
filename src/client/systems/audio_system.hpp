@@ -54,6 +54,7 @@ class AudioSystem {
 
     void PlayHitmarker();
 
+    float GetPitch();
     float GetCountdownPitch(int value, int maxValue);
     float GetSpatialVolume2D(Vector2 soundPos, float maxRange, Vector2 localPlayerPos);
     float GetSpatialPan2D(Vector2 soundPos, Vector2 localPlayerPos);
@@ -84,6 +85,11 @@ class AudioSystem {
 
     Sound m_deathSound;
     Sound m_killRewardSound;
+
+    Sound m_hurtGruntSound;
+    static constexpr int HURT_GRUNT_POOL_SIZE = 4;
+    Sound m_hurtGruntAliases[HURT_GRUNT_POOL_SIZE];
+    int m_hurtGruntIndex = 0;
 
     Sound m_wallPlacedConcreteSound;
     Sound m_wallPlacedKickDrumSound;

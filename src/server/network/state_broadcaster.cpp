@@ -107,18 +107,6 @@ void StateBroadcaster::BroadcastHostDisconnected(network::PeerId hostPeerId) {
     });
 }
 
-// void StateBroadcaster::BroadcastCurrentWorldState(network::PeerId peer, const GameSimulation &sim) {
-//     AssertTransport();
-//     network::CurrentWorldStatePacket worldStatePacket{};
-//     BuildCurrentWorldStatePacket(sim, worldStatePacket);
-//     size_t sendSize =
-//         offsetof(network::CurrentWorldStatePacket, players) + worldStatePacket.playerCount *
-//         sizeof(state::PlayerState);
-//
-//     m_registry.ForEach(
-//         [&](network::ClientConnection &client) { m_transport->send(client.peerId, &worldStatePacket, sendSize); });
-// }
-
 void StateBroadcaster::BroadcastAll(const void *data, size_t size) {
     AssertTransport();
     m_registry.ForEach([&](network::ClientConnection &client) { m_transport->send(client.peerId, data, size); });

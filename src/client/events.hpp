@@ -24,6 +24,8 @@ struct HitEvent {
     uint32_t victimId;
     Character::CharacterId attackerCharacter;
     uint32_t localPlayerId;
+    Vector2 victimPosition;
+    Vector2 localPlayerPosition;
 };
 
 struct WallPlacedEvent {
