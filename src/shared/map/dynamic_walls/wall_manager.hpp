@@ -127,8 +127,6 @@ class WallManager {
         return colliders;
     }
 
-    void ClearWalls() { m_walls.clear(); }
-
     void ClearWallsForPlayer(uint32_t ownerId) {
         for (auto it = m_walls.begin(); it != m_walls.end();) {
             if (it->second.ownerId == ownerId) {

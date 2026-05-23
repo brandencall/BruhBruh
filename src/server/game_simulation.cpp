@@ -8,6 +8,7 @@
 #include "raylib.h"
 #include "state/player_state.hpp"
 #include "systems/spawn_system.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <string.h>
 #include <sys/types.h>
@@ -42,6 +43,7 @@ void GameSimulation::SetupBulletSystem() {
             return;
 
         player.health -= damage;
+        player.lastDamageTakenTimer = 0.0f;
         if (player.health <= 0.0f) {
             HandlePlayerDied(player, shooterId);
             return;
@@ -95,6 +97,7 @@ void GameSimulation::SetupWallManager() {
 void GameSimulation::Update(float tickRate) {
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
     for (auto &player : m_players) {
+        const auto &def = GetCharacterDef(player.characterId);
         if (!player.active)
             continue;
 
@@ -116,6 +119,16 @@ void GameSimulation::Update(float tickRate) {
         if (player.wallTimer > 0.0f)
             player.wallTimer -= tickRate;
 
+        // The regenTimer is init to 0.5 so that health regens right after 5 seconds istead of 5.5 seconds
+        player.lastDamageTakenTimer += tickRate;
+        if (player.lastDamageTakenTimer >= 5.0f) {
+            player.healthRegenTimer += tickRate;
+            if (player.healthRegenTimer >= 0.5f) {
+                player.health = std::min(def.maxHealth, player.health + 2.0f);
+                player.healthRegenTimer = 0.0f;
+            }
+        }
+
         Character::SimulateMove(player, tickRate, m_map.walls, dynamicColliders);
     }
 
@@ -132,6 +145,8 @@ void GameSimulation::RespawnPlayer(state::PlayerState &player) {
     player.velocity = {0, 0};
     player.respawnTimer = 0.0f;
     player.shootTimer = 0.0f;
+    player.lastDamageTakenTimer = 0.0f;
+    player.healthRegenTimer = 0.5f;
     m_eventBus->publish(event::PlayerRespawnEvent{player});
 }
 

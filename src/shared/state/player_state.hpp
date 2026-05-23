@@ -47,6 +47,8 @@ struct PlayerState {
     uint32_t currentAvaliableWalls;
     float shootTimer = 0.0f;
     float wallTimer = 0.0f;
+    float lastDamageTakenTimer = 0.0f;
+    float healthRegenTimer = 0.5f;
     bool active = false;
 };
 
