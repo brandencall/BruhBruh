@@ -10,7 +10,9 @@ class CharacterCamera {
   public:
     void Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
               Client::EventBus<client::WallPlacedEvent> &wallBus);
+    void Unload();
     void Update(float dt);
+    void RenderDamageShader(RenderTexture2D texture);
     void SetPosition(Vector2 position);
     const Camera2D *GetCamera() const;
 
@@ -32,6 +34,10 @@ class CharacterCamera {
     float m_shakeDecay = 2.0f;
 
     Vector2 m_baseOffset;
+
+    Shader m_damageShader;
+    int m_damageLoc;
+    float m_damageEffect;
 };
 
 } // namespace System

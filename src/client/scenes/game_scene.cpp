@@ -52,6 +52,7 @@ void GameScene::OnEnter() {
     m_bulletSystem.SetMap(m_worldState.m_map);
 
     m_camera.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
+    m_renderTarger = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 
     Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
         if (e.data.victim.id == m_worldState.m_currentPlayerId) {
@@ -330,7 +331,7 @@ void GameScene::Render() {
         return;
     }
 
-    BeginDrawing();
+    BeginTextureMode(m_renderTarger);
 
     ClearBackground(DARKGRAY);
     BeginMode2D(*m_camera.GetCamera());
@@ -343,6 +344,12 @@ void GameScene::Render() {
     m_wallRender.Draw(m_wallManager.GetAllWalls());
 
     EndMode2D();
+    EndTextureMode();
+
+    BeginDrawing();
+    ClearBackground(BLACK);
+
+    m_camera.RenderDamageShader(m_renderTarger);
 
     m_ui.Render();
 

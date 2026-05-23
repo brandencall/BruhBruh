@@ -100,4 +100,5 @@ class GameScene : public Scene {
     bool m_gameEndScreenActive = false;
 
     System::CharacterCamera m_camera{};
+    RenderTexture2D m_renderTarger{};
 };
