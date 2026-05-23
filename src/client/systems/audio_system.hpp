@@ -4,6 +4,7 @@
 #include "../event_hub.hpp"
 #include "../events.hpp"
 #include "raylib.h"
+#include <array>
 #include <string>
 
 namespace System {
@@ -19,10 +20,12 @@ class AudioSystem {
     void LoadMatchSounds();
     void InitLobby(Client::EventBus<client::GameStartingEvent> &startingBus);
     void InitGamePlay(Client::EventHub &events);
+    void InitCharacterBulletSounds(std::array<state::PlayerState, MAX_PLAYERS> &players);
 
     void UnloadMatch();
     void UnloadLobby();
     void UnloadGamePlay();
+    void UnloadCharacterBulletSounds();
     void Unload();
 
     void PlaySpatialSound2D(Sound sound, Vector2 soundPos, float maxRange, Vector2 localPlayerPos,
@@ -44,6 +47,7 @@ class AudioSystem {
 
     void OnCountdown(const client::GameStartingEvent &e);
     void OnHit(const client::HitEvent &e);
+    void OnBulletDestroyed(const client::BulletDestroyedEvent &e);
     void OnPlayerDied(const client::PlayerDiedEvent &e);
     void OnWallPlaced(const client::WallPlacedEvent &e);
     void OnWallPickedUp(const client::WallPickedUpEvent &e);
@@ -65,6 +69,13 @@ class AudioSystem {
     Sound m_countdownSound;
     Sound m_goBellSound;
     bool m_goBellLoaded = false;
+
+    // Character Specific bullet hit sounds
+    // std::unordered_map<Character::CharacterId, Texture2D> m_textures;
+    static constexpr int BULLET_HIT_POOL_SIZE = 8;
+    std::unordered_map<Character::CharacterId, Sound> m_bulletHitSounds;
+    std::unordered_map<Character::CharacterId, std::array<Sound, BULLET_HIT_POOL_SIZE>> m_bulletHitSoundAliases;
+    std::unordered_map<Character::CharacterId, int> m_characterBulletHitIndex;
 
     Sound m_hitmarkerSound;
     static constexpr int HITMARKER_POOL_SIZE = 8;

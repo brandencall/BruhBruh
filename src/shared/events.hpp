@@ -20,6 +20,7 @@ struct BulletSpawnEvent {
 struct BulletDestroyedEvent {
     uint32_t bulletId;
     Vector2 position;
+    Character::CharacterId characterId;
 };
 
 struct PlayerRespawnEvent {

@@ -3,6 +3,7 @@
 #include "../shared/characters/character_movement.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
+#include "characters/character_types.hpp"
 #include "events.hpp"
 #include "raylib.h"
 #include "state/player_state.hpp"
@@ -53,9 +54,10 @@ void GameSimulation::SetupBulletSystem() {
         m_eventBus->publish(
             event::BulletSpawnEvent{bulletId, ownerId, characterId, bulletPredSequence, position, velocity});
     });
-    m_bulletSystem.SetOnBulletDestroyed([this](uint32_t bulletId, Vector2 position) {
-        m_eventBus->publish(event::BulletDestroyedEvent{bulletId, position});
-    });
+    m_bulletSystem.SetOnBulletDestroyed(
+        [this](uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {
+            m_eventBus->publish(event::BulletDestroyedEvent{bulletId, position, characterId});
+        });
 }
 
 void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {

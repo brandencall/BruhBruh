@@ -26,7 +26,7 @@ void GameScene::OnEnter() {
     NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
     handler->Register(PT::GameBegin, [this](const char *b) { HandleGameBegin(b); });
     handler->Register(PT::State, [this](const char *b) { HandleStateResponse(b); });
-    handler->Register(PT::CurrentWorldState, [this](const char *b) { HandleCurrentWorldState(b); });
+    // handler->Register(PT::CurrentWorldState, [this](const char *b) { HandleCurrentWorldState(b); });
     handler->Register(PT::BulletSpawn, [this](const char *b) { HandleBulletSpawn(b); });
     handler->Register(PT::BulletDestroyed, [this](const char *b) { HandleBulletDestroyed(b); });
     handler->Register(PT::PlayerRespawned, [this](const char *b) { HandlePlayerRespawned(b); });
@@ -69,7 +69,7 @@ void GameScene::OnExit() {
     NetworkMessageHandler *handler = m_game.GetNetworkMessageHandler();
     handler->Unregister(PT::GameBegin);
     handler->Unregister(PT::State);
-    handler->Unregister(PT::CurrentWorldState);
+    // handler->Unregister(PT::CurrentWorldState);
     handler->Unregister(PT::BulletSpawn);
     handler->Unregister(PT::BulletDestroyed);
     handler->Unregister(PT::PlayerRespawned);
@@ -185,6 +185,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_characterRender.SnapToPosition(lp);
         m_camera.SetPosition(lp.position);
         m_initialSnapDone = true;
+        m_game.GetAudioSystem()->InitCharacterBulletSounds(m_worldState.m_players);
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
                                                   m_events));
@@ -212,18 +213,18 @@ void GameScene::HandleStateResponse(const char *buffer) {
     Reconcile(lp.position, ackedSeq);
 }
 
-void GameScene::HandleCurrentWorldState(const char *buffer) {
-    auto *pkt = (network::CurrentWorldStatePacket *)buffer;
-
-    std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> walls;
-    walls.reserve(pkt->wallCount);
-    for (uint16_t i = 0; i < pkt->wallCount; ++i)
-        walls[pkt->walls[i].position] = pkt->walls[i].wall;
-    m_wallManager.SetWalls(std::move(walls));
-
-    for (uint16_t i = 0; i < pkt->playerCount; ++i)
-        m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
-}
+// void GameScene::HandleCurrentWorldState(const char *buffer) {
+//     auto *pkt = (network::CurrentWorldStatePacket *)buffer;
+//
+//     std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> walls;
+//     walls.reserve(pkt->wallCount);
+//     for (uint16_t i = 0; i < pkt->wallCount; ++i)
+//         walls[pkt->walls[i].position] = pkt->walls[i].wall;
+//     m_wallManager.SetWalls(std::move(walls));
+//
+//     for (uint16_t i = 0; i < pkt->playerCount; ++i)
+//         m_worldState.m_players[pkt->players[i].id] = pkt->players[i];
+// }
 
 void GameScene::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
@@ -237,7 +238,11 @@ void GameScene::HandleBulletSpawn(const char *buffer) {
 
 void GameScene::HandleBulletDestroyed(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
-    m_bulletSystem.Deactivate(pkt->bulletId, pkt->position);
+    m_bulletSystem.Deactivate(pkt->bulletId, pkt->position, pkt->characterId);
+    if (m_currentPlayerId >= 0 || m_currentPlayerId < MAX_PLAYERS) {
+        m_events.bulletDestroyed.Publish(
+            {pkt->bulletId, pkt->position, pkt->characterId, m_worldState.m_players[m_currentPlayerId].position});
+    }
 }
 
 void GameScene::HandlePlayerRespawned(const char *buffer) {

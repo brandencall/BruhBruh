@@ -78,6 +78,7 @@ struct BulletDestroyedPacket {
     PacketHeader header;
     uint32_t bulletId;
     Vector2 position;
+    Character::CharacterId characterId;
 };
 
 struct PlayerRespawnedPacket {

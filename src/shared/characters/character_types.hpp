@@ -19,6 +19,7 @@ struct BulletDef {
     float spinSpeed;
     float cooldown;
     float bulletTexScale;
+    const char *bulletSoundLocation;
 };
 
 struct CharacterDef {

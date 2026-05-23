@@ -6,6 +6,7 @@ namespace Client {
 
 struct EventHub {
     EventBus<client::PlayerDiedEvent> playerDied;
+    EventBus<client::BulletDestroyedEvent> bulletDestroyed;
     EventBus<client::HitEvent> onHit;
     EventBus<client::WallPlacedEvent> onWallPlaced;
     EventBus<client::WallPickedUpEvent> onWallPickedUp;

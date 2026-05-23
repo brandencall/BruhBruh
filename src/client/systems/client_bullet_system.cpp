@@ -116,7 +116,7 @@ void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawn
     bullet.skipFirstDraw = true;
 }
 
-void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position) {
+void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) {
     if (slot < 0 || slot >= MAX_BULLETS)
         return;
     if (!m_bullets[slot].active)

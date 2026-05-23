@@ -1,4 +1,5 @@
 #include "audio_system.hpp"
+#include "../../shared/characters/character_roster.hpp"
 #include "raylib.h"
 #include "raymath.h"
 #include <filesystem>
@@ -101,6 +102,8 @@ void AudioSystem::InitGamePlay(Client::EventHub &events) {
     m_gameplaySubs.clear();
     m_gameplaySubs.emplace_back(events.onHit.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
     m_gameplaySubs.emplace_back(
+        events.bulletDestroyed.Subscribe([this](const client::BulletDestroyedEvent &e) { OnBulletDestroyed(e); }));
+    m_gameplaySubs.emplace_back(
         events.playerDied.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); }));
     m_gameplaySubs.emplace_back(
         events.onWallPlaced.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
@@ -108,6 +111,24 @@ void AudioSystem::InitGamePlay(Client::EventHub &events) {
         events.onWallPickedUp.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); }));
     m_gameplaySubs.emplace_back(
         events.onGameStarting.Subscribe([this](const client::GameStartingEvent &e) { OnCountdown(e); }));
+}
+
+void AudioSystem::InitCharacterBulletSounds(std::array<state::PlayerState, MAX_PLAYERS> &players) {
+    if (!IsAudioDeviceReady())
+        return;
+
+    for (const auto &player : players) {
+        if (!player.active) {
+            continue;
+        }
+        Character::CharacterDef character = Character::GetCharacterDef(player.characterId);
+        m_bulletHitSounds[player.characterId] = LoadSound(character.bullet.bulletSoundLocation);
+        m_characterBulletHitIndex[player.characterId] = 0;
+
+        for (int i = 0; i < BULLET_HIT_POOL_SIZE; ++i) {
+            m_bulletHitSoundAliases[player.characterId][i] = LoadSoundAlias(m_bulletHitSounds[player.characterId]);
+        }
+    }
 }
 
 void AudioSystem::UnloadMatch() { SafeUnload(m_countdownSound); }
@@ -136,7 +157,20 @@ void AudioSystem::UnloadGamePlay() {
     SafeUnload(m_wallPlacedConcreteSound);
     SafeUnload(m_wallPlacedKickDrumSound);
 
+    UnloadCharacterBulletSounds();
+
     m_gameplaySubs.clear();
+}
+
+void AudioSystem::UnloadCharacterBulletSounds() {
+    for (auto &[characterId, aliases] : m_bulletHitSoundAliases) {
+        for (auto &alias : aliases) {
+            SafeUnloadAlias(alias);
+        }
+    }
+    for (auto &[characterId, sound] : m_bulletHitSounds) {
+        SafeUnload(sound);
+    }
 }
 
 void AudioSystem::Unload() {
@@ -197,6 +231,15 @@ void AudioSystem::OnHit(const client::HitEvent &e) {
     if (e.attackerId == e.localPlayerId) {
         PlayHitmarker();
     }
+}
+
+void AudioSystem::OnBulletDestroyed(const client::BulletDestroyedEvent &e) {
+    Sound bulletAlias = m_bulletHitSoundAliases[e.characterId][m_characterBulletHitIndex[e.characterId]];
+    m_characterBulletHitIndex[e.characterId] = (m_characterBulletHitIndex[e.characterId] + 1) % BULLET_HIT_POOL_SIZE;
+    float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
+
+    SetSoundPitch(bulletAlias, pitch);
+    PlaySpatialSound2D(bulletAlias, e.position, 400.0, e.localPlayerPosition, SoundCategory::Effects, 0.5);
 }
 
 void AudioSystem::OnPlayerDied(const client::PlayerDiedEvent &e) {

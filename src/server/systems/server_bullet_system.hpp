@@ -26,7 +26,9 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
         m_onBulletSpawn = std::move(callback);
     }
 
-    void SetOnBulletDestroyed(std::function<void(int, Vector2)> callback) { m_onBulletDestroyed = std::move(callback); }
+    void SetOnBulletDestroyed(std::function<void(int, Vector2, Character::CharacterId)> callback) {
+        m_onBulletDestroyed = std::move(callback);
+    }
 
   protected:
     void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) override {
@@ -42,10 +44,10 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
         if (m_onBulletSpawn)
             m_onBulletSpawn(bulletId, ownerId, characterId, position, velocity, bulletPredSequence);
     }
-    void OnBulletDestroyed(int slot, Vector2 position) override {
+    void OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) override {
         m_bullets[slot].active = false;
         if (m_onBulletDestroyed)
-            m_onBulletDestroyed(slot, position);
+            m_onBulletDestroyed(slot, position, characterId);
     }
 
   private:
@@ -56,7 +58,7 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
     std::function<void(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId, Vector2 position,
                        Vector2 velocity, uint32_t bulletPredSequence)>
         m_onBulletSpawn;
-    std::function<void(uint32_t bulletId, Vector2 position)> m_onBulletDestroyed;
+    std::function<void(uint32_t bulletId, Vector2 position, Character::CharacterId characterId)> m_onBulletDestroyed;
 };
 
 } // namespace System
