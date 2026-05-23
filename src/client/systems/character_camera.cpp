@@ -49,8 +49,20 @@ void CharacterCamera::OnPlayerDied(const client::PlayerDiedEvent &e) {
 }
 
 void CharacterCamera::OnWallPlaced(const client::WallPlacedEvent &e) {
+    constexpr float MAX_SHAKE_DISTANCE = 600.0f;
+    constexpr float MAX_SHAKE = 0.75f;
+
     if (e.wallPlacerId == e.localPlayerId)
-        AddShake(.75);
+        AddShake(MAX_SHAKE);
+
+    Vector2 wallPlacedPosition = Map::GridToWorld(e.gridPos);
+    float distance = Vector2Distance(e.localPlayerPosition, wallPlacedPosition);
+
+    if (distance > MAX_SHAKE_DISTANCE)
+        return;
+
+    float shakeAmount = 1.0f - (distance / MAX_SHAKE_DISTANCE);
+    AddShake(shakeAmount * MAX_SHAKE);
 }
 
 void CharacterCamera::AddShake(float amount) { m_shake = std::min(1.0f, m_shake + amount); }
