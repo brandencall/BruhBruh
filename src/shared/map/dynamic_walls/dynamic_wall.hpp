@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../../characters/character_types.hpp"
 #include "../../components/collision.hpp"
 #include "../grid.hpp"
 #include <cstdint>

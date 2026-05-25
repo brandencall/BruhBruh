@@ -1,8 +1,8 @@
 #include "state_broadcaster.hpp"
-#include "../network/packets/lobby_packets.hpp"
-#include "characters/character_types.hpp"
-#include "events.hpp"
-#include "state/player_state.hpp"
+#include "../../network/packets/lobby_packets.hpp"
+#include "../../shared/characters/character_types.hpp"
+#include "../../shared/state/player_state.hpp"
+#include "../events.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>

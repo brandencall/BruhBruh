@@ -2,9 +2,11 @@
 #include "../../config.hpp"
 #include "../characters/character_types.hpp"
 #include "../components/hurtbox.hpp"
+#include "active_effect.hpp"
 #include "raylib.h"
 #include <cstdint>
 #include <stdint.h>
+#include <vector>
 
 namespace state {
 
@@ -49,6 +51,8 @@ struct PlayerState {
     float wallTimer = 0.0f;
     float lastDamageTakenTimer = 0.0f;
     float healthRegenTimer = 0.5f;
+    std::vector<System::ActiveEffect> effects;
+
     bool active = false;
 };
 

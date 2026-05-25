@@ -1,8 +1,8 @@
 #include "session_manager.hpp"
-#include "network/ITransport.hpp"
+#include "../network/ITransport.hpp"
+#include "../network/steam_lobby_manager.hpp"
+#include "../network/steam_transport.hpp"
 #include "network/network_message_handler.hpp"
-#include "network/steam_lobby_manager.hpp"
-#include "network/steam_transport.hpp"
 #include <iostream>
 #include <memory>
 

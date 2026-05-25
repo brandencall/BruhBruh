@@ -1,7 +1,7 @@
 #include "game_server.hpp"
+#include "../network/ITransport.hpp"
 #include "../network/packets/lobby_packets.hpp"
-#include "network/ITransport.hpp"
-#include "network/steam_lobby_manager.hpp"
+#include "../network/steam_lobby_manager.hpp"
 #include "server_phase.hpp"
 #include <chrono>
 #include <iostream>

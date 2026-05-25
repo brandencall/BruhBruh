@@ -1,5 +1,5 @@
 #include "hud_screen.hpp"
-#include "characters/character_roster.hpp"
+#include "../../../shared/characters/character_roster.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <string>

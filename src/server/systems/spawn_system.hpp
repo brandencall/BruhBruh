@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../../shared/state/player_state.hpp"
 #include "raylib.h"
-#include "state/player_state.hpp"
 #include <array>
 #include <cstdint>
 #include <vector>

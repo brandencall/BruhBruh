@@ -1,7 +1,7 @@
 #include "packet_handler.hpp"
-#include "../network/packets/gameplay_packets.hpp"
-#include "../network/packets/lobby_packets.hpp"
-#include "characters/character_types.hpp"
+#include "../../network/packets/gameplay_packets.hpp"
+#include "../../network/packets/lobby_packets.hpp"
+#include "../../shared/characters/character_types.hpp"
 #include "packet_handler.hpp"
 #include <cassert>
 #include <iostream>

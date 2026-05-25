@@ -1,6 +1,6 @@
 #pragma once
-#include "../state/player_state.hpp"
 #include "hurtbox.hpp"
+#include "raylib.h"
 #include "raymath.h"
 #include <algorithm>
 #include <vector>

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../components/collision.hpp"
-#include "raylib.h"
 #include <cmath>
 
 namespace Map {

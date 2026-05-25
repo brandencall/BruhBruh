@@ -1,6 +1,6 @@
 #include "server_lobby.hpp"
-#include "characters/character_types.hpp"
-#include "network/ITransport.hpp"
+#include "../network/ITransport.hpp"
+#include "../shared/characters/character_types.hpp"
 #include <cstdint>
 #include <string.h>
 #include <string>

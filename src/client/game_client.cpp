@@ -1,6 +1,6 @@
 #include "game_client.hpp"
+#include "../network/ITransport.hpp"
 #include "../network/packets/lobby_packets.hpp"
-#include "network/ITransport.hpp"
 #include "network/network_message_handler.hpp"
 
 GameClient::GameClient(network::ITransport &transport, NetworkMessageHandler &handler)

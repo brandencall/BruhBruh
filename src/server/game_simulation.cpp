@@ -1,12 +1,13 @@
 #include "game_simulation.hpp"
 #include "../config.hpp"
+#include "../events.hpp"
 #include "../shared/characters/character_movement.hpp"
+#include "../shared/characters/character_types.hpp"
 #include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
-#include "characters/character_types.hpp"
-#include "events.hpp"
+#include "../shared/state/player_state.hpp"
+#include "../shared/systems/ability_system.hpp"
 #include "raylib.h"
-#include "state/player_state.hpp"
 #include "systems/spawn_system.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -133,6 +134,7 @@ void GameSimulation::Update(float tickRate) {
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
+    // m_abilitySystem.Update(tickRate, m_players);
     m_gameTime -= tickRate;
 }
 

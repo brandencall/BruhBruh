@@ -6,6 +6,7 @@
 #include "../shared/map/map_types.hpp"
 #include "../shared/state/bullet_state.hpp"
 #include "../shared/state/player_state.hpp"
+#include "../shared/systems/ability_system.hpp"
 #include "../shared/systems/bullet_system.hpp"
 #include "event_bus.hpp"
 #include "map/server_wall_manager.hpp"
@@ -46,5 +47,6 @@ class GameSimulation {
     EventBus *m_eventBus = nullptr;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
     System::ServerBulletSystem m_bulletSystem;
+    System::AbilitySystem m_abilitySystem;
     Map::ServerWallManager m_wallManager;
 };
