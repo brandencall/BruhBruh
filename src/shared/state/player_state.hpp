@@ -42,6 +42,7 @@ struct PlayerState {
     PlayerInput currentInput;
 
     // bitmask (shoot, place_wall, etc.)
+    uint32_t lastPredBulletSequence = UINT32_MAX;
     uint8_t lastButtons;
     uint8_t prevButtons;
     float respawnTimer = 0.0f;

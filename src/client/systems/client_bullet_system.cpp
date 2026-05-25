@@ -49,7 +49,6 @@ int ClientBulletSystem::Spawn(const BulletSpawnDef &bulletDef) {
 void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
                                 std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
     for (auto &bullet : m_bullets) {
-        bullet.skipFirstDraw = false;
         BulletSystem::Update(dt, players, dynamicWalls, bullet);
     }
     for (auto &[seq, bullet] : m_predictedBullets) {
@@ -65,9 +64,13 @@ void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLA
 }
 
 void ClientBulletSystem::Draw() {
-    for (const auto &bullet : m_bullets) {
-        if (!bullet.active || bullet.skipFirstDraw)
+    for (auto &bullet : m_bullets) {
+        if (!bullet.active)
             continue;
+        if (bullet.skipFirstDraw) {
+            bullet.skipFirstDraw = false; // suppress this frame, clear for next
+            continue;
+        }
         Draw(bullet);
     }
 

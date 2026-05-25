@@ -6,7 +6,6 @@
 #include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
 #include "../shared/state/player_state.hpp"
-#include "../shared/systems/ability_system.hpp"
 #include "raylib.h"
 #include "systems/spawn_system.hpp"
 #include <algorithm>
@@ -166,9 +165,11 @@ void GameSimulation::SimulatePlayerMovement(state::PlayerState &player, float ti
 }
 
 void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef) {
-    bool shootNow = player.currentInput.buttons & (1 << 0);
-    bool shootPrev = player.prevButtons & (1 << 0);
-    if (shootNow && !shootPrev && player.shootTimer <= 0.0f) {
+    bool wantsToShoot = player.currentInput.buttons & (1 << 0);
+    bool newShot = wantsToShoot && (player.currentInput.predBulletSequence != player.lastPredBulletSequence);
+
+    if (newShot && player.shootTimer <= 0.0f) {
+        player.lastPredBulletSequence = player.currentInput.predBulletSequence;
         Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
         m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, player.currentInput.predBulletSequence});
         player.shootTimer = charDef.bullet.cooldown;
