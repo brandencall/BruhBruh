@@ -130,12 +130,59 @@ void GameSimulation::Update(float tickRate) {
             }
         }
 
-        Character::SimulateMove(player, tickRate, m_map.walls, dynamicColliders);
+        SimulatePlayerInput(player, tickRate, dynamicColliders);
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
     // m_abilitySystem.Update(tickRate, m_players);
     m_gameTime -= tickRate;
+}
+
+void GameSimulation::SimulatePlayerInput(state::PlayerState &player, float tickRate,
+                                         std::vector<Collision::AABB> &dynamicColliders) {
+    player.prevButtons = player.lastButtons;
+    player.lastButtons = player.currentInput.buttons;
+
+    SimulatePlayerMovement(player, tickRate, dynamicColliders);
+
+    const Character::CharacterDef &charDef = Character::GetCharacterDef(player.characterId);
+    SimulatePlayerShoot(player, charDef);
+    SimulatePlayerWallPlacement(player, charDef);
+}
+
+void GameSimulation::SimulatePlayerMovement(state::PlayerState &player, float tickRate,
+                                            std::vector<Collision::AABB> &dynamicColliders) {
+
+    Vector2 moveInput = {player.currentInput.moveX, player.currentInput.moveY};
+    bool isMoving = (moveInput.x * moveInput.x + moveInput.y * moveInput.y) > 0.0001f;
+
+    if (isMoving) {
+        player.state = state::State::Running;
+    } else {
+        player.state = state::State::Idle;
+    }
+
+    Character::SimulateMove(player, tickRate, m_map.walls, dynamicColliders);
+}
+
+void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef) {
+    bool shootNow = player.currentInput.buttons & (1 << 0);
+    bool shootPrev = player.prevButtons & (1 << 0);
+    if (shootNow && !shootPrev && player.shootTimer <= 0.0f) {
+        Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
+        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, player.currentInput.predBulletSequence});
+        player.shootTimer = charDef.bullet.cooldown;
+    }
+}
+
+void GameSimulation::SimulatePlayerWallPlacement(state::PlayerState &player, Character::CharacterDef charDef) {
+    bool placeNow = player.currentInput.buttons & (1 << 1);
+    bool placePrev = player.prevButtons & (1 << 1);
+
+    // Picking up and placing walls are on the same wall timer
+    if (placeNow && !placePrev && player.wallTimer <= 0.0f) {
+        HandleWallInput(player, player.currentInput, charDef);
+    }
 }
 
 void GameSimulation::RespawnPlayer(state::PlayerState &player) {
@@ -169,33 +216,7 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
     if (!player.active || player.respawnTimer > 0.0f)
         return;
 
-    Vector2 moveInput = {player.currentInput.moveX, player.currentInput.moveY};
-    bool isMoving = (moveInput.x * moveInput.x + moveInput.y * moveInput.y) > 0.0001f;
-
-    if (isMoving) {
-        player.state = state::State::Running;
-    } else {
-        player.state = state::State::Idle;
-    }
-
-    const Character::CharacterDef &charDef = Character::GetCharacterDef(characterId);
-    bool shootNow = input.buttons & (1 << 0);
-    bool shootPrev = player.lastButtons & (1 << 0);
-    if (shootNow && !shootPrev && player.shootTimer <= 0.0f) {
-        Vector2 aimDir = {input.aimX, input.aimY};
-        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, input.predBulletSequence});
-        player.shootTimer = charDef.bullet.cooldown;
-    }
-    bool placeNow = input.buttons & (1 << 1);
-    bool placePrev = player.lastButtons & (1 << 1);
-
-    // Picking up and placing walls are on the same wall timer
-    if (placeNow && !placePrev && player.wallTimer <= 0.0f) {
-        HandleWallInput(player, input, charDef);
-    }
-
     player.currentInput = input;
-    player.lastButtons = input.buttons;
 }
 
 void GameSimulation::HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,

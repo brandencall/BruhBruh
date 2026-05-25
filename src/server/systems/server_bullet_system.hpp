@@ -45,7 +45,6 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
             m_onBulletSpawn(bulletId, ownerId, characterId, position, velocity, bulletPredSequence);
     }
     void OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) override {
-        m_bullets[slot].active = false;
         if (m_onBulletDestroyed)
             m_onBulletDestroyed(slot, position, characterId);
     }

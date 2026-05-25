@@ -37,6 +37,12 @@ class GameSimulation {
     const Map::WallManager &GetWallManager() const;
 
   private:
+    void SimulatePlayerInput(state::PlayerState &player, float tickRate,
+                             std::vector<Collision::AABB> &dynamicColliders);
+    void SimulatePlayerMovement(state::PlayerState &player, float tickRate,
+                                std::vector<Collision::AABB> &dynamicColliders);
+    void SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef);
+    void SimulatePlayerWallPlacement(state::PlayerState &player, Character::CharacterDef charDef);
     void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
                          const Character::CharacterDef &charDef);
     bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);

@@ -126,24 +126,31 @@ template <typename TBulletState> class BulletSystem {
             for (auto &wall : m_map->walls) {
                 if (Collision::Overlap(bullet.hitbox.circle, wall)) {
                     Deactivate(bullet.id, bulletPos, bullet.characterId);
-                    break;
+                    return;
                 }
             }
         }
+
+        if (!bullet.active)
+            return;
+
         for (auto &[_, wall] : dynamicWalls) {
             if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
-                Deactivate(bullet.id, bulletPos, bullet.characterId);
                 OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
-                break;
+                Deactivate(bullet.id, bulletPos, bullet.characterId);
+                return;
             }
         }
+
+        if (!bullet.active)
+            return;
 
         for (auto &player : players) {
             if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active &&
                 Collision::Overlap(bullet.hitbox.circle, Collision::HurtboxToCircle(player.position, player.hurtbox))) {
-                Deactivate(bullet.id, bulletPos, bullet.characterId);
                 OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
-                break;
+                Deactivate(bullet.id, bulletPos, bullet.characterId);
+                return;
             }
         }
     }
