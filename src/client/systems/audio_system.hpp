@@ -60,6 +60,7 @@ class AudioSystem {
     float GetSpatialPan2D(Vector2 soundPos, Vector2 localPlayerPos);
 
   private:
+    static int const m_hearingDistance = 800;
     Client::Subscription m_countdownSub;
     std::vector<Client::Subscription> m_gameplaySubs;
 

@@ -249,7 +249,8 @@ void AudioSystem::OnHit(const client::HitEvent &e) {
     float pitch = 0.95f + (GetRandomValue(0, 10) / 100.0f);
 
     SetSoundPitch(gruntSound, pitch);
-    PlaySpatialSound2D(gruntSound, e.victimPosition, 600.0, e.localPlayerPosition, SoundCategory::Effects, 0.2);
+    PlaySpatialSound2D(gruntSound, e.victimPosition, m_hearingDistance, e.localPlayerPosition, SoundCategory::Effects,
+                       0.2);
 }
 
 void AudioSystem::OnBulletDestroyed(const client::BulletDestroyedEvent &e) {
@@ -258,14 +259,15 @@ void AudioSystem::OnBulletDestroyed(const client::BulletDestroyedEvent &e) {
     float pitch = GetPitch();
 
     SetSoundPitch(bulletAlias, pitch);
-    PlaySpatialSound2D(bulletAlias, e.position, 600.0, e.localPlayerPosition, SoundCategory::Effects, 0.5);
+    PlaySpatialSound2D(bulletAlias, e.position, m_hearingDistance, e.localPlayerPosition, SoundCategory::Effects, 0.5);
 }
 
 void AudioSystem::OnPlayerDied(const client::PlayerDiedEvent &e) {
     if (e.data.killer.id == e.localPlayer.id)
         Play(m_killRewardSound, SoundCategory::Effects);
 
-    PlaySpatialSound2D(m_deathSound, e.data.victim.position, 600.0, e.localPlayer.position, SoundCategory::Effects);
+    PlaySpatialSound2D(m_deathSound, e.data.victim.position, m_hearingDistance, e.localPlayer.position,
+                       SoundCategory::Effects);
 }
 
 void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
@@ -280,9 +282,10 @@ void AudioSystem::OnWallPlaced(const client::WallPlacedEvent &event) {
     SetSoundPitch(kickDrumAlias, pitch);
 
     Vector2 wallPlacedPosition = Map::GridToWorld(event.gridPos);
-    PlaySpatialSound2D(concreteAlias, wallPlacedPosition, 600.0, event.localPlayerPosition, SoundCategory::Effects,
-                       concreteSoundVolume);
-    PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, 600.0, event.localPlayerPosition, SoundCategory::Effects);
+    PlaySpatialSound2D(concreteAlias, wallPlacedPosition, m_hearingDistance, event.localPlayerPosition,
+                       SoundCategory::Effects, concreteSoundVolume);
+    PlaySpatialSound2D(kickDrumAlias, wallPlacedPosition, m_hearingDistance, event.localPlayerPosition,
+                       SoundCategory::Effects);
 }
 
 void AudioSystem::OnWallPickedUp(const client::WallPickedUpEvent &event) {
@@ -294,8 +297,8 @@ void AudioSystem::OnWallPickedUp(const client::WallPickedUpEvent &event) {
     SetSoundPitch(alias, pitch);
 
     Vector2 wallPickedUpPosition = Map::GridToWorld(event.gridPos);
-    PlaySpatialSound2D(alias, wallPickedUpPosition, 600.0, event.localPlayerPosition, SoundCategory::Effects,
-                       pickUpSoundVolume);
+    PlaySpatialSound2D(alias, wallPickedUpPosition, m_hearingDistance, event.localPlayerPosition,
+                       SoundCategory::Effects, pickUpSoundVolume);
 }
 
 void AudioSystem::PlayHitmarker() {

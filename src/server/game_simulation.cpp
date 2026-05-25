@@ -127,7 +127,7 @@ void GameSimulation::Update(float tickRate) {
 
         // The regenTimer is init to 0.5 so that health regens right after 5 seconds istead of 5.5 seconds
         player.lastDamageTakenTimer += tickRate;
-        if (player.lastDamageTakenTimer >= 5.0f) {
+        if (player.lastDamageTakenTimer >= 3.0f) {
             player.healthRegenTimer += tickRate;
             if (player.healthRegenTimer >= 0.5f) {
                 player.health = std::min(def.maxHealth, player.health + 2.0f);
