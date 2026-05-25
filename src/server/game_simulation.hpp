@@ -20,7 +20,6 @@ class GameSimulation {
     void Initialize(EventBus &eventBus);
     void Reset();
     void SetupBulletSystem();
-    void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId);
     void SetupWallManager();
     void Update(float tickRate);
     void RespawnPlayer(state::PlayerState &player);
@@ -45,6 +44,8 @@ class GameSimulation {
     void SimulatePlayerWallPlacement(state::PlayerState &player, Character::CharacterDef charDef);
     void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
                          const Character::CharacterDef &charDef);
+    void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId);
+    void AddHealthOnKill(state::PlayerState &player);
     bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:

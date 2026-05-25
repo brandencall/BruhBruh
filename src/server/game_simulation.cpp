@@ -46,6 +46,7 @@ void GameSimulation::SetupBulletSystem() {
         player.lastDamageTakenTimer = 0.0f;
         if (player.health <= 0.0f) {
             HandlePlayerDied(player, shooterId);
+            AddHealthOnKill(m_players[shooterId]);
             return;
         }
         m_eventBus->publish(event::PlayerDamagedEvent{player.id, shooterId, player.health});
@@ -71,6 +72,11 @@ void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shoot
     killer.score.kills++;
     m_wallManager.ClearWallsForPlayer(player.id);
     m_eventBus->publish(event::PlayerDiedEvent{player, killer});
+}
+
+void GameSimulation::AddHealthOnKill(state::PlayerState &player) {
+    Character::CharacterDef charDef = Character::GetCharacterDef(player.characterId);
+    player.health = std::min(charDef.maxHealth, player.health + 25);
 }
 
 void GameSimulation::SetupWallManager() {
