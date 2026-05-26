@@ -29,7 +29,15 @@ void Game::Run() {
         float dt = GetFrameTime();
         m_session.TickClient();
         m_sceneManager.Update(dt);
-        m_sceneManager.Render();
+
+        if (!IsWindowFocused() && IsWindowState(FLAG_BORDERLESS_WINDOWED_MODE)) {
+            MinimizeWindow();
+            BeginDrawing();
+            EndDrawing();
+            continue;
+        } else {
+            m_sceneManager.Render();
+        }
     }
 
     m_session.Shutdown();
@@ -55,7 +63,15 @@ void Game::RunLocal(GameClient &client) {
         float dt = GetFrameTime();
         client.Update();
         m_sceneManager.Update(dt);
-        m_sceneManager.Render();
+
+        if (!IsWindowFocused() && IsWindowState(FLAG_BORDERLESS_WINDOWED_MODE)) {
+            MinimizeWindow();
+            BeginDrawing();
+            EndDrawing();
+            continue;
+        } else {
+            m_sceneManager.Render();
+        }
     }
 
     m_audioSystem.Unload();
@@ -69,15 +85,14 @@ void Game::CreateWindow() {
     SetConfigFlags(FLAG_VSYNC_HINT);
 
     InitWindow(1280, 720, "BruhBruh");
-
     SetExitKey(KEY_NULL);
-
+    int monitor = GetCurrentMonitor();
+    SetWindowSize(GetMonitorWidth(monitor), GetMonitorHeight(monitor));
     ToggleBorderlessWindowed();
 
     SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
 
-    int monitor = GetCurrentMonitor();
-    int hz = GetMonitorRefreshRate(monitor);
+    int hz = GetMonitorRefreshRate(GetCurrentMonitor());
 
     if (hz < 30 || hz > 360)
         hz = 60;
