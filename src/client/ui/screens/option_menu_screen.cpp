@@ -13,12 +13,8 @@ namespace UI {
 // ─────────────────────────────────────────────────────────────────────────────
 
 OptionMenu::OptionMenu(Game &game) : m_game(game) {
-    // Initialise sliders from current engine state
-    // (AudioSystem returns the live value so the slider matches whatever is
-    //  already playing when the menu opens.)
     auto *audio = m_game.GetAudioSystem();
     if (audio) {
-        // Replace these with getters once AudioSystem exposes them.
         m_masterVol = audio->GetMasterVolume();
         m_musicVol = audio->GetMusicVolume();
         m_effectsVol = audio->GetEffectsVolume();

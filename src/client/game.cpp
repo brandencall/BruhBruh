@@ -66,24 +66,19 @@ void Game::RunLocal(GameClient &client) {
 void Game::RequestQuit() { m_shouldQuit = true; }
 
 void Game::CreateWindow() {
-    int monitor = GetCurrentMonitor(); // or pick manually later
+    SetConfigFlags(FLAG_VSYNC_HINT);
 
-    int width = GetMonitorWidth(monitor);
-    int height = GetMonitorHeight(monitor);
+    InitWindow(1280, 720, "BruhBruh");
 
-    InitWindow(width, height, "BruhBruh");
     SetExitKey(KEY_NULL);
 
-    // Borderless fullscreen
-    SetWindowState(FLAG_WINDOW_UNDECORATED);
-
-    Vector2 pos = GetMonitorPosition(monitor);
-    SetWindowPosition((int)pos.x, (int)pos.y);
+    ToggleBorderlessWindowed();
 
     SetTextureFilter(GetFontDefault().texture, TEXTURE_FILTER_POINT);
-    SetWindowState(FLAG_VSYNC_HINT);
 
+    int monitor = GetCurrentMonitor();
     int hz = GetMonitorRefreshRate(monitor);
+
     if (hz < 30 || hz > 360)
         hz = 60;
 
