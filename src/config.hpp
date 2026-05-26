@@ -13,4 +13,4 @@ constexpr const float RESPAWN_TIME = 3.0f;
 
 // constexpr const char *MAP_PATH = "assets/maps/map01.txt";
 #include "shared/map/map_registry.hpp"
-inline const Map::MapDef &ACTIVE_MAP = Map::MAP01;
+inline const Map::MapDef &ACTIVE_MAP = Map::MAP02;
