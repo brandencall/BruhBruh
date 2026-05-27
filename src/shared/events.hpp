@@ -3,6 +3,7 @@
 #include "../shared/map/grid.hpp"
 #include "characters/character_types.hpp"
 #include "raylib.h"
+#include "state/active_effect.hpp"
 #include "state/player_state.hpp"
 #include <stdint.h>
 
@@ -58,6 +59,12 @@ struct DamageWallEvent {
     Map::Vector2i gridPos;
     float currentHealth;
     uint32_t ownerId;
+};
+
+struct PowerUpSpawnEvent {
+    state::EffectType type;
+    Vector2 position;
+    float radius;
 };
 
 } // namespace event

@@ -3,6 +3,7 @@
 #include "map_def.hpp"
 #include "map_types.hpp"
 #include "rect_merger.hpp"
+#include "tiles/tile_types.hpp"
 #include "tiles/tilemap_loader.hpp"
 
 namespace Map {
@@ -26,6 +27,9 @@ inline MapData LoadMap(const MapDef &def) {
                 t = TileType::Empty; // strip so collision/render ignore it
             } else if (t == TileType::Spawn) {
                 data.spawnPoints.push_back(worldPos);
+                t = TileType::Empty;
+            } else if (t == TileType::PowerUpSpawn) {
+                data.powerUpSpawns.push_back(worldPos);
                 t = TileType::Empty;
             }
         }

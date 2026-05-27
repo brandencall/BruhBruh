@@ -3,6 +3,7 @@
 #include "../../shared/characters/character_movement.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "../../shared/characters/character_types.hpp"
+#include "../../shared/components/collision.hpp"
 #include "../../shared/map/map_loader.hpp"
 #include "../game.hpp"
 #include "../ui/screens/death_screen.hpp"
@@ -35,6 +36,7 @@ void GameScene::OnEnter() {
     handler->Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
     handler->Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
     handler->Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
+    handler->Register(PT::PowerUpSpawn, [this](const char *b) { HandlePowerUpSpawn(b); });
     handler->Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
     handler->Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
     handler->Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
@@ -49,6 +51,7 @@ void GameScene::OnEnter() {
     m_characterRender.Load();
     m_wallRender.Load();
     m_bulletSystem.Load();
+    m_abilityRender.Load();
     m_bulletSystem.SetMap(m_worldState.m_map);
 
     m_camera.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
@@ -77,6 +80,7 @@ void GameScene::OnExit() {
     handler->Unregister(PT::PlaceWall);
     handler->Unregister(PT::WallDamaged);
     handler->Unregister(PT::WallDestroyed);
+    handler->Unregister(PT::PowerUpSpawn);
     handler->Unregister(PT::GameEnd);
     handler->Unregister(PT::SwitchToLobby);
     handler->Unregister(PT::HostDisconnected);
@@ -85,6 +89,7 @@ void GameScene::OnExit() {
     m_characterRender.Unload();
     m_wallRender.Unload();
     m_bulletSystem.Unload();
+    m_abilityRender.Unload();
 
     m_game.GetAudioSystem()->UnloadGamePlay();
     m_ui.Clear();
@@ -294,6 +299,11 @@ void GameScene::HandleWallPickedUp(const char *buffer) {
         {pkt->gridPos, m_currentPlayerId, m_worldState.m_players[m_currentPlayerId].position});
 }
 
+void GameScene::HandlePowerUpSpawn(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PowerUpSpawnPacket *>(buffer);
+    m_worldState.m_abilityPickups.emplace_back(pkt->type, Collision::Circle{pkt->position, pkt->radius});
+}
+
 void GameScene::HandleGameEnd(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::GameEndPacket *>(buffer);
     if (!m_gameEndScreenActive) {
@@ -341,6 +351,7 @@ void GameScene::Render() {
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
     m_characterRender.Draw(m_worldState.m_players);
     m_bulletSystem.Draw();
+    m_abilityRender.Draw(m_worldState.m_abilityPickups);
     m_wallRender.Draw(m_wallManager.GetAllWalls());
 
     EndMode2D();

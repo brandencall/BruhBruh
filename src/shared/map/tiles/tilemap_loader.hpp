@@ -55,6 +55,8 @@ inline TileMap LoadTileMap(const MapDef &def) {
                 tile = TileType::Spawn;
             else if (token == "I")
                 tile = TileType::InitialSpawn;
+            else if (token == "P")
+                tile = TileType::PowerUpSpawn;
             else {
                 int id = 0;
                 try {

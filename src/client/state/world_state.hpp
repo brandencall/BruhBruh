@@ -15,4 +15,5 @@ class ClientWorldState {
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
     Map::MapData m_map;
     Map::TileMap m_tileMap;
+    std::vector<state::AbilityPickup> m_abilityPickups;
 };

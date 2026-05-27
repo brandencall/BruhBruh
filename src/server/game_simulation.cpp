@@ -19,6 +19,7 @@ void GameSimulation::Initialize(EventBus &eventBus) {
     m_eventBus = &eventBus;
     SetupBulletSystem();
     SetupWallManager();
+    m_abilitySystem.Initialize(eventBus, m_map);
 }
 
 void GameSimulation::Reset() {
@@ -29,7 +30,6 @@ void GameSimulation::Reset() {
 }
 
 void GameSimulation::SetupBulletSystem() {
-    m_bulletSystem.Initialize(*m_eventBus);
     m_bulletSystem.SetMap(m_map);
 
     m_bulletSystem.SetOnWallHit([this](Map::Vector2i gridPos, float damage, uint32_t shooterId) {
@@ -139,7 +139,7 @@ void GameSimulation::Update(float tickRate) {
     }
 
     m_bulletSystem.Update(tickRate, m_players, m_wallManager.GetAllWalls());
-    // m_abilitySystem.Update(tickRate, m_players);
+    m_abilitySystem.Update(tickRate, m_players);
     m_gameTime -= tickRate;
 }
 

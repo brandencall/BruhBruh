@@ -11,8 +11,6 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
   public:
     ServerBulletSystem() = default;
 
-    void Initialize(EventBus &eventBus) { m_eventBus = &eventBus; }
-
     void SetOnWallHit(std::function<void(Map::Vector2i, float, uint32_t)> callback) {
         m_onWallHit = std::move(callback);
     }
@@ -50,8 +48,6 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
     }
 
   private:
-    EventBus *m_eventBus = nullptr;
-
     std::function<void(Map::Vector2i gridPos, float damage, uint32_t shooterId)> m_onWallHit;
     std::function<void(uint32_t playerId, float damage, uint32_t shooterId)> m_onPlayerHit;
     std::function<void(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId, Vector2 position,

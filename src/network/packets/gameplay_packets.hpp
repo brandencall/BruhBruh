@@ -126,4 +126,11 @@ struct WallPickedUpPacket {
     state::PlayerState player;
 };
 
+struct PowerUpSpawnPacket {
+    PacketHeader header;
+    state::EffectType type;
+    Vector2 position;
+    float radius;
+};
+
 } // namespace network

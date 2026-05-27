@@ -13,8 +13,6 @@ class ServerWallManager : public WallManager {
   public:
     ServerWallManager() = default;
 
-    void Initialize(EventBus &eventBus) { m_eventBus = &eventBus; }
-
     void SetOnWallPlaced(std::function<void(Map::Vector2i, float, const state::PlayerState &)> callback) {
         m_onWallPlaced = std::move(callback);
     }
@@ -28,7 +26,7 @@ class ServerWallManager : public WallManager {
     }
 
     void SetOnWallPickedUp(std::function<void(Map::Vector2i, uint32_t)> callback) {
-        m_onWallPickedUp = std::move(callback);
+        m_onWallDestroyed = std::move(callback);
     }
 
   protected:
@@ -53,8 +51,6 @@ class ServerWallManager : public WallManager {
     }
 
   private:
-    EventBus *m_eventBus = nullptr;
-
     std::function<void(Map::Vector2i gridPos, float health, const state::PlayerState &player)> m_onWallPlaced;
     std::function<void(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId)> m_onWallDamaged;
     std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallDestroyed;

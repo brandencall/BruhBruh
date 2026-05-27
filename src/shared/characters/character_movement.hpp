@@ -13,7 +13,8 @@ inline void SimulateMove(state::PlayerState &player, float dt, const std::vector
 
     Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
     const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
-    player.velocity = Vector2Scale(dir, charDef.moveSpeed);
+    float speed = charDef.moveSpeed * state::GetMovementMultiplier(player.effects);
+    player.velocity = Vector2Scale(dir, speed);
     player.position = Vector2Add(player.position, Vector2Scale(player.velocity, dt));
 
     Collision::Circle circle = {player.position, player.hurtbox.radius};

@@ -10,6 +10,7 @@ struct MapData {
     TileMap tileMap;                    // raw grid, used for CanPlaceWall + rendering
     std::vector<Vector2> spawnPoints;
     std::vector<Vector2> initialSpawns;
+    std::vector<Vector2> powerUpSpawns;
 };
 
 } // namespace Map

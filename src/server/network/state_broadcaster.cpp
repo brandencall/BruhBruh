@@ -183,6 +183,14 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         pkt.player = e.player;
         BroadcastAll(&pkt, sizeof(pkt));
     });
+    eventBus.DrainPowerUpSpawn([&](const event::PowerUpSpawnEvent &e) {
+        network::PowerUpSpawnPacket pkt{};
+        pkt.header.type = network::PacketType::PowerUpSpawn;
+        pkt.type = e.type;
+        pkt.position = e.position;
+        pkt.radius = e.radius;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
 }
 
 void StateBroadcaster::BuildStatePacket(const GameSimulation &sim, network::StatePacket &statePacket) {
@@ -190,21 +198,6 @@ void StateBroadcaster::BuildStatePacket(const GameSimulation &sim, network::Stat
     statePacket.tick = m_tick;
     statePacket.currentGameTime = sim.GetGameTime();
     statePacket.playerCount = BuildPlayerState(sim, statePacket.players);
-}
-
-void StateBroadcaster::BuildCurrentWorldStatePacket(const GameSimulation &sim,
-                                                    network::CurrentWorldStatePacket &worldStatePacket) {
-
-    worldStatePacket.header.type = network::PacketType::CurrentWorldState;
-    worldStatePacket.tick = m_tick;
-    worldStatePacket.playerCount = BuildPlayerState(sim, worldStatePacket.players);
-
-    auto walls = sim.GetWallManager().GetAllWalls();
-    uint16_t i = 0;
-    for (auto &[key, wall] : walls) {
-        worldStatePacket.walls[i++] = {key, wall};
-    }
-    worldStatePacket.wallCount = i;
 }
 
 uint16_t StateBroadcaster::BuildPlayerState(const GameSimulation &sim, state::PlayerState *players) {
@@ -222,6 +215,7 @@ uint16_t StateBroadcaster::BuildPlayerState(const GameSimulation &sim, state::Pl
 
     return playerCount;
 }
+
 uint16_t StateBroadcaster::BuildRankedPlayers(const GameSimulation &sim, state::RankedPlayer *players) {
     const auto &currentPlayers = sim.GetPlayers();
 

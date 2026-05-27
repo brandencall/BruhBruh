@@ -1,0 +1,36 @@
+#include "ability_pickup_renderer.hpp"
+
+namespace Render {
+
+void AbilityPickupRenderer::Load() {
+    m_textures[state::EffectType::SpeedBoost] = LoadTexture("assets/abilities/tmp_ability.png");
+    m_textures[state::EffectType::DamageBoost] = LoadTexture("assets/abilities/tmp_ability.png");
+
+    for (const auto &tex : m_textures) {
+        SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);
+    }
+}
+
+void AbilityPickupRenderer::Unload() {
+    for (auto &[id, tex] : m_textures)
+        UnloadTexture(tex);
+}
+
+void AbilityPickupRenderer::Draw(std::vector<state::AbilityPickup> &pickups) {
+    for (const auto &p : pickups) {
+        auto it = m_textures.find(p.type);
+        if (it == m_textures.end())
+            return;
+        const Texture2D &tex = it->second;
+        const Vector2 &center = p.collider.center;
+        float diameter = p.collider.radius * 2.0f;
+        Rectangle source = {0, 0, (float)tex.width, (float)tex.height};
+        float scale = diameter / (float)std::max(tex.width, tex.height);
+        Rectangle dest = {center.x, center.y, tex.width * scale, tex.height * scale};
+        Vector2 origin = {tex.width * scale * 0.5f, tex.height * scale * 0.5f};
+
+        DrawTexturePro(tex, source, dest, origin, 0, WHITE);
+    }
+}
+
+} // namespace Render

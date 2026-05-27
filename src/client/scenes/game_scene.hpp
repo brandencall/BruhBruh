@@ -3,6 +3,7 @@
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../event_hub.hpp"
 #include "../game.hpp"
+#include "../renderers/ability_pickup_renderer.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
 #include "../renderers/wall_renderer.hpp"
@@ -48,6 +49,7 @@ class GameScene : public Scene {
     void HandleWallDamaged(const char *buf);
     void HandleDestroyWall(const char *buf);
     void HandleWallPickedUp(const char *buf);
+    void HandlePowerUpSpawn(const char *buf);
     void HandleGameEnd(const char *buf);
     void HandleSwitchToLobby(const char *buf);
     void HandleHostDisconnected(const char *buf);
@@ -75,6 +77,7 @@ class GameScene : public Scene {
     Render::TilemapRenderer m_tilemapRenderer;
     Render::CharacterRenderer m_characterRender;
     Render::WallRenderer m_wallRender;
+    Render::AbilityPickupRenderer m_abilityRender;
     UI::UIManager m_ui;
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;

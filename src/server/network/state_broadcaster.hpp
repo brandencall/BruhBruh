@@ -32,7 +32,6 @@ class StateBroadcaster {
 
   private:
     void BuildStatePacket(const GameSimulation &sim, network::StatePacket &statePacket);
-    void BuildCurrentWorldStatePacket(const GameSimulation &sim, network::CurrentWorldStatePacket &worldStatePacket);
     // Creates the player state and returns the count of the current players in the player state
     uint16_t BuildPlayerState(const GameSimulation &sim, state::PlayerState *players);
     uint16_t BuildRankedPlayers(const GameSimulation &sim, state::RankedPlayer *players);
