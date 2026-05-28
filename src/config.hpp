@@ -5,6 +5,7 @@ constexpr const float MATCH_TIME = 60 * 10;
 constexpr const int MAX_PLAYERS = 4;
 constexpr const int MAX_PLAYER_NAME_LEN = 32;
 constexpr const int MAX_ACTIVE_EFFECTS = 8;
+constexpr const int MAX_ACTIVE_ABILITIES = 4;
 
 // TODO: This is probably not right
 constexpr const int MAX_BULLETS = 256;

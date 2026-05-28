@@ -54,6 +54,7 @@ struct PlayerState {
     float lastDamageTakenTimer = 0.0f;
     float healthRegenTimer = 0.5f;
     std::array<ActiveEffect, MAX_ACTIVE_EFFECTS> effects;
+    std::array<ActiveAbility, MAX_ACTIVE_ABILITIES> abilities;
 
     bool active = false;
 };

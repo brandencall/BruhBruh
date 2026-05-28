@@ -187,7 +187,8 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         network::PowerUpSpawnPacket pkt{};
         pkt.header.type = network::PacketType::PowerUpSpawn;
         pkt.id = e.id;
-        pkt.type = e.type;
+        pkt.pickupType = e.pickupType;
+        pkt.typeId = e.typeId;
         pkt.position = e.position;
         pkt.radius = e.radius;
         BroadcastAll(&pkt, sizeof(pkt));

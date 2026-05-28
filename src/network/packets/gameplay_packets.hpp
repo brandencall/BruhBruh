@@ -129,7 +129,8 @@ struct WallPickedUpPacket {
 struct PowerUpSpawnPacket {
     PacketHeader header;
     uint32_t id;
-    state::EffectType type;
+    state::PickupType pickupType;
+    uint8_t typeId;
     Vector2 position;
     float radius;
 };

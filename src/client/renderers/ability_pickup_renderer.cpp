@@ -3,8 +3,13 @@
 namespace Render {
 
 void AbilityPickupRenderer::Load() {
-    m_textures[state::EffectType::SpeedBoost] = LoadTexture("assets/abilities/tmp_ability.png");
-    m_textures[state::EffectType::DamageBoost] = LoadTexture("assets/abilities/tmp_ability.png");
+    m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::SpeedBoost)}] =
+        LoadTexture("assets/abilities/tmp_ability.png");
+    m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::DamageBoost)}] =
+        LoadTexture("assets/abilities/tmp_ability.png");
+
+    m_textures[{state::PickupType::Ability, static_cast<uint8_t>(state::AbilityType::SlowShot)}] =
+        LoadTexture("assets/abilities/tmp_ability.png");
 
     for (const auto &tex : m_textures) {
         SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);
@@ -18,7 +23,7 @@ void AbilityPickupRenderer::Unload() {
 
 void AbilityPickupRenderer::Draw(std::vector<state::AbilityPickup> &pickups) {
     for (const auto &p : pickups) {
-        auto it = m_textures.find(p.type);
+        auto it = m_textures.find({p.pickupType, p.typeId});
         if (it == m_textures.end())
             return;
         const Texture2D &tex = it->second;

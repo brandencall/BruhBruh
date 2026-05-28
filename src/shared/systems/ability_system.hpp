@@ -15,16 +15,20 @@ class AbilitySystem {
   public:
     void Initialize(EventBus &eventBus, Map::MapData &map);
     void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players);
-    void ApplyEffect(state::PlayerState target, const state::EffectType type, const state::PlayerState attacker);
+    void ApplyDebuffs(state::PlayerState &target, state::PlayerState &attacker);
 
   private:
     void PlayerPickupCheck(state::PlayerState &player);
     std::vector<state::AbilityPickup>::iterator RemovePickup(std::vector<state::AbilityPickup>::iterator it);
     void TickPlayerEffects(float dt, state::PlayerState &player);
+    void TickPlayerAbilities(float dt, state::PlayerState &player);
 
     void RemoveEffect(state::PlayerState &player);
     void AddEffect(state::EffectType type, state::PlayerState &player);
-    void AddEffect(state::ActiveEffect effect, state::PlayerState &player);
+    void AddPowerUp(state::SpawnablePickup powerUp, state::PlayerState &player);
+    void AddAbility(state::AbilityType type, state::PlayerState &player);
+    void ApplyEffect(const state::EffectType &effect, state::PlayerState &player);
+    void AddEffect(const state::ActiveEffect &effect, state::PlayerState &player);
 
   private:
     EventBus *m_eventBus;

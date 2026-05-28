@@ -302,7 +302,8 @@ void GameScene::HandleWallPickedUp(const char *buffer) {
 
 void GameScene::HandlePowerUpSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PowerUpSpawnPacket *>(buffer);
-    m_worldState.m_abilityPickups.emplace_back(pkt->id, pkt->type, Collision::Circle{pkt->position, pkt->radius});
+    m_worldState.m_abilityPickups.emplace_back(pkt->id, pkt->pickupType, pkt->typeId,
+                                               Collision::Circle{pkt->position, pkt->radius});
 }
 
 void GameScene::HandlePowerUpDespawn(const char *buffer) {

@@ -15,18 +15,21 @@ void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS>
             continue;
         PlayerPickupCheck(player);
         TickPlayerEffects(dt, player);
+        TickPlayerAbilities(dt, player);
     }
 
     m_abilityPickupTimer += dt;
 
     if (m_currentPickups.size() == 0 && m_abilityPickupTimer >= 5.0f) {
-        // const auto &effects = state::GetSpawnableEffects();
-        // state::EffectType effect = effects[GetRandomValue(0, effects.size() - 1)];
-        state::EffectType effect = state::EffectType::SpeedBoost;
+        // const auto &powerUps = state::GetSpawnablePowerUps();
+        // state::SpawnablePickup powerUp = powerUps[GetRandomValue(0, powerUps.size() - 1)];
+        state::SpawnablePickup powerUp =
+            state::SpawnablePickup{state::PickupType::Ability, (uint8_t)state::AbilityType::SlowShot};
         Vector2 position = m_map->powerUpSpawns[GetRandomValue(0, m_map->powerUpSpawns.size() - 1)];
-        m_currentPickups.emplace_back(m_abilityId, effect, Collision::Circle{position, 10.0});
+        m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId,
+                                      Collision::Circle{position, 10.0});
         if (m_eventBus)
-            m_eventBus->publish({m_abilityId, effect, position, 10.0f});
+            m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 10.0f});
 
         m_abilityId++;
         m_abilityPickupTimer = 0.0f;
@@ -34,11 +37,9 @@ void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS>
 }
 
 void AbilitySystem::PlayerPickupCheck(state::PlayerState &player) {
-    std::cout << "Pickup check for player " << player.id << "\n";
     for (auto it = m_currentPickups.begin(); it != m_currentPickups.end();) {
         if (Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), it->collider)) {
-            std::cout << "Player: " << player.id << " picked up effect" << std::endl;
-            AddEffect(it->type, player);
+            AddPowerUp({it->pickupType, it->typeId}, player);
             it = RemovePickup(it);
         } else {
             ++it;
@@ -58,13 +59,9 @@ AbilitySystem::RemovePickup(std::vector<state::AbilityPickup>::iterator it) {
 }
 
 void AbilitySystem::TickPlayerEffects(float dt, state::PlayerState &player) {
-    int count = 0;
     for (auto &e : player.effects) {
         if (!e.active)
             continue;
-
-        if (e.active && e.type == state::EffectType::SpeedBoost)
-            count++;
 
         e.durationRemaining -= dt;
 
@@ -72,27 +69,72 @@ void AbilitySystem::TickPlayerEffects(float dt, state::PlayerState &player) {
             e.active = false;
         }
     }
-    std::cout << "SpeedBoost count: " << count << "\n";
+}
+
+void AbilitySystem::TickPlayerAbilities(float dt, state::PlayerState &player) {
+    for (auto &e : player.abilities) {
+        if (!e.active)
+            continue;
+
+        e.durationRemaining -= dt;
+
+        if (e.durationRemaining <= 0.0f) {
+            e.active = false;
+        }
+    }
+}
+
+void AbilitySystem::AddPowerUp(state::SpawnablePickup powerUp, state::PlayerState &player) {
+    switch (powerUp.pickupType) {
+
+    case state::PickupType::Effect:
+        ApplyEffect((state::EffectType)powerUp.typeId, player);
+        break;
+
+    case state::PickupType::Ability:
+        AddAbility((state::AbilityType)powerUp.typeId, player);
+        break;
+    }
 }
 
 void AbilitySystem::AddEffect(state::EffectType type, state::PlayerState &player) {
-    const state::EffectDefinition effectDef = GetEffectDefinition(type);
+    const state::EffectDefinition effectDef = state::GetEffectDefinition(type);
     for (auto &e : player.effects) {
         if (!e.active) {
             e = {.type = effectDef.type,
-                 .category = effectDef.category,
                  .durationRemaining = effectDef.baseDuration,
                  .magnitude = effectDef.baseMagnitude,
-                 .sourcePlayerId = player.id,
                  .active = true};
             return;
         }
     }
 }
 
-void AbilitySystem::ApplyEffect(state::PlayerState target, const state::EffectType type,
-                                const state::PlayerState attacker) {
-    const state::EffectDefinition effectDef = GetEffectDefinition(type);
+void AbilitySystem::AddAbility(state::AbilityType type, state::PlayerState &player) {
+    const state::AbilityDefinition abilityDef = state::GetAbilityDefinition(type);
+    for (auto &a : player.abilities) {
+        if (!a.active) {
+            a = {.type = abilityDef.type, .durationRemaining = abilityDef.baseDuration, .active = true};
+            return;
+        }
+    }
+}
+
+void AbilitySystem::ApplyDebuffs(state::PlayerState &target, state::PlayerState &attacker) {
+    for (const auto &ability : attacker.abilities) {
+        if (!ability.active)
+            continue;
+
+        const auto &def = GetAbilityDefinition(ability.type);
+
+        if (def.appliesEffect) {
+            ApplyEffect(def.appliedEffect, target);
+        }
+    }
+}
+
+void AbilitySystem::ApplyEffect(const state::EffectType &type, state::PlayerState &target) {
+    const state::EffectDefinition effectDef = state::GetEffectDefinition(type);
 
     for (auto &e : target.effects) {
         if (!e.active)
@@ -107,19 +149,18 @@ void AbilitySystem::ApplyEffect(state::PlayerState target, const state::EffectTy
 
     state::ActiveEffect e;
     e.type = type;
-    e.category = effectDef.category;
     e.durationRemaining = effectDef.baseDuration;
     e.magnitude = effectDef.baseMagnitude;
-    e.sourcePlayerId = attacker.id;
     e.active = true;
 
     AddEffect(e, target);
 }
 
-void AbilitySystem::AddEffect(state::ActiveEffect effect, state::PlayerState &player) {
+void AbilitySystem::AddEffect(const state::ActiveEffect &effect, state::PlayerState &player) {
     for (auto &e : player.effects) {
         if (!e.active) {
             e = effect;
+            return;
         }
     }
 }

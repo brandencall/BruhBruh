@@ -37,19 +37,21 @@ void GameSimulation::SetupBulletSystem() {
     });
 
     m_bulletSystem.SetOnPlayerHit([this](uint32_t playerId, float damage, uint32_t shooterId) {
-        auto &player = m_players[playerId];
+        auto &target = m_players[playerId];
+        auto &attacker = m_players[shooterId];
 
-        if (player.invincibilityTimer > 0.0f)
+        if (target.invincibilityTimer > 0.0f)
             return;
 
-        player.health -= damage;
-        player.lastDamageTakenTimer = 0.0f;
-        if (player.health <= 0.0f) {
-            HandlePlayerDied(player, shooterId);
-            AddHealthOnKill(m_players[shooterId]);
+        target.health -= state::GetOverallDamage(damage, attacker.effects);
+        m_abilitySystem.ApplyDebuffs(target, attacker);
+        target.lastDamageTakenTimer = 0.0f;
+        if (target.health <= 0.0f) {
+            HandlePlayerDied(target, shooterId);
+            AddHealthOnKill(attacker);
             return;
         }
-        m_eventBus->publish(event::PlayerDamagedEvent{player.id, shooterId, player.health});
+        m_eventBus->publish(event::PlayerDamagedEvent{target.id, shooterId, target.health});
     });
 
     m_bulletSystem.SetOnBulletSpawn([this](uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
