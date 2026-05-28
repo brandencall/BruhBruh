@@ -37,6 +37,7 @@ void GameScene::OnEnter() {
     handler->Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
     handler->Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
     handler->Register(PT::PowerUpSpawn, [this](const char *b) { HandlePowerUpSpawn(b); });
+    handler->Register(PT::PowerUpDespawn, [this](const char *b) { HandlePowerUpDespawn(b); });
     handler->Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
     handler->Register(PT::SwitchToLobby, [this](const char *b) { HandleSwitchToLobby(b); });
     handler->Register(PT::HostDisconnected, [this](const char *b) { HandleHostDisconnected(b); });
@@ -301,7 +302,12 @@ void GameScene::HandleWallPickedUp(const char *buffer) {
 
 void GameScene::HandlePowerUpSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PowerUpSpawnPacket *>(buffer);
-    m_worldState.m_abilityPickups.emplace_back(pkt->type, Collision::Circle{pkt->position, pkt->radius});
+    m_worldState.m_abilityPickups.emplace_back(pkt->id, pkt->type, Collision::Circle{pkt->position, pkt->radius});
+}
+
+void GameScene::HandlePowerUpDespawn(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::PowerUpDespawnPacket *>(buffer);
+    std::erase_if(m_worldState.m_abilityPickups, [&](state::AbilityPickup ap) { return ap.id == pkt->id; });
 }
 
 void GameScene::HandleGameEnd(const char *buffer) {

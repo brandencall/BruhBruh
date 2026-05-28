@@ -21,6 +21,7 @@ class EventBus {
 
     // Powerup Events
     void publish(const event::PowerUpSpawnEvent &e) { m_powerUpSpawnEvents.push_back(e); }
+    void publish(const event::PowerUpDespawnEvent &e) { m_powerUpDespawnEvent.push_back(e); }
 
     // Drain bullet events
     template <typename Func> void DrainBulletSpawn(Func callback) {
@@ -70,6 +71,10 @@ class EventBus {
         for (const auto &e : m_powerUpSpawnEvents)
             callback(e);
     }
+    template <typename Func> void DrainPowerUpDespawn(Func callback) {
+        for (const auto &e : m_powerUpDespawnEvent)
+            callback(e);
+    }
 
     void clear() {
         m_bulletSpawnEvents.clear();
@@ -82,6 +87,7 @@ class EventBus {
         m_destroyWallEvents.clear();
         m_wallPickedUpEvents.clear();
         m_powerUpSpawnEvents.clear();
+        m_powerUpDespawnEvent.clear();
     }
 
   private:
@@ -102,4 +108,5 @@ class EventBus {
 
     // Powerup Events
     std::vector<event::PowerUpSpawnEvent> m_powerUpSpawnEvents;
+    std::vector<event::PowerUpDespawnEvent> m_powerUpDespawnEvent;
 };

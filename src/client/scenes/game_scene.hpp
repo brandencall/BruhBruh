@@ -50,6 +50,7 @@ class GameScene : public Scene {
     void HandleDestroyWall(const char *buf);
     void HandleWallPickedUp(const char *buf);
     void HandlePowerUpSpawn(const char *buf);
+    void HandlePowerUpDespawn(const char *buf);
     void HandleGameEnd(const char *buf);
     void HandleSwitchToLobby(const char *buf);
     void HandleHostDisconnected(const char *buf);

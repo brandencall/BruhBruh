@@ -28,6 +28,7 @@ struct EffectDefinition {
 };
 
 struct AbilityPickup {
+    uint32_t id;
     EffectType type;
     Collision::Circle collider;
 };

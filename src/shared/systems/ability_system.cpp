@@ -10,9 +10,6 @@ void AbilitySystem::Initialize(EventBus &eventBus, Map::MapData &map) {
 
 void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players) {
 
-    static int frameCounter = 0;
-    std::cout << "AbilitySystem Update call #" << frameCounter++ << std::endl;
-
     for (auto &player : players) {
         if (!player.active)
             continue;
@@ -27,10 +24,11 @@ void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS>
         // state::EffectType effect = effects[GetRandomValue(0, effects.size() - 1)];
         state::EffectType effect = state::EffectType::SpeedBoost;
         Vector2 position = m_map->powerUpSpawns[GetRandomValue(0, m_map->powerUpSpawns.size() - 1)];
-        m_currentPickups.emplace_back(effect, Collision::Circle{position, 10.0});
+        m_currentPickups.emplace_back(m_abilityId, effect, Collision::Circle{position, 10.0});
         if (m_eventBus)
-            m_eventBus->publish({effect, position, 10.0f});
+            m_eventBus->publish({m_abilityId, effect, position, 10.0f});
 
+        m_abilityId++;
         m_abilityPickupTimer = 0.0f;
     }
 }
@@ -39,14 +37,24 @@ void AbilitySystem::PlayerPickupCheck(state::PlayerState &player) {
     std::cout << "Pickup check for player " << player.id << "\n";
     for (auto it = m_currentPickups.begin(); it != m_currentPickups.end();) {
         if (Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), it->collider)) {
-            AddEffect(it->type, player);
             std::cout << "Player: " << player.id << " picked up effect" << std::endl;
-            it = m_currentPickups.erase(it);
-            m_abilityPickupTimer = 0.0f;
+            AddEffect(it->type, player);
+            it = RemovePickup(it);
         } else {
             ++it;
         }
     }
+}
+
+std::vector<state::AbilityPickup>::iterator
+AbilitySystem::RemovePickup(std::vector<state::AbilityPickup>::iterator it) {
+    m_abilityPickupTimer = 0.0f;
+    if (m_eventBus) {
+        event::PowerUpDespawnEvent despawn{.id = it->id};
+        m_eventBus->publish(despawn);
+    }
+
+    return m_currentPickups.erase(it);
 }
 
 void AbilitySystem::TickPlayerEffects(float dt, state::PlayerState &player) {

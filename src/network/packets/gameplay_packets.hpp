@@ -128,9 +128,15 @@ struct WallPickedUpPacket {
 
 struct PowerUpSpawnPacket {
     PacketHeader header;
+    uint32_t id;
     state::EffectType type;
     Vector2 position;
     float radius;
+};
+
+struct PowerUpDespawnPacket {
+    PacketHeader header;
+    uint32_t id;
 };
 
 } // namespace network

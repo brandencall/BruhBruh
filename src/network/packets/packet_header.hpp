@@ -36,6 +36,7 @@ enum class PacketType : uint8_t {
     WallPickedUp,
 
     PowerUpSpawn,
+    PowerUpDespawn,
 
     GameEnd,
     SwitchToLobby

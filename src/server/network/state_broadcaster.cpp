@@ -186,9 +186,16 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
     eventBus.DrainPowerUpSpawn([&](const event::PowerUpSpawnEvent &e) {
         network::PowerUpSpawnPacket pkt{};
         pkt.header.type = network::PacketType::PowerUpSpawn;
+        pkt.id = e.id;
         pkt.type = e.type;
         pkt.position = e.position;
         pkt.radius = e.radius;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
+    eventBus.DrainPowerUpDespawn([&](const event::PowerUpDespawnEvent &e) {
+        network::PowerUpDespawnPacket pkt{};
+        pkt.header.type = network::PacketType::PowerUpDespawn;
+        pkt.id = e.id;
         BroadcastAll(&pkt, sizeof(pkt));
     });
 }
