@@ -43,7 +43,7 @@ void AbilitySystem::SpawnPickup(float dt) {
     const auto &powerUps = state::GetSpawnablePowerUps();
     state::SpawnablePickup powerUp = powerUps[GetRandomValue(0, powerUps.size() - 1)];
     Vector2 position = availableSpawns[GetRandomValue(0, availableSpawns.size() - 1)];
-    m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId, Collision::Circle{position, 10.0f});
+    m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId, Collision::Circle{position, 18.0f});
 
     if (m_eventBus) {
         m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 10.0f});
@@ -119,29 +119,35 @@ void AbilitySystem::AddPowerUp(state::SpawnablePickup powerUp, state::PlayerStat
         break;
 
     case state::PickupType::Ability:
-        AddAbility((state::AbilityType)powerUp.typeId, player);
+        ApplyAbility((state::AbilityType)powerUp.typeId, player);
         break;
     }
 }
 
-void AbilitySystem::AddEffect(state::EffectType type, state::PlayerState &player) {
-    const state::EffectDefinition effectDef = state::GetEffectDefinition(type);
-    for (auto &e : player.effects) {
-        if (!e.active) {
-            e = {.type = effectDef.type,
-                 .durationRemaining = effectDef.baseDuration,
-                 .magnitude = effectDef.baseMagnitude,
-                 .active = true};
+void AbilitySystem::ApplyAbility(const state::AbilityType &type, state::PlayerState &player) {
+    const state::AbilityDefinition abilityDef = state::GetAbilityDefinition(type);
+
+    for (auto &a : player.abilities) {
+        if (!a.active)
+            continue;
+
+        if (a.type == type) {
+            a.durationRemaining = abilityDef.baseDuration;
             return;
         }
     }
+
+    state::ActiveAbility ability;
+    ability.type = abilityDef.type;
+    ability.durationRemaining = abilityDef.baseDuration;
+    ability.active = true;
+    AddAbility(ability, player);
 }
 
-void AbilitySystem::AddAbility(state::AbilityType type, state::PlayerState &player) {
-    const state::AbilityDefinition abilityDef = state::GetAbilityDefinition(type);
+void AbilitySystem::AddAbility(const state::ActiveAbility &ability, state::PlayerState &player) {
     for (auto &a : player.abilities) {
         if (!a.active) {
-            a = {.type = abilityDef.type, .durationRemaining = abilityDef.baseDuration, .active = true};
+            a = ability;
             return;
         }
     }

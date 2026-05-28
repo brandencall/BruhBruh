@@ -4,12 +4,12 @@ namespace Render {
 
 void AbilityPickupRenderer::Load() {
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::SpeedBoost)}] =
-        LoadTexture("assets/abilities/tmp_ability.png");
+        LoadTexture("assets/abilities/speed_boost.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::DamageBoost)}] =
-        LoadTexture("assets/abilities/tmp_ability.png");
+        LoadTexture("assets/abilities/damage_boost.png");
 
     m_textures[{state::PickupType::Ability, static_cast<uint8_t>(state::AbilityType::SlowShot)}] =
-        LoadTexture("assets/abilities/tmp_ability.png");
+        LoadTexture("assets/abilities/slow_shot.png");
 
     for (const auto &tex : m_textures) {
         SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);

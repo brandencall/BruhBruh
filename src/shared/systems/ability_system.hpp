@@ -26,9 +26,9 @@ class AbilitySystem {
     void TickPlayerAbilities(float dt, state::PlayerState &player);
 
     void RemoveEffect(state::PlayerState &player);
-    void AddEffect(state::EffectType type, state::PlayerState &player);
     void AddPowerUp(state::SpawnablePickup powerUp, state::PlayerState &player);
-    void AddAbility(state::AbilityType type, state::PlayerState &player);
+    void ApplyAbility(const state::AbilityType &type, state::PlayerState &player);
+    void AddAbility(const state::ActiveAbility &ability, state::PlayerState &player);
     void ApplyEffect(const state::EffectType &effect, state::PlayerState &player);
     void AddEffect(const state::ActiveEffect &effect, state::PlayerState &player);
 
