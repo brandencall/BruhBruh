@@ -12,11 +12,12 @@ struct SpawnablePickupHash {
     }
 };
 
-class AbilityPickupRenderer {
+class AbilityRenderer {
   public:
     void Load();
     void Unload();
-    void Draw(std::vector<state::AbilityPickup> &pickups);
+    void DrawPickUps(std::vector<state::AbilityPickup> &pickups);
+    const std::unordered_map<state::SpawnablePickup, Texture2D, SpawnablePickupHash> &GetTextures() const;
 
   private:
     std::unordered_map<state::SpawnablePickup, Texture2D, SpawnablePickupHash> m_textures;

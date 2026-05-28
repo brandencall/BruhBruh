@@ -3,7 +3,7 @@
 #include "../../shared/state/lobby_slot_state.hpp"
 #include "../event_hub.hpp"
 #include "../game.hpp"
-#include "../renderers/ability_pickup_renderer.hpp"
+#include "../renderers/ability_renderer.hpp"
 #include "../renderers/character_renderer.hpp"
 #include "../renderers/tilemap_renderer.hpp"
 #include "../renderers/wall_renderer.hpp"
@@ -78,7 +78,7 @@ class GameScene : public Scene {
     Render::TilemapRenderer m_tilemapRenderer;
     Render::CharacterRenderer m_characterRender;
     Render::WallRenderer m_wallRender;
-    Render::AbilityPickupRenderer m_abilityRender;
+    Render::AbilityRenderer m_abilityRender;
     UI::UIManager m_ui;
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;

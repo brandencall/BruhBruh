@@ -1,8 +1,8 @@
-#include "ability_pickup_renderer.hpp"
+#include "ability_renderer.hpp"
 
 namespace Render {
 
-void AbilityPickupRenderer::Load() {
+void AbilityRenderer::Load() {
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::SpeedBoost)}] =
         LoadTexture("assets/abilities/speed_boost.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::DamageBoost)}] =
@@ -16,12 +16,12 @@ void AbilityPickupRenderer::Load() {
     }
 }
 
-void AbilityPickupRenderer::Unload() {
+void AbilityRenderer::Unload() {
     for (auto &[id, tex] : m_textures)
         UnloadTexture(tex);
 }
 
-void AbilityPickupRenderer::Draw(std::vector<state::AbilityPickup> &pickups) {
+void AbilityRenderer::DrawPickUps(std::vector<state::AbilityPickup> &pickups) {
     for (const auto &p : pickups) {
         auto it = m_textures.find({p.pickupType, p.typeId});
         if (it == m_textures.end())
@@ -36,6 +36,10 @@ void AbilityPickupRenderer::Draw(std::vector<state::AbilityPickup> &pickups) {
 
         DrawTexturePro(tex, source, dest, origin, 0, WHITE);
     }
+}
+
+const std::unordered_map<state::SpawnablePickup, Texture2D, SpawnablePickupHash> &AbilityRenderer::GetTextures() const {
+    return m_textures;
 }
 
 } // namespace Render

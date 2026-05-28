@@ -1,5 +1,5 @@
 add_library(renderers
-    ability_pickup_renderer.cpp
+    ability_renderer.cpp
     character_renderer.cpp
     wall_renderer.cpp
 )

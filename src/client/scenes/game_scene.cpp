@@ -193,7 +193,7 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_game.GetAudioSystem()->InitCharacterBulletSounds(m_worldState.m_players);
 
         m_ui.Push(std::make_unique<UI::HudScreen>(m_worldState.m_players[m_currentPlayerId], m_worldState.m_gameTime,
-                                                  m_events));
+                                                  m_events, m_abilityRender));
     }
 }
 
@@ -358,7 +358,7 @@ void GameScene::Render() {
     m_tilemapRenderer.Draw(m_worldState.m_tileMap);
     m_characterRender.Draw(m_worldState.m_players);
     m_bulletSystem.Draw();
-    m_abilityRender.Draw(m_worldState.m_abilityPickups);
+    m_abilityRender.DrawPickUps(m_worldState.m_abilityPickups);
     m_wallRender.Draw(m_wallManager.GetAllWalls());
 
     EndMode2D();

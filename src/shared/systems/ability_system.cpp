@@ -140,6 +140,7 @@ void AbilitySystem::ApplyAbility(const state::AbilityType &type, state::PlayerSt
     state::ActiveAbility ability;
     ability.type = abilityDef.type;
     ability.durationRemaining = abilityDef.baseDuration;
+    ability.maxDuration = abilityDef.baseDuration;
     ability.active = true;
     AddAbility(ability, player);
 }
@@ -183,6 +184,7 @@ void AbilitySystem::ApplyEffect(const state::EffectType &type, state::PlayerStat
     state::ActiveEffect e;
     e.type = type;
     e.durationRemaining = effectDef.baseDuration;
+    e.maxDuration = effectDef.baseDuration;
     e.magnitude = effectDef.baseMagnitude;
     e.active = true;
 

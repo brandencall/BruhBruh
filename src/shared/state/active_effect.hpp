@@ -14,6 +14,7 @@ enum class AbilityType : uint8_t { None = 0, SlowShot };
 struct ActiveEffect {
     EffectType type;
     float durationRemaining;
+    float maxDuration;
     float magnitude;
     bool active = false;
 };
@@ -27,6 +28,7 @@ struct EffectDefinition {
 struct ActiveAbility {
     AbilityType type;
     float durationRemaining;
+    float maxDuration;
     bool active = false;
 };
 
