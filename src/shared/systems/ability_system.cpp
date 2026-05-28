@@ -1,5 +1,4 @@
 #include "ability_system.hpp"
-#include <iostream>
 
 namespace System {
 
@@ -18,22 +17,50 @@ void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS>
         TickPlayerAbilities(dt, player);
     }
 
+    SpawnPickup(dt);
+}
+
+void AbilitySystem::SpawnPickup(float dt) {
     m_abilityPickupTimer += dt;
 
-    if (m_currentPickups.size() == 0 && m_abilityPickupTimer >= 5.0f) {
-        // const auto &powerUps = state::GetSpawnablePowerUps();
-        // state::SpawnablePickup powerUp = powerUps[GetRandomValue(0, powerUps.size() - 1)];
-        state::SpawnablePickup powerUp =
-            state::SpawnablePickup{state::PickupType::Ability, (uint8_t)state::AbilityType::SlowShot};
-        Vector2 position = m_map->powerUpSpawns[GetRandomValue(0, m_map->powerUpSpawns.size() - 1)];
-        m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId,
-                                      Collision::Circle{position, 10.0});
-        if (m_eventBus)
-            m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 10.0f});
+    if (m_abilityPickupTimer < 5.0f)
+        return;
 
-        m_abilityId++;
-        m_abilityPickupTimer = 0.0f;
+    if (m_currentPickups.size() >= m_map->powerUpSpawns.size())
+        return;
+
+    std::vector<Vector2> availableSpawns;
+
+    for (const auto &spawn : m_map->powerUpSpawns) {
+        if (!IsSpawnOccupied(spawn, 10.0f)) {
+            availableSpawns.push_back(spawn);
+        }
     }
+
+    if (availableSpawns.empty())
+        return;
+
+    const auto &powerUps = state::GetSpawnablePowerUps();
+    state::SpawnablePickup powerUp = powerUps[GetRandomValue(0, powerUps.size() - 1)];
+    Vector2 position = availableSpawns[GetRandomValue(0, availableSpawns.size() - 1)];
+    m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId, Collision::Circle{position, 10.0f});
+
+    if (m_eventBus) {
+        m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 10.0f});
+    }
+
+    m_abilityId++;
+    m_abilityPickupTimer = 0.0f;
+}
+
+bool AbilitySystem::IsSpawnOccupied(const Vector2 &position, float radius) const {
+    for (const auto &pickup : m_currentPickups) {
+        if (pickup.collider.center.x == position.x && pickup.collider.center.y == position.y) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void AbilitySystem::PlayerPickupCheck(state::PlayerState &player) {

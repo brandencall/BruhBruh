@@ -18,6 +18,8 @@ class AbilitySystem {
     void ApplyDebuffs(state::PlayerState &target, state::PlayerState &attacker);
 
   private:
+    void SpawnPickup(float dt);
+    bool IsSpawnOccupied(const Vector2 &position, float radius) const;
     void PlayerPickupCheck(state::PlayerState &player);
     std::vector<state::AbilityPickup>::iterator RemovePickup(std::vector<state::AbilityPickup>::iterator it);
     void TickPlayerEffects(float dt, state::PlayerState &player);
