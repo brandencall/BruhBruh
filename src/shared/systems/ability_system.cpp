@@ -43,10 +43,10 @@ void AbilitySystem::SpawnPickup(float dt) {
     const auto &powerUps = state::GetSpawnablePowerUps();
     state::SpawnablePickup powerUp = powerUps[GetRandomValue(0, powerUps.size() - 1)];
     Vector2 position = availableSpawns[GetRandomValue(0, availableSpawns.size() - 1)];
-    m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId, Collision::Circle{position, 18.0f});
+    m_currentPickups.emplace_back(m_abilityId, powerUp.pickupType, powerUp.typeId, Collision::Circle{position, 14.0f});
 
     if (m_eventBus) {
-        m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 10.0f});
+        m_eventBus->publish({m_abilityId, powerUp.pickupType, powerUp.typeId, position, 14.0f});
     }
 
     m_abilityId++;
