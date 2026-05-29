@@ -43,22 +43,38 @@ static void DrawIconWithDrain(const Texture2D &tex, Rectangle dest, float t) {
     }
 }
 
-// Draw a thin horizontal separator line inside an icon slot when it's an ability
-// (purely cosmetic — a small coloured dot/label can be drawn over it).
-static void DrawSlotBackground(Rectangle slot, bool isAbility, bool nearExpiry) {
-    // Slot background
-    Color bgColor = isAbility ? Color{20, 30, 50, 200} : Color{30, 20, 50, 200};
-    DrawRectangleRounded(slot, 0.25f, 8, bgColor);
+// Slot accent colours — one set per logical category.
+struct SlotTheme {
+    Color bg;
+    Color border; // used when not near expiry
+};
 
-    // Border — pulse red when < 3 s remaining
+static SlotTheme GetSlotTheme(bool isAbility, state::EffectCategory category) {
+    if (isAbility)
+        return {Color{20, 30, 50, 200}, Color{80, 140, 220, 160}}; // blue
+
+    switch (category) {
+    case state::EffectCategory::Buff:
+        return {Color{15, 40, 20, 200}, Color{60, 200, 80, 170}}; // green
+    case state::EffectCategory::Debuff:
+        return {Color{45, 15, 15, 200}, Color{210, 60, 60, 170}}; // red
+    default:
+        return {Color{30, 20, 50, 200}, Color{160, 80, 220, 160}}; // purple fallback
+    }
+}
+
+static void DrawSlotBackground(Rectangle slot, bool isAbility, state::EffectCategory category, bool nearExpiry) {
+    SlotTheme theme = GetSlotTheme(isAbility, category);
+    DrawRectangleRounded(slot, 0.25f, 8, theme.bg);
+
     Color borderColor;
     if (nearExpiry) {
-        // Pulse between red and dark-red using sin wave on real time
+        // Pulse between dark-red and bright-red regardless of category
         float pulse = 0.5f + 0.5f * sinf((float)GetTime() * 6.0f);
         unsigned char r = (unsigned char)(180 + 75 * pulse);
         borderColor = Color{r, 30, 30, 255};
     } else {
-        borderColor = isAbility ? Color{80, 140, 220, 160} : Color{160, 80, 220, 160};
+        borderColor = theme.border;
     }
     DrawRectangleRoundedBorder(slot, 0.25f, 8, 1.5f, borderColor);
 }
@@ -162,7 +178,7 @@ void HudScreen::RenderPickupPanel(int screenW, int screenH, int padding) {
 
     float panelW = innerW + panelPadX * 2;
     float panelH = innerH + panelPadY * 2;
-    float panelX = screenW - padding - panelW;
+    float panelX = (screenW - panelW) / 2.0f;
     float panelY = screenH - padding - panelH;
 
     // Panel background
@@ -174,7 +190,7 @@ void HudScreen::RenderPickupPanel(int screenW, int screenH, int padding) {
     // ── Abilities row ──────────────────────────────────────────────────────
     if (numAbilities > 0) {
         // Row label
-        DrawText("ABILITIES", (int)(panelX + panelPadX), (int)cursorY, labelFS, Color{80, 160, 255, 200});
+        DrawText("ABILITIES", (int)(panelX + panelPadX - 4), (int)cursorY, labelFS, Color{80, 160, 255, 200});
         cursorY += labelH;
 
         float cursorX = panelX + panelPadX;
@@ -207,14 +223,14 @@ void HudScreen::RenderPickupPanel(int screenW, int screenH, int padding) {
             float t = std::clamp(ability.durationRemaining / ability.maxDuration, 0.0f, 1.0f);
             bool expiry = ability.durationRemaining < 3.0f;
 
-            DrawSlotBackground(slotRect, true, expiry);
+            DrawSlotBackground(slotRect, true, state::EffectCategory::None, expiry);
             DrawIconWithDrain(textureIt->second, iconRect, t);
 
             // Timer text centred below icon inside slot
             std::string timeText = TextFormat("%.1f", ability.durationRemaining);
             int tw = MeasureText(timeText.c_str(), (int)timerFS);
             Color timerColor = expiry ? Color{255, 100, 80, 255} : RAYWHITE;
-            DrawText(timeText.c_str(), (int)(cursorX + (float)(iconSize - tw) / 2),
+            DrawText(timeText.c_str(), (int)(cursorX + (iconSize - tw) / 2),
                      (int)(cursorY + iconSize - (int)timerFS - 2), (int)timerFS, timerColor);
 
             cursorX += iconSize + iconGap;
@@ -225,7 +241,7 @@ void HudScreen::RenderPickupPanel(int screenW, int screenH, int padding) {
 
     // ── Effects row ───────────────────────────────────────────────────────
     if (numEffects > 0) {
-        DrawText("EFFECTS", (int)(panelX + panelPadX), (int)cursorY, labelFS, Color{200, 100, 255, 200});
+        DrawText("EFFECTS", (int)(panelX + panelPadX - 4), (int)cursorY, labelFS, Color{200, 100, 255, 200});
         cursorY += labelH;
 
         float cursorX = panelX + panelPadX;
@@ -252,13 +268,13 @@ void HudScreen::RenderPickupPanel(int screenW, int screenH, int padding) {
             float t = std::clamp(effect.durationRemaining / effect.maxDuration, 0.0f, 1.0f);
             bool expiry = effect.durationRemaining < 3.0f;
 
-            DrawSlotBackground(slotRect, false, expiry);
+            DrawSlotBackground(slotRect, false, effect.category, expiry);
             DrawIconWithDrain(textureIt->second, iconRect, t);
 
             std::string timeText = TextFormat("%.1f", effect.durationRemaining);
             int tw = MeasureText(timeText.c_str(), (int)timerFS);
             Color timerColor = expiry ? Color{255, 100, 80, 255} : RAYWHITE;
-            DrawText(timeText.c_str(), (int)(cursorX + (float)(iconSize - tw) / 2),
+            DrawText(timeText.c_str(), (int)(cursorX + (iconSize - tw) / 2),
                      (int)(cursorY + iconSize - (int)timerFS - 2), (int)timerFS, timerColor);
 
             cursorX += iconSize + iconGap;

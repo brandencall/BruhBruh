@@ -20,6 +20,20 @@ void AbilitySystem::Update(float dt, std::array<state::PlayerState, MAX_PLAYERS>
     SpawnPickup(dt);
 }
 
+void AbilitySystem::ClearAbilitiesAndEffects(state::PlayerState &player) {
+
+    for (auto &effect : player.effects) {
+        effect.type = state::EffectType::None;
+        effect.category = state::EffectCategory::None;
+        effect.active = false;
+    }
+
+    for (auto &ability : player.abilities) {
+        ability.type = state::AbilityType::None;
+        ability.active = false;
+    }
+}
+
 void AbilitySystem::SpawnPickup(float dt) {
     m_abilityPickupTimer += dt;
 
@@ -183,6 +197,7 @@ void AbilitySystem::ApplyEffect(const state::EffectType &type, state::PlayerStat
 
     state::ActiveEffect e;
     e.type = type;
+    e.category = effectDef.category;
     e.durationRemaining = effectDef.baseDuration;
     e.maxDuration = effectDef.baseDuration;
     e.magnitude = effectDef.baseMagnitude;

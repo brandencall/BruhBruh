@@ -69,6 +69,7 @@ void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shoot
     player.state = state::State::Dead;
     player.health = 0.0f;
     player.respawnTimer = RESPAWN_TIME;
+    m_abilitySystem.ClearAbilitiesAndEffects(player);
     auto &killer = m_players[shooterId];
     player.score.deaths++;
     killer.score.kills++;

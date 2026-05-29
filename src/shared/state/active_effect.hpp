@@ -9,10 +9,13 @@ namespace state {
 
 enum class EffectType : uint8_t { None = 0, SpeedBoost, DamageBoost, Slow };
 
+enum class EffectCategory : uint8_t { None = 0, Buff, Debuff };
+
 enum class AbilityType : uint8_t { None = 0, SlowShot };
 
 struct ActiveEffect {
     EffectType type;
+    EffectCategory category;
     float durationRemaining;
     float maxDuration;
     float magnitude;
@@ -21,6 +24,7 @@ struct ActiveEffect {
 
 struct EffectDefinition {
     EffectType type;
+    EffectCategory category;
     float baseDuration;
     float baseMagnitude;
 };
@@ -59,9 +63,9 @@ struct AbilityPickup {
 
 inline const EffectDefinition &GetEffectDefinition(EffectType type) {
     static const EffectDefinition effect[] = {{},
-                                              {EffectType::SpeedBoost, 5.0f, 1.5f},
-                                              {EffectType::DamageBoost, 5.0f, 1.5f},
-                                              {EffectType::Slow, 5.0f, .75f}};
+                                              {EffectType::SpeedBoost, EffectCategory::Buff, 5.0f, 1.5f},
+                                              {EffectType::DamageBoost, EffectCategory::Buff, 5.0f, 1.5f},
+                                              {EffectType::Slow, EffectCategory::Debuff, 5.0f, .75f}};
     return effect[static_cast<uint8_t>(type)];
 }
 

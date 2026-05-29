@@ -16,6 +16,7 @@ class AbilitySystem {
     void Initialize(EventBus &eventBus, Map::MapData &map);
     void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players);
     void ApplyDebuffs(state::PlayerState &target, state::PlayerState &attacker);
+    void ClearAbilitiesAndEffects(state::PlayerState &player);
 
   private:
     void SpawnPickup(float dt);
