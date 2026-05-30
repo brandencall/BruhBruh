@@ -19,6 +19,7 @@ class CharacterRenderer {
   private:
     void Draw(const state::PlayerState &player);
     void DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth, int frameHeight);
+    void DrawPlayerAura(const state::PlayerState &player);
     void DebugHitBox(const state::PlayerState &player);
 
   private:

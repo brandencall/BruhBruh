@@ -108,6 +108,7 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
 
     DrawTexturePro(tex, src, dst, origin, 0.0f, base);
     DrawHealthBar(player, position, frameWidth, frameHeight);
+    DrawPlayerAura(player);
 }
 
 void CharacterRenderer::DrawHealthBar(const state::PlayerState &player, Vector2 position, int frameWidth,
@@ -117,6 +118,34 @@ void CharacterRenderer::DrawHealthBar(const state::PlayerState &player, Vector2 
     float healthBarPosY = (position.y - (float)frameHeight / 2) - 4;
     DrawRectangle(healthBarPosX, healthBarPosY, frameWidth * healthPct, 4, GREEN);
     DrawRectangleLines(healthBarPosX, healthBarPosY, frameWidth, 4, BLACK);
+}
+
+void CharacterRenderer::DrawPlayerAura(const state::PlayerState &player) {
+    Vector2 renderPos = GetPosition(player.id);
+    Vector2 center = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+
+    const float BASE_RADIUS = player.hurtbox.radius + 4.0f; // just outside the hurtbox
+    const float RING_STEP = 6.0f;
+    const float RING_THICK = 3.0f;
+
+    int ringIndex = 0;
+    for (const auto &effect : player.effects) {
+        if (!effect.active)
+            continue;
+
+        const state::EffectDefinition &def = GetEffectDefinition(effect.type);
+
+        float ratio = effect.durationRemaining / effect.maxDuration;
+        float fade = 0.4f + 0.6f * ratio;
+
+        Color c = def.color;
+        c.a = static_cast<uint8_t>(c.a * fade);
+
+        float radius = BASE_RADIUS + (ringIndex * RING_STEP);
+        DrawRing(center, radius, radius + RING_THICK, 0, 360, 32, c);
+
+        ringIndex++;
+    }
 }
 
 void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {

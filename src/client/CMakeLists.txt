@@ -4,7 +4,6 @@ add_library(client
     game.cpp
 )
 
-add_subdirectory(entities)
 add_subdirectory(scenes)
 add_subdirectory(systems)
 add_subdirectory(renderers)
@@ -17,7 +16,6 @@ target_include_directories(client
 
 target_link_libraries(client
     PUBLIC
-        entities
         scenes
         client_systems
         renderers

@@ -2,6 +2,7 @@
 
 #include "../../config.hpp"
 #include "../components/collision.hpp"
+#include "raylib.h"
 #include <array>
 #include <cstdint>
 
@@ -23,10 +24,11 @@ struct ActiveEffect {
 };
 
 struct EffectDefinition {
-    EffectType type;
-    EffectCategory category;
+    EffectType type = EffectType::None;
+    EffectCategory category = EffectCategory::None;
     float baseDuration;
     float baseMagnitude;
+    Color color = BLANK;
 };
 
 struct ActiveAbility {
@@ -62,10 +64,18 @@ struct AbilityPickup {
 };
 
 inline const EffectDefinition &GetEffectDefinition(EffectType type) {
-    static const EffectDefinition effect[] = {{},
-                                              {EffectType::SpeedBoost, EffectCategory::Buff, 5.0f, 1.5f},
-                                              {EffectType::DamageBoost, EffectCategory::Buff, 5.0f, 1.5f},
-                                              {EffectType::Slow, EffectCategory::Debuff, 5.0f, .75f}};
+    static const EffectDefinition effect[] = {
+        {},
+        {
+            EffectType::SpeedBoost, EffectCategory::Buff, 5.0f, 1.5f, {255, 200, 50, 225} // yellow
+        },
+        {
+            EffectType::DamageBoost, EffectCategory::Buff, 5.0f, 1.5f, {255, 80, 80, 225} // red
+        },
+        {
+            EffectType::Slow, EffectCategory::Debuff, 5.0f, 0.75f, {80, 150, 255, 225} // blue
+        },
+    };
     return effect[static_cast<uint8_t>(type)];
 }
 
