@@ -105,6 +105,7 @@ void AbilitySystem::TickPlayerEffects(float dt, state::PlayerState &player) {
             continue;
 
         e.durationRemaining -= dt;
+        e.elapsedTime += dt;
 
         if (e.durationRemaining <= 0.0f) {
             e.active = false;
@@ -200,6 +201,7 @@ void AbilitySystem::ApplyEffect(const state::EffectType &type, state::PlayerStat
     e.category = effectDef.category;
     e.durationRemaining = effectDef.baseDuration;
     e.maxDuration = effectDef.baseDuration;
+    e.elapsedTime = 0;
     e.magnitude = effectDef.baseMagnitude;
     e.active = true;
 

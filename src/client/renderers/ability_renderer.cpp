@@ -9,9 +9,13 @@ void AbilityRenderer::Load() {
         LoadTexture("assets/abilities/damage_boost.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::Slow)}] =
         LoadTexture("assets/abilities/slow_effect.png");
+    m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::Drunkenness)}] =
+        LoadTexture("assets/abilities/drunk_effect.png");
 
     m_textures[{state::PickupType::Ability, static_cast<uint8_t>(state::AbilityType::SlowShot)}] =
         LoadTexture("assets/abilities/slow_shot.png");
+    m_textures[{state::PickupType::Ability, static_cast<uint8_t>(state::AbilityType::DrunkShot)}] =
+        LoadTexture("assets/abilities/drunk_shot.png");
 
     for (const auto &tex : m_textures) {
         SetTextureFilter(tex.second, TEXTURE_FILTER_POINT);

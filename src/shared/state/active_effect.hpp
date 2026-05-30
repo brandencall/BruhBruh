@@ -8,17 +8,18 @@
 
 namespace state {
 
-enum class EffectType : uint8_t { None = 0, SpeedBoost, DamageBoost, Slow };
+enum class EffectType : uint8_t { None = 0, SpeedBoost, DamageBoost, Slow, Drunkenness };
 
 enum class EffectCategory : uint8_t { None = 0, Buff, Debuff };
 
-enum class AbilityType : uint8_t { None = 0, SlowShot };
+enum class AbilityType : uint8_t { None = 0, SlowShot, DrunkShot };
 
 struct ActiveEffect {
     EffectType type;
     EffectCategory category;
     float durationRemaining;
     float maxDuration;
+    float elapsedTime;
     float magnitude;
     bool active = false;
 };
@@ -75,19 +76,32 @@ inline const EffectDefinition &GetEffectDefinition(EffectType type) {
         {
             EffectType::Slow, EffectCategory::Debuff, 5.0f, 0.75f, {80, 150, 255, 225} // blue
         },
+        {
+            // TODO: implement some sort of magnitude to the Drunkenness
+            EffectType::Drunkenness,
+            EffectCategory::Debuff,
+            5.0f,
+            0.0f,
+            {0, 255, 0, 225} // blue
+        },
     };
     return effect[static_cast<uint8_t>(type)];
 }
 
 inline const AbilityDefinition &GetAbilityDefinition(AbilityType type) {
-    static const AbilityDefinition abilities[] = {{}, {AbilityType::SlowShot, 5.0f, true, EffectType::Slow}};
+    static const AbilityDefinition abilities[] = {{},
+                                                  {AbilityType::SlowShot, 5.0f, true, EffectType::Slow},
+                                                  {AbilityType::DrunkShot, 5.0f, true, EffectType::Drunkenness}};
     return abilities[static_cast<uint8_t>(type)];
 }
 
-inline const std::array<SpawnablePickup, 3> &GetSpawnablePowerUps() {
-    static const std::array<SpawnablePickup, 3> powerups = {{{PickupType::Effect, (uint8_t)EffectType::SpeedBoost},
-                                                             {PickupType::Effect, (uint8_t)EffectType::DamageBoost},
-                                                             {PickupType::Ability, (uint8_t)AbilityType::SlowShot}}};
+inline const std::array<SpawnablePickup, 4> &GetSpawnablePowerUps() {
+    static const std::array<SpawnablePickup, 4> powerups = {{
+        {PickupType::Effect, (uint8_t)EffectType::SpeedBoost},
+        {PickupType::Effect, (uint8_t)EffectType::DamageBoost},
+        {PickupType::Ability, (uint8_t)AbilityType::SlowShot},
+        {PickupType::Ability, (uint8_t)AbilityType::DrunkShot},
+    }};
     return powerups;
 }
 
@@ -100,6 +114,17 @@ inline const bool HasEffect(EffectType type, const std::array<ActiveEffect, MAX_
             return true;
     }
     return false;
+}
+
+inline const ActiveEffect *GetActiveEffect(EffectType type,
+                                           const std::array<ActiveEffect, MAX_ACTIVE_EFFECTS> &effects) {
+    for (const auto &effect : effects) {
+        if (!effect.active)
+            continue;
+        if (effect.type == type)
+            return &effect;
+    }
+    return nullptr;
 }
 
 inline float GetMovementMultiplier(const std::array<ActiveEffect, MAX_ACTIVE_EFFECTS> &effects) {
