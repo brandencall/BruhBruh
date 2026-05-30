@@ -4,7 +4,7 @@ namespace Render {
 
 void AbilityRenderer::Load() {
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::SpeedBoost)}] =
-        LoadTexture("assets/abilities/speed_boost.png");
+        LoadTexture("assets/abilities/speed_boost_v1.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::DamageBoost)}] =
         LoadTexture("assets/abilities/damage_boost.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::Slow)}] =
