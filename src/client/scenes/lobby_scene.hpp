@@ -49,6 +49,20 @@ class LobbyScene : public Scene {
     void RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y);
 
   private:
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Style constants  (mirrors main menu / pause menu palette)
+    // ─────────────────────────────────────────────────────────────────────────────
+    static constexpr Color kLobbyBg = {10, 10, 16, 255};
+    static constexpr Color kLobbyAccent = {45, 80, 160, 255};
+    static constexpr Color kLobbyAccentHover = {70, 120, 220, 255};
+    static constexpr Color kLobbyBorder = {70, 70, 100, 255};
+    static constexpr Color kLobbyDivider = {70, 70, 90, 255};
+    static constexpr Color kLobbyTextPrimary = {255, 255, 255, 255};
+    static constexpr Color kLobbyTextMuted = {160, 160, 180, 255};
+    static constexpr Color kLobbySlotFill = {18, 18, 28, 255};
+    static constexpr Color kLobbyReady = {60, 160, 80, 255};
+    static constexpr Color kLobbyNotReady = {160, 55, 55, 255};
+
     Game &m_game;
     UI::UIManager m_ui;
 

@@ -110,8 +110,6 @@ void LobbyScene::UpdateCharacterSelection(Vector2 mousePos,
     if (!IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || m_ready)
         return;
 
-    std::cout << "Mouse position (Character selection): " << mousePos.x << ", " << mousePos.y << std::endl;
-
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
 
@@ -152,91 +150,209 @@ void LobbyScene::UpdateInviteButton(Vector2 mousePos) {
         m_ui.Push(std::make_unique<UI::FriendsInviteScreen>(*m_game.GetSessionManager()->GetLobby()));
 }
 
+// Corner-bracket helper (same as pause menu)
+static void DrawLobbyCorners(Rectangle r, Color c, float len = 8.f, float thick = 2.f) {
+    int t = (int)thick, L = (int)len;
+    int x0 = (int)r.x - 1, y0 = (int)r.y - 1;
+    int x1 = (int)(r.x + r.width), y1 = (int)(r.y + r.height);
+    DrawRectangle(x0, y0, L, t, c);
+    DrawRectangle(x0, y0, t, L, c);
+    DrawRectangle(x1 - L, y0, L, t, c);
+    DrawRectangle(x1 - t, y0, t, L, c);
+    DrawRectangle(x0, y1 - t, L, t, c);
+    DrawRectangle(x0, y1 - L, t, L, c);
+    DrawRectangle(x1 - L, y1 - t, L, t, c);
+    DrawRectangle(x1 - t, y1 - L, t, L, c);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Render
+// ─────────────────────────────────────────────────────────────────────────────
+
 void LobbyScene::Render() {
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
 
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(kLobbyBg);
 
-    utils::DrawTextCentered("LOBBY", screenW * 0.5f, 60, 32, WHITE);
-    utils::DrawTextCentered("Press SPACE when ready", screenW * 0.5f, screenH * 0.916f, 20, GRAY);
+    // ── Vignette (mirrors MainMenuScene::RenderBackground) ───────────────────
+    for (int r = screenH; r > 0; r -= screenH / 8) {
+        unsigned char alpha = (unsigned char)(80.f * (1.f - (float)r / screenH));
+        DrawCircle(screenW / 2, screenH / 2, (float)r, {0, 0, 0, alpha});
+    }
 
+    // ── Title ────────────────────────────────────────────────────────────────
+    int titleSz = (int)(screenH * 0.072f);
+    utils::DrawTextCentered("LOBBY", screenW * 0.5f, screenH * 0.06f, titleSz, kLobbyTextPrimary);
+
+    // Thin divider under title (mirrors main menu)
+    int lineW = screenW * 0.18f;
+    int lineY = (int)(screenH * 0.155f);
+    DrawLine(screenW / 2 - lineW / 2, lineY, screenW / 2 + lineW / 2, lineY, kLobbyDivider);
+
+    // ── Player slots ─────────────────────────────────────────────────────────
     std::unordered_map<Character::CharacterId, uint32_t> takenCharacters;
     for (int i = 0; i < MAX_PLAYERS; ++i) {
-        int x = screenW * 0.125f + (i * screenW * 0.203f);
-        int y = screenH * 0.2f;
+        int x = (int)(screenW * 0.125f + (i * screenW * 0.203f));
+        int y = (int)(screenH * 0.2f);
         RenderPlayerSlot(i, m_players[i], x, y, screenW, screenH);
         if (m_players[i].id != -1 && m_players[i].characterId != Character::CharacterId::None)
             takenCharacters[m_players[i].characterId] = m_players[i].id;
     }
 
-    utils::DrawTextCentered("Select Character:", screenW * 0.5f, screenH * 0.667f, 20, WHITE);
+    // ── Character selection section ──────────────────────────────────────────
+    int subSz = (int)(screenH * 0.026f);
+    utils::DrawTextCentered("SELECT CHARACTER", screenW * 0.5f, screenH * 0.655f, subSz, kLobbyTextMuted);
+    int iconDivW = (int)(screenW * 0.30f);
+    int iconDivY = (int)(screenH * 0.648f);
+    DrawLine(screenW / 2 - iconDivW / 2, iconDivY, screenW / 2 + iconDivW / 2, iconDivY, kLobbyDivider);
 
-    Vector2 mousePos = GetMousePosition(); // read-only, for hover highlights only
+    Vector2 mousePos = GetMousePosition();
     RenderCharacterIcons(takenCharacters, mousePos);
 
+    // ── Ready hint ────────────────────────────────────────────────────────────
+    const char *hint = m_ready ? "READY  -  press SPACE to cancel" : "Press SPACE when ready";
+    Color hintC = m_ready ? kLobbyReady : kLobbyTextMuted;
+    utils::DrawTextCentered(hint, screenW * 0.5f, screenH * 0.925f, subSz, hintC);
+
+    // ── Countdown overlay ─────────────────────────────────────────────────────
     if (m_gameStarting) {
+        DrawRectangle(0, 0, screenW, screenH, {0, 0, 0, 160});
+        int fontSize = (int)(screenH * 0.177f);
         const char *countdownText = TextFormat("%d", (int)std::ceil(m_countdownTimer));
-        int fontSize = screenH * 0.177f;
-        utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize, YELLOW);
+        utils::DrawTextCentered(countdownText, screenW * 0.5f, (screenH - fontSize) * 0.5f, fontSize,
+                                kLobbyTextPrimary);
+        int msgSz = (int)(screenH * 0.028f);
+        utils::DrawTextCentered("Game starting...", screenW * 0.5f, screenH * 0.62f, msgSz, kLobbyTextMuted);
     }
 
+    // ── Invite button (host only) ─────────────────────────────────────────────
     if (m_game.GetSessionManager()->GetLobby() && m_game.GetSessionManager()->GetLobby()->IsLocalPlayerHost())
         RenderInviteButton(screenW, screenH, mousePos);
 
     m_ui.Render();
-
     EndDrawing();
 }
 
 void LobbyScene::RenderCharacterIcons(const std::unordered_map<Character::CharacterId, uint32_t> &takenCharacters,
                                       Vector2 mousePos) {
-
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
 
     int iconPos = 0;
     for (const auto &icon : m_icons) {
-        int iconSize = screenW * 0.0625f;
-        int padding = screenW * 0.015f;
+        int iconSize = (int)(screenW * 0.0625f);
+        int padding = (int)(screenW * 0.015f);
         int totalWidth = (int)m_icons.size() * (iconSize + padding) - padding;
         int startX = (screenW - totalWidth) / 2;
         int x = startX + iconPos * (iconSize + padding);
-        int y = screenH * 0.708f;
+        int y = (int)(screenH * 0.708f);
 
         Rectangle iconRect = {(float)x, (float)y, (float)iconSize, (float)iconSize};
         auto it = takenCharacters.find(icon.first);
         bool takenByOther = (it != takenCharacters.end() && it->second != m_localPlayerId);
-        bool hovered = CheckCollisionPointRec(mousePos, iconRect);
+        bool hovered = CheckCollisionPointRec(mousePos, iconRect) && !m_ready;
+
+        DrawRectangleRec(iconRect, kLobbySlotFill);
 
         if (takenByOther) {
             DrawTexturePro(icon.second, {0, 0, (float)icon.second.width, (float)icon.second.height}, iconRect, {0, 0},
-                           0.0f, DARKGRAY);
-            DrawRectangleLinesEx(iconRect, 2, DARKGRAY);
+                           0.f, {80, 80, 90, 180});
+            DrawRectangleLinesEx(iconRect, 1.5f, {50, 50, 70, 255});
         } else {
             if (hovered)
-                DrawRectangleRec(iconRect, ColorAlpha(WHITE, 0.2f));
-
+                DrawRectangleRec(iconRect, ColorAlpha(kLobbyAccentHover, 0.15f));
             DrawTexturePro(icon.second, {0, 0, (float)icon.second.width, (float)icon.second.height}, iconRect, {0, 0},
-                           0.0f, WHITE);
-            DrawRectangleLinesEx(iconRect, 2, hovered ? YELLOW : GRAY);
+                           0.f, WHITE);
+            DrawRectangleLinesEx(iconRect, 1.5f, hovered ? kLobbyAccentHover : kLobbyBorder);
+            if (hovered)
+                DrawLobbyCorners(iconRect, kLobbyAccentHover, 6.f, 2.f);
         }
         ++iconPos;
     }
 }
 
 void LobbyScene::RenderInviteButton(int screenW, int screenH, Vector2 mousePos) {
-    int btnW = screenW * 0.18f;
-    int btnH = screenH * 0.06f;
+    float btnW = screenW * 0.18f;
+    float btnH = screenH * 0.072f;
+    Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f + 20, btnW, btnH};
 
-    Rectangle btnRect = {screenW * 0.5f - btnW * 0.5f, screenH * 0.82f + 20, (float)btnW, (float)btnH};
     bool hovered = CheckCollisionPointRec(mousePos, btnRect) && !m_ui.HasScreenOfType<UI::FriendsInviteScreen>();
+    Color fill = hovered ? kLobbyAccentHover : kLobbyAccent;
+    Color border = hovered ? Color{120, 160, 255, 255} : kLobbyBorder;
 
-    DrawRectangleRec(btnRect, hovered ? ColorAlpha(WHITE, 0.2f) : ColorAlpha(GRAY, 0.2f));
-    DrawRectangleLinesEx(btnRect, 2, hovered ? YELLOW : GRAY);
-    utils::DrawTextCentered("Invite Friends", btnRect.x + btnRect.width * 0.5f, btnRect.y + btnRect.height * 0.5f, 20,
-                            WHITE);
+    DrawRectangleRec(btnRect, fill);
+    DrawRectangleLinesEx(btnRect, 1.5f, border);
+
+    int labelSz = (int)(screenH * 0.026f);
+    utils::DrawTextCentered("Invite Friends", btnRect.x + btnRect.width * 0.5f,
+                            btnRect.y + btnRect.height * 0.5f - labelSz * 0.5f, labelSz, WHITE);
+}
+
+void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW,
+                                  int screenH) {
+    int slotW = (int)(screenW * 0.171f);
+    int slotH = (int)(screenH * 0.416f);
+
+    // Slot background
+    DrawRectangle(x, y, slotW, slotH, kLobbySlotFill);
+
+    // Local player gets a blue accent border; empty slots are very muted
+    bool isLocal = (player.id == m_localPlayerId);
+    Color borderCol = (player.id == -1) ? Color{40, 40, 60, 255} : isLocal ? kLobbyAccentHover : kLobbyBorder;
+    DrawRectangleLinesEx({(float)x, (float)y, (float)slotW, (float)slotH}, 1.5f, borderCol);
+
+    if (isLocal)
+        DrawLobbyCorners({(float)x, (float)y, (float)slotW, (float)slotH}, kLobbyAccentHover, 10.f, 2.f);
+
+    if (player.id == -1) {
+        int waitSz = (int)(screenH * 0.020f);
+        utils::DrawTextCentered("Waiting...", x + slotW * 0.5f, y + slotH * 0.433f, waitSz, {60, 60, 80, 255});
+        return;
+    }
+
+    // Player name + rule
+    int nameSz = (int)(screenH * 0.022f);
+    DrawText(player.name, x + (int)(slotW * 0.06f), y + (int)(slotH * 0.06f), nameSz, kLobbyTextPrimary);
+    DrawLine(x + (int)(slotW * 0.06f), y + (int)(slotH * 0.13f), x + (int)(slotW * 0.94f), y + (int)(slotH * 0.13f),
+             kLobbyDivider);
+
+    RenderSelectedCharacter(player, slotW, slotH, x, y);
+
+    // Ready badge
+    int badgeSz = (int)(screenH * 0.022f);
+    int badgeX = x + (int)(slotW * 0.1f);
+    int badgeY = y + (int)(slotH * 0.82f);
+    int badgeW = (int)(slotW * 0.8f);
+    int badgeH = (int)(slotH * 0.10f);
+    if (player.ready) {
+        DrawRectangle(badgeX, badgeY, badgeW, badgeH, {30, 80, 40, 200});
+        DrawRectangleLinesEx({(float)badgeX, (float)badgeY, (float)badgeW, (float)badgeH}, 1.f, kLobbyReady);
+        utils::DrawTextCentered("READY", x + slotW * 0.5f, badgeY + badgeH * 0.5f - badgeSz * 0.5f, badgeSz,
+                                kLobbyReady);
+    } else {
+        DrawRectangle(badgeX, badgeY, badgeW, badgeH, {80, 25, 25, 200});
+        DrawRectangleLinesEx({(float)badgeX, (float)badgeY, (float)badgeW, (float)badgeH}, 1.f, kLobbyNotReady);
+        utils::DrawTextCentered("NOT READY", x + slotW * 0.5f, badgeY + badgeH * 0.5f - badgeSz * 0.5f, badgeSz,
+                                kLobbyNotReady);
+    }
+}
+
+void LobbyScene::RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y) {
+    auto it = m_icons.find(player.characterId);
+    if (it != m_icons.end() && it->first != Character::CharacterId::None) {
+        int iconSize = (int)(slotW * 0.6f);
+        int iconX = x + (slotW - iconSize) / 2;
+        int iconY = y + (int)(slotH * 0.2f);
+        Rectangle iconRect = {(float)iconX, (float)iconY, (float)iconSize, (float)iconSize};
+        DrawTexturePro(it->second, {0, 0, (float)it->second.width, (float)it->second.height}, iconRect, {0, 0}, 0.f,
+                       WHITE);
+        // DrawRectangleLinesEx(iconRect, 1.f, kLobbyBorder);
+    } else {
+        int noCharSz = (int)(slotH * 0.030f);
+        utils::DrawTextCentered("No character", x + slotW * 0.5f, y + slotH * 0.44f, noCharSz, {60, 60, 80, 255});
+    }
 }
 
 void LobbyScene::SendJoin() {
@@ -328,42 +444,3 @@ void LobbyScene::HandleGameBegin(const char *buf) {
 }
 
 void LobbyScene::HandleHostDisconnected(const char *buf) { m_game.GetSessionManager()->ReturnToMainMenu(); }
-
-void LobbyScene::RenderPlayerSlot(int slot, const state::LobbySlotState &player, int x, int y, int screenW,
-                                  int screenH) {
-    int slotW = screenW * 0.171f;
-    int slotH = screenH * 0.416f;
-
-    Color borderColor = player.id != -1 ? WHITE : DARKGRAY;
-    DrawRectangleLines(x, y, slotW, slotH, borderColor);
-
-    if (player.id == -1) {
-        utils::DrawTextCentered("Waiting...", x + slotW * 0.5f, y + slotH * 0.433f, 16, DARKGRAY);
-        return;
-    }
-
-    DrawText(player.name, x + slotW * 0.045f, y + slotH * 0.066f, 18, WHITE);
-    RenderSelectedCharacter(player, slotW, slotH, x, y);
-
-    if (player.ready)
-        utils::DrawTextCentered("READY", x + slotW * 0.5f, y + slotH * 0.8f, 20, GREEN);
-    else
-        utils::DrawTextCentered("NOT READY", x + slotW * 0.5f, y + slotH * 0.8f, 20, RED);
-
-    if (player.id == m_localPlayerId)
-        DrawRectangleLines(x - 2, y - 2, slotW + 4, slotH + 4, YELLOW);
-}
-
-void LobbyScene::RenderSelectedCharacter(const state::LobbySlotState &player, int slotW, int slotH, int x, int y) {
-    auto it = m_icons.find(player.characterId);
-    if (it != m_icons.end() && it->first != Character::CharacterId::None) {
-        int iconSize = slotW * 0.6f;
-        int iconX = x + (slotW - iconSize) * 0.5f;
-        int iconY = y + slotH * 0.2f;
-        Rectangle iconRect = {(float)iconX, (float)iconY, (float)iconSize, (float)iconSize};
-        DrawTexturePro(it->second, {0, 0, (float)it->second.width, (float)it->second.height}, iconRect, {0, 0}, 0.0f,
-                       WHITE);
-    } else {
-        utils::DrawTextCentered("No character", x + slotW * 0.5f, y + slotH * 0.4f, 14, DARKGRAY);
-    }
-}
