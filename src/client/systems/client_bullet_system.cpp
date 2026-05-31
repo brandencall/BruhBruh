@@ -29,7 +29,7 @@ int ClientBulletSystem::Spawn(const BulletSpawnDef &bulletDef) {
         .damage = bulletDef.character.bullet.damage,
     };
     state::ClientBulletState bullet{};
-    bullet.id = -1;
+    bullet.id = m_predBulletOffset | bulletDef.predSequence;
     bullet.ownerId = bulletDef.ownerId;
     bullet.characterId = bulletDef.character.id;
     bullet.predId = bulletDef.predSequence;
@@ -61,6 +61,20 @@ void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLA
     std::erase_if(m_hitEffects, [](const HitEffect &fx) { return fx.timer <= 0.0f; });
     std::erase_if(m_predictedBullets,
                   [](const auto &bullet) { return !bullet.second.confirmed && bullet.second.age > 0.15; });
+}
+
+void ClientBulletSystem::Deactivate(uint32_t id, Vector2 position, Character::CharacterId characterId) {
+    if (id & m_predBulletOffset) {
+        uint32_t seq = id & ~m_predBulletOffset;
+        auto it = m_predictedBullets.find(seq);
+        if (it != m_predictedBullets.end()) {
+            m_hitEffects.push_back({position, 0.15f, 0.15f});
+            it->second.active = false;
+        }
+        return;
+    }
+    // Confirmed bullet — normal path
+    BulletSystem::Deactivate(id, position, characterId);
 }
 
 void ClientBulletSystem::Draw() {

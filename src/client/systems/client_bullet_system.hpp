@@ -30,6 +30,8 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
                                      std::array<state::PlayerState, MAX_PLAYERS> &players,
                                      std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls);
 
+    void Deactivate(uint32_t id, Vector2 position, Character::CharacterId characterId) override;
+
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
     void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) override;
@@ -38,6 +40,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
   private:
     static constexpr float BULLET_INTERP_SPEED = 5.0f;
+    static constexpr uint32_t m_predBulletOffset = 0x80000000u;
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
     std::vector<HitEffect> m_hitEffects;
     std::unordered_map<uint32_t, state::ClientBulletState> m_predictedBullets;

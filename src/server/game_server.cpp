@@ -121,7 +121,7 @@ void GameServer::SpawnPlayersIntoSimulation() {
 }
 
 void GameServer::TickGameplay() {
-    const float tickRate = 1.0f / 30.0f;
+    const float tickRate = 1.0f / 60.0f;
     float accumulator = 0.0f;
 
     auto previousTime = std::chrono::steady_clock::now();

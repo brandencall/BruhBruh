@@ -99,12 +99,13 @@ template <typename TBulletState> class BulletSystem {
         if (!bullet.active)
             return;
 
+        Vector2 prevPos = bullet.hitbox.circle.center;
         UpdateBulletKinematics(bullet, dt);
         if (bullet.lifetime <= 0.0f) {
             Deactivate(bullet.id, bullet.hitbox.circle.center, bullet.characterId);
             return;
         }
-        HandleCollisions(bullet, players, dynamicWalls, bullet.hitbox.circle.center);
+        HandleCollisions(bullet, prevPos, players, dynamicWalls);
         OnBulletUpdate(bullet, dt);
     }
 
@@ -120,13 +121,23 @@ template <typename TBulletState> class BulletSystem {
         bullet.lifetime -= dt;
     }
 
-    void HandleCollisions(TBulletState &bullet, const std::array<state::PlayerState, MAX_PLAYERS> &players,
-                          const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls,
-                          Vector2 bulletPos) {
+    void HandleCollisions(TBulletState &bullet, Vector2 prevPos,
+                          const std::array<state::PlayerState, MAX_PLAYERS> &players,
+                          const std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
+
+        Vector2 currPos = bullet.hitbox.circle.center;
+        float bulletRadius = bullet.hitbox.circle.radius;
+        float t = 1.0f;
+
+        // Static walls
         if (m_map) {
             for (auto &wall : m_map->walls) {
-                if (Collision::Overlap(bullet.hitbox.circle, wall)) {
-                    Deactivate(bullet.id, bulletPos, bullet.characterId);
+                float hitT;
+                if (Collision::SweptCircleVsAABB(prevPos, currPos, wall, bulletRadius, hitT)) {
+                    // Place bullet at exact hit point
+                    Vector2 hitPos = Vector2Lerp(prevPos, currPos, hitT);
+                    bullet.hitbox.circle.center = hitPos;
+                    Deactivate(bullet.id, hitPos, bullet.characterId);
                     return;
                 }
             }
@@ -135,10 +146,14 @@ template <typename TBulletState> class BulletSystem {
         if (!bullet.active)
             return;
 
+        // Dynamic walls
         for (auto &[_, wall] : dynamicWalls) {
-            if (Collision::Overlap(bullet.hitbox.circle, wall.collider)) {
+            float hitT;
+            if (Collision::SweptCircleVsAABB(prevPos, currPos, wall.collider, bulletRadius, hitT)) {
+                Vector2 hitPos = Vector2Lerp(prevPos, currPos, hitT);
+                bullet.hitbox.circle.center = hitPos;
                 OnWallHit(wall.gridPos, bullet.hitbox.damage, bullet.ownerId);
-                Deactivate(bullet.id, bulletPos, bullet.characterId);
+                Deactivate(bullet.id, hitPos, bullet.characterId);
                 return;
             }
         }
@@ -146,23 +161,28 @@ template <typename TBulletState> class BulletSystem {
         if (!bullet.active)
             return;
 
+        // Players — swept segment vs hurtbox circle
         for (auto &player : players) {
-            if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active &&
-                Collision::Overlap(bullet.hitbox.circle, Collision::HurtboxToCircle(player.position, player.hurtbox))) {
-
-                if (IsAuthoritative()) {
-                    OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+            if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active) {
+                Collision::Circle hurtbox = Collision::HurtboxToCircle(player.position, player.hurtbox);
+                // Combined radius — bullet radius + hurtbox radius
+                float combinedRadius = bulletRadius + hurtbox.radius;
+                float hitT;
+                if (Collision::SweptCircleVsCircle(prevPos, currPos, hurtbox.center, combinedRadius, hitT)) {
+                    Vector2 hitPos = Vector2Lerp(prevPos, currPos, hitT);
+                    bullet.hitbox.circle.center = hitPos;
+                    if (IsAuthoritative())
+                        OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+                    Deactivate(bullet.id, hitPos, bullet.characterId);
+                    return;
                 }
-
-                Deactivate(bullet.id, bulletPos, bullet.characterId);
-                return;
             }
         }
     }
 
     void SetMap(const Map::MapData &map) { m_map = &map; }
 
-    void Deactivate(uint32_t id, Vector2 position, Character::CharacterId characterId) {
+    virtual void Deactivate(uint32_t id, Vector2 position, Character::CharacterId characterId) {
         int slot = GetSlot(id);
         if (slot >= 0 && slot < MAX_BULLETS) {
             OnBulletDestroyed(id, position, characterId);
@@ -188,9 +208,7 @@ template <typename TBulletState> class BulletSystem {
 
   protected:
     virtual void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) {}
-    virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {
-        std::cout << "Base bullet system OnPlayerHit called" << std::endl;
-    }
+    virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
                                Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {}
     virtual void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {}
