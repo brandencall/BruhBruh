@@ -1,6 +1,5 @@
 #pragma once
 #include "../../shared/systems/bullet_system.hpp"
-#include "../event_bus.hpp"
 #include "raylib.h"
 #include <cstdint>
 #include <functional>
@@ -42,9 +41,9 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
         if (m_onBulletSpawn)
             m_onBulletSpawn(bulletId, ownerId, characterId, position, velocity, bulletPredSequence);
     }
-    void OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) override {
+    void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) override {
         if (m_onBulletDestroyed)
-            m_onBulletDestroyed(slot, position, characterId);
+            m_onBulletDestroyed(bulletId, position, characterId);
     }
 
   private:

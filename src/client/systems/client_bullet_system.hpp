@@ -32,7 +32,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
-    void OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) override;
+    void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) override;
     void OnBulletUpdate(state::ClientBulletState &bullet, float dt) override;
 
   private:

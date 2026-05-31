@@ -60,7 +60,7 @@ void ClientBulletSystem::Update(float dt, std::array<state::PlayerState, MAX_PLA
 
     std::erase_if(m_hitEffects, [](const HitEffect &fx) { return fx.timer <= 0.0f; });
     std::erase_if(m_predictedBullets,
-                  [](const auto &bullet) { return !bullet.second.confirmed && bullet.second.age > 0.5; });
+                  [](const auto &bullet) { return !bullet.second.confirmed && bullet.second.age > 0.15; });
 }
 
 void ClientBulletSystem::Draw() {
@@ -119,7 +119,8 @@ void ClientBulletSystem::OnSpawn(state::ClientBulletState &bullet, Vector2 spawn
     bullet.skipFirstDraw = true;
 }
 
-void ClientBulletSystem::OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) {
+void ClientBulletSystem::OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {
+    int slot = GetSlot(bulletId);
     if (slot < 0 || slot >= MAX_BULLETS)
         return;
     if (!m_bullets[slot].active)
@@ -160,8 +161,6 @@ void ClientBulletSystem::ResolveLocalPredictedBullet(
     float predictedAge = it->second.age; // how long client has been simulating this bullet
     int slot = SpawnFromServerEvent(bullet);
     if (slot >= 0) {
-        // Fast-forward the confirmed bullet to match where the predicted one was
-        // Use a fixed small sub-step to avoid tunnelling through walls
         constexpr float STEP = 1.0f / 120.0f;
         float remaining = predictedAge;
         while (remaining > 0.0f) {

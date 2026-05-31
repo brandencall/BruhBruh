@@ -160,7 +160,7 @@ template <typename TBulletState> class BulletSystem {
     void Deactivate(uint32_t id, Vector2 position, Character::CharacterId characterId) {
         int slot = GetSlot(id);
         if (slot >= 0 && slot < MAX_BULLETS) {
-            OnBulletDestroyed(slot, position, characterId);
+            OnBulletDestroyed(id, position, characterId);
             TBulletState *bullet = Get(slot);
             if (bullet) {
                 bullet->active = false;
@@ -186,7 +186,7 @@ template <typename TBulletState> class BulletSystem {
     virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
                                Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {}
-    virtual void OnBulletDestroyed(int slot, Vector2 position, Character::CharacterId characterId) {}
+    virtual void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {}
     virtual void OnBulletUpdate(TBulletState &bullet, float dt) {}
 
   protected:
