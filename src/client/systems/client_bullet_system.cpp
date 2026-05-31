@@ -144,7 +144,9 @@ int ClientBulletSystem::SpawnFromServerEvent(const network::BulletSpawnPacket &b
     return slot;
 }
 
-void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId) {
+void ClientBulletSystem::ResolveLocalPredictedBullet(
+    const network::BulletSpawnPacket &bullet, uint32_t ownerId, std::array<state::PlayerState, MAX_PLAYERS> &players,
+    std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) {
     auto it = m_predictedBullets.find(bullet.bulletPredSequence);
     if (it == m_predictedBullets.end() || it->second.ownerId != ownerId)
         return;
@@ -164,7 +166,7 @@ void ClientBulletSystem::ResolveLocalPredictedBullet(const network::BulletSpawnP
         float remaining = predictedAge;
         while (remaining > 0.0f) {
             float step = std::min(remaining, STEP);
-            UpdateBulletKinematics(m_bullets[slot], step);
+            BulletSystem::Update(step, players, dynamicWalls, m_bullets[slot]);
             remaining -= step;
         }
     }

@@ -26,7 +26,9 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     void Update(float dt, std::array<state::PlayerState, MAX_PLAYERS> &players,
                 std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls) override;
     int SpawnFromServerEvent(const network::BulletSpawnPacket &bullet);
-    void ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId);
+    void ResolveLocalPredictedBullet(const network::BulletSpawnPacket &bullet, uint32_t ownerId,
+                                     std::array<state::PlayerState, MAX_PLAYERS> &players,
+                                     std::unordered_map<Map::Vector2i, Map::DynamicWall, Map::GridHash> &dynamicWalls);
 
   protected:
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;

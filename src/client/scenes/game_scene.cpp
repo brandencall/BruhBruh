@@ -51,7 +51,10 @@ void GameScene::OnEnter() {
     // TODO: Optimize loading so that we don't load all textures and just the ones that are needed
     m_characterRender.Load();
     m_wallRender.Load();
+
     m_bulletSystem.Load();
+    m_bulletSystem.SetMap(mapData);
+
     m_abilityRender.Load();
     m_bulletSystem.SetMap(m_worldState.m_map);
 
@@ -222,7 +225,8 @@ void GameScene::HandleBulletSpawn(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletSpawnPacket *>(buffer);
     Character::CharacterDef character = Character::GetCharacterDef(pkt->characterId);
     if (pkt->ownerId == m_currentPlayerId) {
-        m_bulletSystem.ResolveLocalPredictedBullet(*pkt, m_currentPlayerId);
+        m_bulletSystem.ResolveLocalPredictedBullet(*pkt, m_currentPlayerId, m_worldState.m_players,
+                                                   m_wallManager.GetAllWalls());
     } else {
         m_bulletSystem.SpawnFromServerEvent(*pkt);
     }
