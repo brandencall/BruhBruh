@@ -11,6 +11,7 @@
 #include "raylib.h"
 #include <array>
 #include <cstdint>
+#include <iostream>
 #include <unordered_map>
 
 namespace System {
@@ -148,7 +149,11 @@ template <typename TBulletState> class BulletSystem {
         for (auto &player : players) {
             if (player.respawnTimer <= 0.0f && bullet.ownerId != player.id && player.active &&
                 Collision::Overlap(bullet.hitbox.circle, Collision::HurtboxToCircle(player.position, player.hurtbox))) {
-                OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+
+                if (IsAuthoritative()) {
+                    OnPlayerHit(player.id, bullet.hitbox.damage, bullet.ownerId);
+                }
+
                 Deactivate(bullet.id, bulletPos, bullet.characterId);
                 return;
             }
@@ -183,11 +188,14 @@ template <typename TBulletState> class BulletSystem {
 
   protected:
     virtual void OnWallHit(Map::Vector2i gridPos, float damage, uint32_t shooterId) {}
-    virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {}
+    virtual void OnPlayerHit(uint32_t playerId, float damage, uint32_t shooterId) {
+        std::cout << "Base bullet system OnPlayerHit called" << std::endl;
+    }
     virtual void OnBulletSpawn(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
                                Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {}
     virtual void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {}
     virtual void OnBulletUpdate(TBulletState &bullet, float dt) {}
+    virtual bool IsAuthoritative() const { return true; }
 
   protected:
     virtual void OnSpawn(TBulletState &bullet, Vector2 spawnPos, Character::CharacterId characterId) {}

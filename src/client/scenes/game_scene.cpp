@@ -235,7 +235,7 @@ void GameScene::HandleBulletSpawn(const char *buffer) {
 void GameScene::HandleBulletDestroyed(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::BulletDestroyedPacket *>(buffer);
     m_bulletSystem.Deactivate(pkt->bulletId, pkt->position, pkt->characterId);
-    if (m_currentPlayerId >= 0 || m_currentPlayerId < MAX_PLAYERS) {
+    if (m_currentPlayerId >= 0 && m_currentPlayerId < MAX_PLAYERS) {
         m_events.bulletDestroyed.Publish(
             {pkt->bulletId, pkt->position, pkt->characterId, m_worldState.m_players[m_currentPlayerId].position});
     }

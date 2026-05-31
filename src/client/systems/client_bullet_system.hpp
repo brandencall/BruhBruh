@@ -34,6 +34,7 @@ class ClientBulletSystem : public BulletSystem<state::ClientBulletState> {
     void OnSpawn(state::ClientBulletState &bullet, Vector2 position, Character::CharacterId characterId) override;
     void OnBulletDestroyed(uint32_t bulletId, Vector2 position, Character::CharacterId characterId) override;
     void OnBulletUpdate(state::ClientBulletState &bullet, float dt) override;
+    bool IsAuthoritative() const override;
 
   private:
     static constexpr float BULLET_INTERP_SPEED = 5.0f;

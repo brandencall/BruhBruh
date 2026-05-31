@@ -134,6 +134,8 @@ void ClientBulletSystem::OnBulletDestroyed(uint32_t bulletId, Vector2 position, 
 
 void ClientBulletSystem::OnBulletUpdate(state::ClientBulletState &bullet, float dt) { bullet.age += dt; }
 
+bool ClientBulletSystem::IsAuthoritative() const { return false; }
+
 int ClientBulletSystem::SpawnFromServerEvent(const network::BulletSpawnPacket &bullet) {
     int slot = GetSlot(bullet.bulletId);
     if (slot < 0 || slot >= MAX_BULLETS)

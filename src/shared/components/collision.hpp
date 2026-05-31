@@ -53,7 +53,7 @@ inline Vector2 resolveCircleAABB(Circle circle, const AABB &wall) {
     if (dist >= circle.radius)
         return circle.center;
 
-    if (dist == 0.0f) {
+    if (dist < 0.001f) {
         float overlapLeft = circle.center.x - wall.min.x;
         float overlapRight = wall.max.x - circle.center.x;
         float overlapTop = circle.center.y - wall.min.y;
