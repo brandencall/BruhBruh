@@ -435,6 +435,8 @@ void GameScene::TickPrediction(float dt) {
         return;
 
     float moveX = 0.0f, moveY = 0.0f;
+    m_sendAccumulator += dt;
+    m_moveAccumulator += dt;
 
     if (IsKeyDown(KEY_W))
         moveY -= 1.0f;
@@ -454,11 +456,12 @@ void GameScene::TickPrediction(float dt) {
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
 
-    Character::SimulateMove(predicted, dt, m_worldState.m_map.walls, dynamicColliders);
+    while (m_moveAccumulator >= m_sendInterval) {
+        Character::SimulateMove(predicted, m_sendInterval, m_worldState.m_map.walls, dynamicColliders);
+        m_moveAccumulator -= m_sendInterval;
+    }
 
     m_predictedPos = predicted.position;
-
-    m_sendAccumulator += dt;
 
     if (m_sendAccumulator >= m_sendInterval) {
         network::InputPacket pkt = BuildInputPacket();
@@ -469,8 +472,7 @@ void GameScene::TickPrediction(float dt) {
         m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 
         size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
-        m_inputBuffer[slot] = {pkt, dt};
-
+        m_inputBuffer[slot] = {pkt, m_sendInterval};
         m_sendAccumulator -= m_sendInterval;
     }
 
@@ -505,7 +507,7 @@ void GameScene::PredictLocalActions() {
 
     const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
 
-    Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
+    Vector2 playerPos = m_predictedPos;
 
     bool shootNow = buttons & (1 << 0);
     bool shootPrev = m_lastButtons & (1 << 0);
@@ -549,7 +551,7 @@ network::InputPacket GameScene::BuildInputPacket() {
     if (m_worldState.m_currentPlayerId != -1) {
         const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
 
-        Vector2 playerPos = {currPlayer.position.x, currPlayer.position.y};
+        Vector2 playerPos = m_predictedPos;
 
         packet.facingAngle = atan2f(mouseWorld.y - playerPos.y, mouseWorld.x - playerPos.x);
 

@@ -94,6 +94,7 @@ class GameScene : public Scene {
     uint32_t m_localBulletSeq = 0;
     float m_sendAccumulator = 0.0f;
     float m_sendInterval = 1.0f / 60.0f;
+    float m_moveAccumulator = 0.0f;
 
     bool m_joined = false;
     int m_gameBeginTimer = -1;
