@@ -454,7 +454,7 @@ void GameScene::TickPrediction(float dt) {
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
 
-    Character::SimulateMove(predicted, m_sendInterval, m_worldState.m_map.walls, dynamicColliders);
+    Character::SimulateMove(predicted, dt, m_worldState.m_map.walls, dynamicColliders);
 
     m_predictedPos = predicted.position;
 
@@ -467,7 +467,7 @@ void GameScene::TickPrediction(float dt) {
         m_game.GetTransport()->send(network::PEER_SERVER, &pkt, sizeof(pkt));
 
         size_t slot = pkt.sequence % INPUT_BUFFER_SIZE;
-        m_inputBuffer[slot] = {pkt, m_sendInterval};
+        m_inputBuffer[slot] = {pkt, dt};
         m_sendAccumulator -= m_sendInterval;
     }
 
@@ -569,14 +569,17 @@ void GameScene::Reconcile(Vector2 serverPos, uint32_t ackedSeq) {
     ghost.position = serverPos;
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
+    std::vector<const PendingInput *> pending;
     for (size_t i = 0; i < INPUT_BUFFER_SIZE; ++i) {
         const PendingInput &pi = m_inputBuffer[i];
-        if (pi.packet.sequence <= ackedSeq)
-            continue;
-
-        ghost.currentInput.moveX = pi.packet.moveX;
-        ghost.currentInput.moveY = pi.packet.moveY;
-        Character::SimulateMove(ghost, pi.dt, m_worldState.m_map.walls, dynamicColliders);
+        if (pi.packet.sequence > ackedSeq && pi.packet.sequence != 0)
+            pending.push_back(&pi);
+    }
+    std::sort(pending.begin(), pending.end(), [](auto a, auto b) { return a->packet.sequence < b->packet.sequence; });
+    for (const auto *pi : pending) {
+        ghost.currentInput.moveX = pi->packet.moveX;
+        ghost.currentInput.moveY = pi->packet.moveY;
+        Character::SimulateMove(ghost, pi->dt, m_worldState.m_map.walls, dynamicColliders);
     }
 
     m_predictedPos = ghost.position;
