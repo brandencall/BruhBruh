@@ -149,10 +149,10 @@ void GameScene::Sync(float dt) {
     }
 
     // Smoothly follow the renderer position (which tracks predicted pos for local player)
-    Vector2 rendererPos = m_characterRender.GetPosition(m_worldState.m_currentPlayerId);
+    Vector2 playerPos = m_worldState.m_players[m_currentPlayerId].position;
     float smoothFactor = 1.0f - std::exp(-15.0f * dt);
-    Vector2 smoothed = Vector2Lerp(m_camera.GetCamera()->target, rendererPos, smoothFactor);
-    m_camera.SetPosition({std::round(smoothed.x), std::round(smoothed.y)});
+    Vector2 smoothed = Vector2Lerp(m_camera.GetCamera()->target, playerPos, smoothFactor);
+    m_camera.SetPosition(smoothed);
 }
 
 void GameScene::SendDisconnect() {
@@ -190,7 +190,6 @@ void GameScene::HandleGameBegin(const char *buffer) {
         m_smoothedPredictedPos = lp.position;
         m_predictionInitialised = true;
 
-        m_characterRender.SnapToPosition(lp);
         m_camera.SetPosition(lp.position);
         m_initialSnapDone = true;
         m_game.GetAudioSystem()->InitCharacterBulletSounds(m_worldState.m_players);
@@ -244,7 +243,6 @@ void GameScene::HandleBulletDestroyed(const char *buffer) {
 void GameScene::HandlePlayerRespawned(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::PlayerRespawnedPacket *>(buffer);
     m_worldState.m_players[pkt->player.id] = pkt->player;
-    m_characterRender.SnapToPosition(pkt->player);
 
     // only snap camera for the local player
     if (pkt->player.id == m_worldState.m_currentPlayerId) {
@@ -456,10 +454,7 @@ void GameScene::TickPrediction(float dt) {
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
 
-    while (m_moveAccumulator >= m_sendInterval) {
-        Character::SimulateMove(predicted, m_sendInterval, m_worldState.m_map.walls, dynamicColliders);
-        m_moveAccumulator -= m_sendInterval;
-    }
+    Character::SimulateMove(predicted, m_sendInterval, m_worldState.m_map.walls, dynamicColliders);
 
     m_predictedPos = predicted.position;
 
@@ -488,10 +483,7 @@ void GameScene::TickPrediction(float dt) {
         m_smoothedPredictedPos = Vector2Lerp(m_smoothedPredictedPos, m_predictedPos, t);
     }
 
-    state::PlayerState fakeLp = lp;
-    fakeLp.position = m_smoothedPredictedPos;
-
-    m_characterRender.SnapToPosition(fakeLp);
+    m_worldState.m_players[m_currentPlayerId].position = m_smoothedPredictedPos;
 }
 
 void GameScene::PredictLocalActions() {

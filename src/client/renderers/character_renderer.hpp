@@ -13,8 +13,6 @@ class CharacterRenderer {
     void Unload();
     void Sync(const state::PlayerState &state, float dt);
     void Draw(const std::array<state::PlayerState, MAX_PLAYERS> &players);
-    void SnapToPosition(const state::PlayerState &state);
-    Vector2 GetPosition(uint32_t playerId);
 
   private:
     void Draw(const state::PlayerState &player);
@@ -33,7 +31,6 @@ class CharacterRenderer {
     static constexpr int DEAD_ROW = 8;
 
     std::unordered_map<Character::CharacterId, Texture2D> m_textures;
-    std::unordered_map<uint32_t, Vector2> m_positions;
     std::unordered_map<uint32_t, Vector2> m_targetPosition;
     std::unordered_map<uint32_t, float> m_blinkTimers;
 };

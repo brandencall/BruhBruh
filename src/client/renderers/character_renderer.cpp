@@ -1,7 +1,6 @@
 #include "character_renderer.hpp"
 #include "../../shared/characters/character_roster.hpp"
 #include "raylib.h"
-#include "raymath.h"
 #include <array>
 #include <cstdint>
 
@@ -24,17 +23,6 @@ void CharacterRenderer::Unload() {
 }
 
 void CharacterRenderer::Sync(const state::PlayerState &state, float dt) {
-    // If this is a new player, snap immediately instead of lerping from origin
-    if (m_positions.find(state.id) == m_positions.end()) {
-        m_positions[state.id] = state.position;
-        m_blinkTimers[state.id] = 0.0f;
-        return;
-    }
-
-    float smoothing = 10.0f; // lower is smoother, higher is snappier
-    Vector2 &current = m_positions[state.id];
-    current = Vector2Lerp(current, state.position, smoothing * dt);
-
     if (state.invincibilityTimer > 0.0f) {
         m_blinkTimers[state.id] += dt;
     } else {
@@ -48,14 +36,12 @@ void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &
             continue;
 
         Draw(player);
-        // DebugHitBox(player);
+        DebugHitBox(player);
     }
 }
 
 void CharacterRenderer::DebugHitBox(const state::PlayerState &player) {
-    // Use lerped position so hurtbox stays on the sprite
-    Vector2 renderPos = GetPosition(player.id);
-    Vector2 hurtboxCenter = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+    Vector2 hurtboxCenter = {player.position.x + player.hurtbox.offsetX, player.position.y + player.hurtbox.offsetY};
     DrawCircleV(hurtboxCenter, player.hurtbox.radius, {255, 0, 0, 80});
     DrawCircleLinesV(hurtboxCenter, player.hurtbox.radius, RED);
 }
@@ -90,7 +76,8 @@ void CharacterRenderer::Draw(const state::PlayerState &player) {
     int frameWidth = tex.width / FRAME_COUNT;
     int frameHeight = tex.height / ROW_COUNT;
 
-    Vector2 position = m_positions[player.id];
+    // Vector2 position = m_positions[player.id];
+    Vector2 position = player.position;
     // TODO: pull frame from player instead of hard coding the 1st frame
     int frame = 0;
     Rectangle src = {(float)frame * frameWidth, (float)texRow * frameHeight, (float)frameWidth, (float)frameHeight};
@@ -121,8 +108,9 @@ void CharacterRenderer::DrawHealthBar(const state::PlayerState &player, Vector2 
 }
 
 void CharacterRenderer::DrawPlayerAura(const state::PlayerState &player) {
-    Vector2 renderPos = GetPosition(player.id);
-    Vector2 center = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+    // Vector2 renderPos = GetPosition(player.id);
+    // Vector2 center = {renderPos.x + player.hurtbox.offsetX, renderPos.y + player.hurtbox.offsetY};
+    Vector2 center = {player.position.x + player.hurtbox.offsetX, player.position.y + player.hurtbox.offsetY};
 
     const float BASE_RADIUS = player.hurtbox.radius + 4.0f; // just outside the hurtbox
     const float RING_STEP = 6.0f;
@@ -147,11 +135,5 @@ void CharacterRenderer::DrawPlayerAura(const state::PlayerState &player) {
         ringIndex++;
     }
 }
-
-void CharacterRenderer::SnapToPosition(const state::PlayerState &state) {
-    m_positions[state.id] = {state.position.x, state.position.y};
-}
-
-Vector2 CharacterRenderer::GetPosition(uint32_t playerId) { return m_positions[playerId]; }
 
 } // namespace Render

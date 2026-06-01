@@ -82,7 +82,7 @@ class GameScene : public Scene {
     UI::UIManager m_ui;
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;
-    static constexpr float SNAP_THRESHOLD = 64.0f; // pixels — tune to your tile size
+    static constexpr float SNAP_THRESHOLD = 64.0f;
     std::array<PendingInput, INPUT_BUFFER_SIZE> m_inputBuffer{};
     uint32_t m_lastAckedSeq = 0;
     Vector2 m_predictedPos{0.0f, 0.0f};

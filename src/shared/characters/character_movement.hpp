@@ -52,14 +52,19 @@ inline void SimulateMove(state::PlayerState &player, float dt, const std::vector
     Vector2 dir = Vector2Normalize({player.currentInput.moveX, player.currentInput.moveY});
 
     const state::ActiveEffect *drunkenness = state::GetActiveEffect(state::EffectType::Drunkenness, player.effects);
-
     if (drunkenness) {
         SimulateDrunkenness(dir, player.id, drunkenness);
     }
 
     const Character::CharacterDef &charDef = GetCharacterDef(player.characterId);
     float speed = charDef.moveSpeed * state::GetMovementMultiplier(player.effects);
-    player.velocity = Vector2Scale(dir, speed);
+
+    Vector2 targetVelocity = Vector2Scale(dir, speed);
+
+    // Smoothly accelerate toward target velocity
+    float acceleration = 15.0f; // tune this — higher is snappier, lower is floatier
+    player.velocity = Vector2Lerp(player.velocity, targetVelocity, acceleration * dt);
+
     player.position = Vector2Add(player.position, Vector2Scale(player.velocity, dt));
 
     Collision::Circle circle = {player.position, player.hurtbox.radius};
