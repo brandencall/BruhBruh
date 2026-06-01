@@ -62,8 +62,9 @@ inline void SimulateMove(state::PlayerState &player, float dt, const std::vector
     Vector2 targetVelocity = Vector2Scale(dir, speed);
 
     // Smoothly accelerate toward target velocity
-    float acceleration = 15.0f; // tune this — higher is snappier, lower is floatier
-    player.velocity = Vector2Lerp(player.velocity, targetVelocity, acceleration * dt);
+    float acceleration = 22.0f; // tune this — higher is snappier, lower is floatier
+    float t = 1.0f - std::exp(-acceleration * dt);
+    player.velocity = Vector2Lerp(player.velocity, targetVelocity, t);
 
     player.position = Vector2Add(player.position, Vector2Scale(player.velocity, dt));
 

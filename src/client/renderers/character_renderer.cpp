@@ -36,7 +36,7 @@ void CharacterRenderer::Draw(const std::array<state::PlayerState, MAX_PLAYERS> &
             continue;
 
         Draw(player);
-        DebugHitBox(player);
+        // DebugHitBox(player);
     }
 }
 

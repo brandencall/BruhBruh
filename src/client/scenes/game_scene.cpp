@@ -475,8 +475,9 @@ void GameScene::TickPrediction(float dt) {
         m_smoothedPredictedPos = m_predictedPos;
 
     float dist = Vector2Distance(m_smoothedPredictedPos, m_predictedPos);
-
-    if (dist > SNAP_THRESHOLD) {
+    if (dist < 0.5f) {
+        m_smoothedPredictedPos = m_predictedPos; // close enough, snap
+    } else if (dist > SNAP_THRESHOLD) {
         m_smoothedPredictedPos = m_predictedPos;
     } else {
         float t = 1.0f - std::exp(-20.0f * dt);
