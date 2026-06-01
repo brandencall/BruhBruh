@@ -83,6 +83,7 @@ class GameScene : public Scene {
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;
     static constexpr float SNAP_THRESHOLD = 64.0f;
+
     std::array<PendingInput, INPUT_BUFFER_SIZE> m_inputBuffer{};
     uint32_t m_lastAckedSeq = 0;
     Vector2 m_predictedPos{0.0f, 0.0f};
