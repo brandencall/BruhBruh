@@ -566,6 +566,8 @@ network::InputPacket GameScene::BuildInputPacket() {
 }
 
 void GameScene::Reconcile(Vector2 serverPos, uint32_t ackedSeq) {
+    Vector2 predictedBeforeReconcile = m_predictedPos;
+
     state::PlayerState ghost = m_worldState.m_players[m_currentPlayerId];
     ghost.position = serverPos;
 
@@ -582,6 +584,5 @@ void GameScene::Reconcile(Vector2 serverPos, uint32_t ackedSeq) {
         ghost.currentInput.moveY = pi->packet.moveY;
         Character::SimulateMove(ghost, pi->dt, m_worldState.m_map.walls, dynamicColliders);
     }
-
     m_predictedPos = ghost.position;
 }

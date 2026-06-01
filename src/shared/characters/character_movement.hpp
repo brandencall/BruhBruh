@@ -1,5 +1,5 @@
 #pragma once
-#include "../components/collision.hpp" // your existing collision header
+#include "../components/collision.hpp"
 #include "../state/player_state.hpp"
 #include "character_roster.hpp"
 #include "character_types.hpp"
