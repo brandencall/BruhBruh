@@ -11,6 +11,8 @@ void AbilityRenderer::Load() {
         LoadTexture("assets/abilities/slow_effect.png");
     m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::Drunkenness)}] =
         LoadTexture("assets/abilities/drunk_effect.png");
+    m_textures[{state::PickupType::Effect, static_cast<uint8_t>(state::EffectType::RapidFire)}] =
+        LoadTexture("assets/abilities/tmp_ability.png");
 
     m_textures[{state::PickupType::Ability, static_cast<uint8_t>(state::AbilityType::SlowShot)}] =
         LoadTexture("assets/abilities/slow_shot.png");

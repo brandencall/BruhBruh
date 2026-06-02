@@ -219,6 +219,10 @@ void GameScene::HandleStateResponse(const char *buffer) {
 
     m_lastAckedSeq = ackedSeq;
     const state::PlayerState &lp = m_worldState.m_players[m_currentPlayerId];
+    float diff = std::abs(m_predictedShootTimer - lp.shootTimer);
+    if (diff > ACCEPTABLE_DRIFT_THRESHOLD) {
+        m_predictedShootTimer = lp.shootTimer; // snap to server
+    }
     Reconcile(lp.position, ackedSeq);
 }
 
@@ -508,21 +512,29 @@ void GameScene::PredictLocalActions() {
 
     Vector2 mouseWorld = GetScreenToWorld2D(GetMousePosition(), *m_camera.GetCamera());
 
-    const state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
+    state::PlayerState &currPlayer = m_worldState.m_players[m_worldState.m_currentPlayerId];
 
     Vector2 playerPos = m_predictedPos;
 
     bool shootNow = buttons & (1 << 0);
     bool shootPrev = m_lastButtons & (1 << 0);
 
-    if (shootNow && !shootPrev) {
-        const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
+    const state::ActiveEffect *rapidFire = state::GetActiveEffect(state::EffectType::RapidFire, currPlayer.effects);
+    const Character::CharacterDef &charDef = Character::GetCharacterDef(m_currenCharacterId);
 
+    if (m_predictedShootTimer > 0.0f)
+        m_predictedShootTimer -= SERVER_TICK_RATE;
+
+    if (shootNow && rapidFire && m_predictedShootTimer <= 0.0f) {
         Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
-
         m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
-
         m_localBulletSeq++;
+        m_predictedShootTimer = rapidFire->magnitude;
+    } else if (shootNow && !shootPrev && m_predictedShootTimer <= 0.0f) {
+        Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
+        m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
+        m_localBulletSeq++;
+        m_predictedShootTimer = charDef.bullet.cooldown;
     }
 
     m_lastButtons = buttons;

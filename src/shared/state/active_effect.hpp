@@ -8,7 +8,7 @@
 
 namespace state {
 
-enum class EffectType : uint8_t { None = 0, SpeedBoost, DamageBoost, Slow, Drunkenness };
+enum class EffectType : uint8_t { None = 0, SpeedBoost, DamageBoost, Slow, Drunkenness, RapidFire };
 
 enum class EffectCategory : uint8_t { None = 0, Buff, Debuff };
 
@@ -84,6 +84,9 @@ inline const EffectDefinition &GetEffectDefinition(EffectType type) {
             0.0f,
             {0, 255, 0, 225} // blue
         },
+        {
+            EffectType::RapidFire, EffectCategory::Buff, 5.0f, 0.1f, {236, 88, 0, 225} // Persimmon (orange)
+        },
     };
     return effect[static_cast<uint8_t>(type)];
 }
@@ -95,10 +98,11 @@ inline const AbilityDefinition &GetAbilityDefinition(AbilityType type) {
     return abilities[static_cast<uint8_t>(type)];
 }
 
-inline const std::array<SpawnablePickup, 4> &GetSpawnablePowerUps() {
-    static const std::array<SpawnablePickup, 4> powerups = {{
+inline const std::array<SpawnablePickup, 5> &GetSpawnablePowerUps() {
+    static const std::array<SpawnablePickup, 5> powerups = {{
         {PickupType::Effect, (uint8_t)EffectType::SpeedBoost},
         {PickupType::Effect, (uint8_t)EffectType::DamageBoost},
+        {PickupType::Effect, (uint8_t)EffectType::RapidFire},
         {PickupType::Ability, (uint8_t)AbilityType::SlowShot},
         {PickupType::Ability, (uint8_t)AbilityType::DrunkShot},
     }};

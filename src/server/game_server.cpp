@@ -121,7 +121,6 @@ void GameServer::SpawnPlayersIntoSimulation() {
 }
 
 void GameServer::TickGameplay() {
-    const float tickRate = 1.0f / 60.0f;
     float accumulator = 0.0f;
 
     auto previousTime = std::chrono::steady_clock::now();
@@ -143,8 +142,8 @@ void GameServer::TickGameplay() {
 
         accumulator += dt;
 
-        while (accumulator >= tickRate) {
-            UpdateSimulation(tickRate);
+        while (accumulator >= SERVER_TICK_RATE) {
+            UpdateSimulation(SERVER_TICK_RATE);
 
             if (m_simulation.GetGameTime() <= 0.0f) {
                 m_phase = ServerPhase::POSTGAME;
@@ -155,7 +154,7 @@ void GameServer::TickGameplay() {
             }
 
             m_broadcaster.BroadcastState(m_simulation);
-            accumulator -= tickRate;
+            accumulator -= SERVER_TICK_RATE;
         }
     }
 }

@@ -105,7 +105,13 @@ void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::
     bool wantsToShoot = player.currentInput.buttons & (1 << 0);
     bool newShot = wantsToShoot && (player.currentInput.predBulletSequence != player.lastPredBulletSequence);
 
-    if (newShot && player.shootTimer <= 0.0f) {
+    const state::ActiveEffect *rapidFire = state::GetActiveEffect(state::EffectType::RapidFire, player.effects);
+
+    if (wantsToShoot && rapidFire && player.shootTimer <= 0.0f) {
+        Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
+        m_bulletSystem.Spawn({player.id, spawnPos, aimDir, charDef, player.currentInput.predBulletSequence});
+        player.shootTimer = rapidFire->magnitude;
+    } else if (newShot && player.shootTimer <= 0.0f) {
         player.lastPredBulletSequence = player.currentInput.predBulletSequence;
         Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
         m_bulletSystem.Spawn({player.id, spawnPos, aimDir, charDef, player.currentInput.predBulletSequence});

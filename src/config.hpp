@@ -1,6 +1,8 @@
 #pragma once
 
-constexpr const float MATCH_TIME = 60 * 10;
+constexpr const float MATCH_TIME = 60 * 7.5;
+
+constexpr float SERVER_TICK_RATE = 1.0f / 60.0f;
 
 constexpr const int MAX_PLAYERS = 4;
 constexpr const int MAX_PLAYER_NAME_LEN = 32;

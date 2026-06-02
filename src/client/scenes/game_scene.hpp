@@ -88,6 +88,7 @@ class GameScene : public Scene {
 
     static constexpr size_t INPUT_BUFFER_SIZE = 128;
     static constexpr float SNAP_THRESHOLD = 64.0f;
+    static constexpr float ACCEPTABLE_DRIFT_THRESHOLD = SERVER_TICK_RATE * 2.0;
 
     std::array<PendingInput, INPUT_BUFFER_SIZE> m_inputBuffer{};
     uint32_t m_lastAckedSeq = 0;
@@ -101,6 +102,7 @@ class GameScene : public Scene {
     float m_sendAccumulator = 0.0f;
     float m_sendInterval = 1.0f / 60.0f;
     float m_moveAccumulator = 0.0f;
+    float m_predictedShootTimer = 0.0f;
 
     bool m_joined = false;
     int m_gameBeginTimer = -1;
