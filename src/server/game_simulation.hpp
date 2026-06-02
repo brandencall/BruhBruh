@@ -19,7 +19,6 @@ class GameSimulation {
     GameSimulation() = default;
     void Initialize(EventBus &eventBus);
     void Reset();
-    void SetupBulletSystem();
     void SetupWallManager();
     void Update(float tickRate);
     void RespawnPlayer(state::PlayerState &player);
@@ -53,7 +52,7 @@ class GameSimulation {
     Map::MapData m_map;
     EventBus *m_eventBus = nullptr;
     std::array<state::PlayerState, MAX_PLAYERS> m_players;
-    System::ServerBulletSystem m_bulletSystem;
     System::AbilitySystem m_abilitySystem;
     Map::ServerWallManager m_wallManager;
+    System::ServerBulletSystem m_bulletSystem{m_players};
 };

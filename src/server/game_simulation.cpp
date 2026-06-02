@@ -17,9 +17,10 @@ void GameSimulation::Initialize(EventBus &eventBus) {
     m_players = {};
     m_map = Map::LoadMap(ACTIVE_MAP);
     m_eventBus = &eventBus;
-    SetupBulletSystem();
     SetupWallManager();
     m_abilitySystem.Initialize(eventBus, m_map);
+    m_bulletSystem.SetMap(m_map);
+    m_bulletSystem.Initialize(m_wallManager, m_abilitySystem, *m_eventBus);
 }
 
 void GameSimulation::Reset() {
@@ -27,59 +28,6 @@ void GameSimulation::Reset() {
     m_players.fill(state::PlayerState{});
     m_bulletSystem.Reset();
     m_wallManager.Reset();
-}
-
-void GameSimulation::SetupBulletSystem() {
-    m_bulletSystem.SetMap(m_map);
-
-    m_bulletSystem.SetOnWallHit([this](Map::Vector2i gridPos, float damage, uint32_t shooterId) {
-        m_wallManager.DamageWall(gridPos, damage, shooterId);
-    });
-
-    m_bulletSystem.SetOnPlayerHit([this](uint32_t playerId, float damage, uint32_t shooterId) {
-        auto &target = m_players[playerId];
-        auto &attacker = m_players[shooterId];
-
-        if (target.invincibilityTimer > 0.0f)
-            return;
-
-        target.health -= state::GetOverallDamage(damage, attacker.effects);
-        m_abilitySystem.ApplyDebuffs(target, attacker);
-        target.lastDamageTakenTimer = 0.0f;
-        if (target.health <= 0.0f) {
-            HandlePlayerDied(target, shooterId);
-            AddHealthOnKill(attacker);
-            return;
-        }
-        m_eventBus->publish(event::PlayerDamagedEvent{target.id, shooterId, target.health});
-    });
-
-    m_bulletSystem.SetOnBulletSpawn([this](uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId,
-                                           Vector2 position, Vector2 velocity, uint32_t bulletPredSequence) {
-        m_eventBus->publish(
-            event::BulletSpawnEvent{bulletId, ownerId, characterId, bulletPredSequence, position, velocity});
-    });
-    m_bulletSystem.SetOnBulletDestroyed(
-        [this](uint32_t bulletId, Vector2 position, Character::CharacterId characterId) {
-            m_eventBus->publish(event::BulletDestroyedEvent{bulletId, position, characterId});
-        });
-}
-
-void GameSimulation::HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {
-    player.state = state::State::Dead;
-    player.health = 0.0f;
-    player.respawnTimer = RESPAWN_TIME;
-    m_abilitySystem.ClearAbilitiesAndEffects(player);
-    auto &killer = m_players[shooterId];
-    player.score.deaths++;
-    killer.score.kills++;
-    m_wallManager.ClearWallsForPlayer(player.id);
-    m_eventBus->publish(event::PlayerDiedEvent{player, killer});
-}
-
-void GameSimulation::AddHealthOnKill(state::PlayerState &player) {
-    Character::CharacterDef charDef = Character::GetCharacterDef(player.characterId);
-    player.health = std::min(charDef.maxHealth, player.health + 25);
 }
 
 void GameSimulation::SetupWallManager() {
