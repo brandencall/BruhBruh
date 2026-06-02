@@ -10,6 +10,7 @@ struct EventHub {
     EventBus<client::HitEvent> onHit;
     EventBus<client::WallPlacedEvent> onWallPlaced;
     EventBus<client::WallPickedUpEvent> onWallPickedUp;
+    EventBus<event::WallInputDeniedEvent> onWallInputDenied;
     EventBus<client::GameStartingEvent> onGameStarting;
 };
 

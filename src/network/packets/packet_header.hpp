@@ -34,6 +34,7 @@ enum class PacketType : uint8_t {
     WallDamaged,
     WallDestroyed,
     WallPickedUp,
+    WallInputDenied,
 
     PowerUpSpawn,
     PowerUpDespawn,

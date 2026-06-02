@@ -35,6 +35,10 @@ class ServerWallManager : public WallManager {
         m_eventBus->publish(event::WallPickedUpEvent{gridPos, player});
     }
 
+    void OnWallInputDenied(uint32_t playerId) const override {
+        m_eventBus->publish(event::WallInputDeniedEvent{playerId});
+    }
+
   private:
     std::array<state::PlayerState, MAX_PLAYERS> &m_players;
     EventBus *m_eventBus = nullptr;

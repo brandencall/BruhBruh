@@ -3,9 +3,7 @@
 
 namespace System {
 
-void CharacterCamera::Init(Client::EventBus<client::HitEvent> &hitBus,
-                           Client::EventBus<client::PlayerDiedEvent> &deathBus,
-                           Client::EventBus<client::WallPlacedEvent> &wallBus) {
+void CharacterCamera::Init(Client::EventHub &events) {
     int screenW = GetScreenWidth();
     int screenH = GetScreenHeight();
     m_baseOffset = {std::round(screenW / 2.0f), std::round(screenH / 2.0f)};
@@ -18,9 +16,19 @@ void CharacterCamera::Init(Client::EventBus<client::HitEvent> &hitBus,
     m_damageLoc = GetShaderLocation(m_damageShader, "damage");
     m_damageEffect = 0.0f;
 
-    m_hitSub = hitBus.Subscribe([this](const client::HitEvent &e) { OnHit(e); });
-    m_deathSub = deathBus.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); });
-    m_wallSub = wallBus.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); });
+    m_subscriptions.clear();
+    m_subscriptions.emplace_back(events.onHit.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
+    m_subscriptions.emplace_back(
+        events.playerDied.Subscribe([this](const client::PlayerDiedEvent &e) { OnPlayerDied(e); }));
+    m_subscriptions.emplace_back(
+        events.onWallPlaced.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
+    m_subscriptions.emplace_back(
+        events.onWallInputDenied.Subscribe([this](const event::WallInputDeniedEvent &e) { OnWallInputDenied(e); }));
+}
+
+void CharacterCamera::Unload() {
+    m_subscriptions.clear();
+    UnloadShader(m_damageShader);
 }
 
 void CharacterCamera::Update(float dt) {
@@ -77,6 +85,8 @@ void CharacterCamera::OnWallPlaced(const client::WallPlacedEvent &e) {
     float shakeAmount = 1.0f - (distance / MAX_SHAKE_DISTANCE);
     AddShake(shakeAmount * MAX_SHAKE);
 }
+
+void CharacterCamera::OnWallInputDenied(const event::WallInputDeniedEvent &e) { AddShake(.75); }
 
 void CharacterCamera::AddShake(float amount) { m_shake = std::min(1.0f, m_shake + amount); }
 

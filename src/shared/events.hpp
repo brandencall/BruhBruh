@@ -55,6 +55,10 @@ struct WallPickedUpEvent {
     state::PlayerState player;
 };
 
+struct WallInputDeniedEvent {
+    uint32_t playerId;
+};
+
 struct DamageWallEvent {
     Map::Vector2i gridPos;
     float currentHealth;

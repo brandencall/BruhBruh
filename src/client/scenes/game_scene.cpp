@@ -36,6 +36,7 @@ void GameScene::OnEnter() {
     handler->Register(PT::WallDamaged, [this](const char *b) { HandleWallDamaged(b); });
     handler->Register(PT::WallDestroyed, [this](const char *b) { HandleDestroyWall(b); });
     handler->Register(PT::WallPickedUp, [this](const char *b) { HandleWallPickedUp(b); });
+    handler->Register(PT::WallInputDenied, [this](const char *b) { HandleWallInputDenied(b); });
     handler->Register(PT::PowerUpSpawn, [this](const char *b) { HandlePowerUpSpawn(b); });
     handler->Register(PT::PowerUpDespawn, [this](const char *b) { HandlePowerUpDespawn(b); });
     handler->Register(PT::GameEnd, [this](const char *b) { HandleGameEnd(b); });
@@ -58,7 +59,7 @@ void GameScene::OnEnter() {
     m_abilityRender.Load();
     m_bulletSystem.SetMap(m_worldState.m_map);
 
-    m_camera.Init(m_events.onHit, m_events.playerDied, m_events.onWallPlaced);
+    m_camera.Init(m_events);
     m_renderTarger = LoadRenderTexture(GetScreenWidth(), GetScreenHeight());
 
     Subscribe(m_events.playerDied, [this](const client::PlayerDiedEvent &e) {
@@ -94,6 +95,7 @@ void GameScene::OnExit() {
     m_wallRender.Unload();
     m_bulletSystem.Unload();
     m_abilityRender.Unload();
+    m_camera.Unload();
 
     m_game.GetAudioSystem()->UnloadGamePlay();
     m_ui.Clear();
@@ -296,10 +298,18 @@ void GameScene::HandleDestroyWall(const char *buffer) {
 void GameScene::HandleWallPickedUp(const char *buffer) {
     auto *pkt = reinterpret_cast<const network::WallDestroyedPacket *>(buffer);
     m_wallRender.AddDyingWall(pkt->gridPos, pkt->player.characterId);
-    m_wallManager.PickUpWall(pkt->gridPos, pkt->player.id);
+    m_wallManager.PickUpWall(pkt->gridPos, pkt->player);
     m_worldState.m_players[pkt->player.id] = pkt->player;
     m_events.onWallPickedUp.Publish(
         {pkt->gridPos, m_currentPlayerId, m_worldState.m_players[m_currentPlayerId].position});
+}
+
+void GameScene::HandleWallInputDenied(const char *buffer) {
+    auto *pkt = reinterpret_cast<const network::WallInputDeniedPacket *>(buffer);
+    if (pkt->playerId == m_currentPlayerId) {
+        std::cout << "Getting the wall input denied on the current player" << std::endl;
+        m_events.onWallInputDenied.Publish({pkt->playerId});
+    }
 }
 
 void GameScene::HandlePowerUpSpawn(const char *buffer) {

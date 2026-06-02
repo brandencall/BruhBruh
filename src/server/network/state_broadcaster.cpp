@@ -183,6 +183,12 @@ void StateBroadcaster::DrainAndBroadcast(EventBus &eventBus) {
         pkt.player = e.player;
         BroadcastAll(&pkt, sizeof(pkt));
     });
+    eventBus.DrainWallInputDenied([&](const event::WallInputDeniedEvent &e) {
+        network::WallInputDeniedPacket pkt{};
+        pkt.header.type = network::PacketType::WallInputDenied;
+        pkt.playerId = e.playerId;
+        BroadcastAll(&pkt, sizeof(pkt));
+    });
     eventBus.DrainPowerUpSpawn([&](const event::PowerUpSpawnEvent &e) {
         network::PowerUpSpawnPacket pkt{};
         pkt.header.type = network::PacketType::PowerUpSpawn;

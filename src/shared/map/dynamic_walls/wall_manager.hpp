@@ -21,6 +21,38 @@ class WallManager {
   public:
     WallManager() = default;
 
+    void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
+                         const Character::CharacterDef &charDef, const std::vector<Collision::AABB> &staticWalls,
+                         const std::array<state::PlayerState, MAX_PLAYERS> &players) {
+        const Map::Vector2i gridPos = Map::WorldToGrid({input.aimX, input.aimY});
+        if (TryPlaceWall(player, gridPos, staticWalls, players)) {
+            player.wallTimer = charDef.wallCooldown;
+            return;
+        }
+
+        if (PickUpWall(gridPos, player)) {
+            player.wallTimer = charDef.wallCooldown;
+            return;
+        }
+
+        OnWallInputDenied(player.id);
+    }
+
+    bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos,
+                      const std::vector<Collision::AABB> &staticWalls,
+                      const std::array<state::PlayerState, MAX_PLAYERS> &players) {
+
+        if (player.wallTimer > 0.0f)
+            return false;
+
+        if (!CanPlaceWall(gridPos, staticWalls, player, players))
+            return false;
+
+        player.currentAvaliableWalls--;
+        PlaceWall(gridPos, 50, player);
+        return true;
+    }
+
     void PlaceWall(const Map::Vector2i &gridPos, float health, const state::PlayerState &player,
                    float spawnTime = 0.0f) {
         m_walls[gridPos] = DynamicWall{.gridPos = gridPos,
@@ -35,30 +67,27 @@ class WallManager {
     }
 
     bool CanPlaceWall(const Vector2i &gridPos, const std::vector<Collision::AABB> &staticWalls,
-                      const state::PlayerState currentPlayer,
+                      const state::PlayerState &currentPlayer,
                       const std::array<state::PlayerState, MAX_PLAYERS> &players) const {
-
         Collision::AABB newWallAABB = GridCellToAABB(gridPos);
 
         // Check position with static walls
         for (const auto &wall : staticWalls) {
-            if (Collision::Overlap(newWallAABB, wall)) {
+            if (Collision::Overlap(newWallAABB, wall))
                 return false;
-            }
         }
         // Check position with players
         for (const auto &player : players) {
             if (player.active &&
-                Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), newWallAABB)) {
+                Collision::Overlap(Collision::HurtboxToCircle(player.position, player.hurtbox), newWallAABB))
                 return false;
-            }
         }
         // Check position with m_walls
         for (const auto &wall : m_walls) {
-            if (Collision::Overlap(newWallAABB, GridCellToAABB(wall.second.gridPos))) {
+            if (Collision::Overlap(newWallAABB, GridCellToAABB(wall.second.gridPos)))
                 return false;
-            }
         }
+
         return currentPlayer.currentAvaliableWalls > 0;
     };
 
@@ -83,13 +112,16 @@ class WallManager {
         return true;
     }
 
-    bool PickUpWall(const Vector2i &gridPos, uint32_t ownerId) {
+    bool PickUpWall(const Vector2i &gridPos, const state::PlayerState &currentPlayer) {
+        if (currentPlayer.wallTimer > 0.0f)
+            return false;
+
         auto it = m_walls.find(gridPos);
-        if (it == m_walls.end() || it->second.ownerId != ownerId)
+        if (it == m_walls.end() || it->second.ownerId != currentPlayer.id)
             return false;
 
         m_walls.erase(it);
-        OnWallPickedUp(gridPos, ownerId);
+        OnWallPickedUp(gridPos, currentPlayer.id);
         return true;
     }
 
@@ -145,6 +177,7 @@ class WallManager {
     virtual void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {}
     virtual void OnWallDestroyed(Map::Vector2i gridPos, uint32_t ownerId) {}
     virtual void OnWallPickedUp(Map::Vector2i gridPos, uint32_t ownerId) {}
+    virtual void OnWallInputDenied(uint32_t playerId) const {}
 
   private:
     std::unordered_map<Vector2i, DynamicWall, GridHash> m_walls;

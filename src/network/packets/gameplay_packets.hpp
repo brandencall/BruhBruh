@@ -126,6 +126,11 @@ struct WallPickedUpPacket {
     state::PlayerState player;
 };
 
+struct WallInputDeniedPacket {
+    PacketHeader header;
+    uint32_t playerId;
+};
+
 struct PowerUpSpawnPacket {
     PacketHeader header;
     uint32_t id;

@@ -88,6 +88,7 @@ void AudioSystem::InitGamePlay(Client::EventHub &events) {
     m_wallPlacedConcreteSound = LoadSound("assets/sounds/wall_placed_concrete.wav");
     m_wallPlacedKickDrumSound = LoadSound("assets/sounds/wall_placed_kick_drum.wav");
     m_wallPickedUpSound = LoadSound("assets/sounds/wall_whoosh.wav");
+    m_wallInputDeniedSound = LoadSound("assets/sounds/error.wav");
 
     for (int i = 0; i < HITMARKER_POOL_SIZE; ++i) {
         m_hitmarkerAliases[i] = LoadSoundAlias(m_hitmarkerSound);
@@ -106,6 +107,10 @@ void AudioSystem::InitGamePlay(Client::EventHub &events) {
         m_wallPickedUpAliases[i] = LoadSoundAlias(m_wallPickedUpSound);
     }
 
+    for (int i = 0; i < WALL_INPUT_DENIED_POOL_SIZE; ++i) {
+        m_wallInputDeniedAliases[i] = LoadSoundAlias(m_wallInputDeniedSound);
+    }
+
     m_gameplaySubs.clear();
     m_gameplaySubs.emplace_back(events.onHit.Subscribe([this](const client::HitEvent &e) { OnHit(e); }));
     m_gameplaySubs.emplace_back(
@@ -116,6 +121,8 @@ void AudioSystem::InitGamePlay(Client::EventHub &events) {
         events.onWallPlaced.Subscribe([this](const client::WallPlacedEvent &e) { OnWallPlaced(e); }));
     m_gameplaySubs.emplace_back(
         events.onWallPickedUp.Subscribe([this](const client::WallPickedUpEvent &e) { OnWallPickedUp(e); }));
+    m_gameplaySubs.emplace_back(
+        events.onWallInputDenied.Subscribe([this](const event::WallInputDeniedEvent &e) { OnWallInputDenied(e); }));
     m_gameplaySubs.emplace_back(
         events.onGameStarting.Subscribe([this](const client::GameStartingEvent &e) { OnCountdown(e); }));
 }
@@ -158,6 +165,9 @@ void AudioSystem::UnloadGamePlay() {
     for (Sound &s : m_wallPickedUpAliases) {
         SafeUnloadAlias(s);
     }
+    for (Sound &s : m_wallInputDeniedAliases) {
+        SafeUnloadAlias(s);
+    }
 
     SafeUnload(m_goBellSound);
     m_goBellLoaded = false;
@@ -169,6 +179,7 @@ void AudioSystem::UnloadGamePlay() {
 
     SafeUnload(m_wallPlacedConcreteSound);
     SafeUnload(m_wallPlacedKickDrumSound);
+    SafeUnload(m_wallInputDeniedSound);
 
     UnloadCharacterBulletSounds();
 
@@ -301,6 +312,13 @@ void AudioSystem::OnWallPickedUp(const client::WallPickedUpEvent &event) {
                        SoundCategory::Effects, pickUpSoundVolume);
 }
 
+void AudioSystem::OnWallInputDenied(const event::WallInputDeniedEvent &e) {
+    Sound &alias = m_wallInputDeniedAliases[m_wallInputDeniedIndex];
+    m_wallInputDeniedIndex = (m_wallInputDeniedIndex + 1) % WALL_INPUT_DENIED_POOL_SIZE;
+
+    Play(alias, SoundCategory::Effects, 0.5);
+}
+
 void AudioSystem::PlayHitmarker() {
     Sound &alias = m_hitmarkerAliases[m_hitmarkerIndex];
     m_hitmarkerIndex = (m_hitmarkerIndex + 1) % HITMARKER_POOL_SIZE;
@@ -308,7 +326,6 @@ void AudioSystem::PlayHitmarker() {
     float pitch = GetPitch();
 
     SetSoundPitch(alias, pitch);
-    SetSoundVolume(alias, 0.3f);
 
     Play(alias, SoundCategory::Effects);
 }

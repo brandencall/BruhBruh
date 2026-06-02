@@ -51,6 +51,7 @@ class AudioSystem {
     void OnPlayerDied(const client::PlayerDiedEvent &e);
     void OnWallPlaced(const client::WallPlacedEvent &e);
     void OnWallPickedUp(const client::WallPickedUpEvent &e);
+    void OnWallInputDenied(const event::WallInputDeniedEvent &e);
 
     void PlayHitmarker();
 
@@ -103,5 +104,10 @@ class AudioSystem {
     static constexpr int WALL_PICKEDUP_POOL_SIZE = 4;
     Sound m_wallPickedUpAliases[WALL_PICKEDUP_POOL_SIZE];
     int m_wallPickedUpIndex = 0;
+
+    Sound m_wallInputDeniedSound;
+    static constexpr int WALL_INPUT_DENIED_POOL_SIZE = 4;
+    Sound m_wallInputDeniedAliases[WALL_INPUT_DENIED_POOL_SIZE];
+    int m_wallInputDeniedIndex = 0;
 };
 } // namespace System

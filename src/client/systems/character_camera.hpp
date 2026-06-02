@@ -1,5 +1,5 @@
 #pragma once
-#include "../event_bus.hpp"
+#include "../event_hub.hpp"
 #include "../events.hpp"
 #include "raylib.h"
 
@@ -8,8 +8,7 @@ namespace System {
 class CharacterCamera {
 
   public:
-    void Init(Client::EventBus<client::HitEvent> &hitBus, Client::EventBus<client::PlayerDiedEvent> &deathBus,
-              Client::EventBus<client::WallPlacedEvent> &wallBus);
+    void Init(Client::EventHub &events);
     void Unload();
     void Update(float dt);
     void RenderDamageShader(RenderTexture2D texture);
@@ -20,12 +19,11 @@ class CharacterCamera {
     void OnHit(const client::HitEvent &e);
     void OnPlayerDied(const client::PlayerDiedEvent &e);
     void OnWallPlaced(const client::WallPlacedEvent &e);
+    void OnWallInputDenied(const event::WallInputDeniedEvent &e);
     void AddShake(float amount);
 
   private:
-    Client::Subscription m_hitSub;
-    Client::Subscription m_deathSub;
-    Client::Subscription m_wallSub;
+    std::vector<Client::Subscription> m_subscriptions;
 
     Camera2D m_camera;
     float m_shake = 0.0f;

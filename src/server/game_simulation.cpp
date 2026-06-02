@@ -3,7 +3,6 @@
 #include "../events.hpp"
 #include "../shared/characters/character_movement.hpp"
 #include "../shared/characters/character_types.hpp"
-#include "../shared/map/grid.hpp"
 #include "../shared/map/map_loader.hpp"
 #include "../shared/state/player_state.hpp"
 #include "raylib.h"
@@ -119,8 +118,8 @@ void GameSimulation::SimulatePlayerWallPlacement(state::PlayerState &player, Cha
     bool placePrev = player.prevButtons & (1 << 1);
 
     // Picking up and placing walls are on the same wall timer
-    if (placeNow && !placePrev && player.wallTimer <= 0.0f) {
-        HandleWallInput(player, player.currentInput, charDef);
+    if (placeNow && !placePrev) {
+        m_wallManager.HandleWallInput(player, player.currentInput, charDef, m_map.walls, m_players);
     }
 }
 
@@ -156,28 +155,6 @@ void GameSimulation::ApplyInput(uint32_t playerId, Character::CharacterId charac
         return;
 
     player.currentInput = input;
-}
-
-void GameSimulation::HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
-                                     const Character::CharacterDef &charDef) {
-    const Map::Vector2i gridPos = Map::WorldToGrid({input.aimX, input.aimY});
-    if (TryPlaceWall(player, gridPos)) {
-        player.wallTimer = charDef.wallCooldown;
-        return;
-    }
-
-    if (m_wallManager.PickUpWall(gridPos, player.id)) {
-        player.wallTimer = charDef.wallCooldown;
-    }
-}
-
-bool GameSimulation::TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos) {
-    if (!m_wallManager.CanPlaceWall(gridPos, m_map.walls, player, m_players))
-        return false;
-
-    player.currentAvaliableWalls--;
-    m_wallManager.PlaceWall(gridPos, 50, player);
-    return true;
 }
 
 const std::array<state::PlayerState, MAX_PLAYERS> &GameSimulation::GetPlayers() const { return m_players; }

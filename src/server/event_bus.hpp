@@ -18,6 +18,7 @@ class EventBus {
     void publish(const event::DamageWallEvent &e) { m_damageWallEvents.push_back(e); }
     void publish(const event::DestroyWallEvent &e) { m_destroyWallEvents.push_back(e); }
     void publish(const event::WallPickedUpEvent &e) { m_wallPickedUpEvents.push_back(e); }
+    void publish(const event::WallInputDeniedEvent &e) { m_wallInputDeniedEvent.push_back(e); }
 
     // Powerup Events
     void publish(const event::PowerUpSpawnEvent &e) { m_powerUpSpawnEvents.push_back(e); }
@@ -66,6 +67,11 @@ class EventBus {
             callback(e);
     }
 
+    template <typename Func> void DrainWallInputDenied(Func callback) {
+        for (const auto &e : m_wallInputDeniedEvent)
+            callback(e);
+    }
+
     // Drain powerup events
     template <typename Func> void DrainPowerUpSpawn(Func callback) {
         for (const auto &e : m_powerUpSpawnEvents)
@@ -79,13 +85,17 @@ class EventBus {
     void clear() {
         m_bulletSpawnEvents.clear();
         m_bulletDestroyedEvents.clear();
+
         m_playerRespawnEvents.clear();
         m_playerDamagedEvents.clear();
         m_playerDiedEvents.clear();
+
         m_placeWallEvents.clear();
         m_damageWallEvents.clear();
         m_destroyWallEvents.clear();
         m_wallPickedUpEvents.clear();
+        m_wallInputDeniedEvent.clear();
+
         m_powerUpSpawnEvents.clear();
         m_powerUpDespawnEvent.clear();
     }
@@ -105,6 +115,7 @@ class EventBus {
     std::vector<event::DamageWallEvent> m_damageWallEvents;
     std::vector<event::DestroyWallEvent> m_destroyWallEvents;
     std::vector<event::WallPickedUpEvent> m_wallPickedUpEvents;
+    std::vector<event::WallInputDeniedEvent> m_wallInputDeniedEvent;
 
     // Powerup Events
     std::vector<event::PowerUpSpawnEvent> m_powerUpSpawnEvents;

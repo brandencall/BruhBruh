@@ -2,7 +2,6 @@
 #include "../config.hpp"
 #include "../shared/characters/character_types.hpp"
 #include "../shared/map/dynamic_walls/wall_manager.hpp"
-#include "../shared/map/grid.hpp"
 #include "../shared/map/map_types.hpp"
 #include "../shared/state/bullet_state.hpp"
 #include "../shared/state/player_state.hpp"
@@ -40,11 +39,6 @@ class GameSimulation {
                                 std::vector<Collision::AABB> &dynamicColliders);
     void SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef, Vector2 spawnPos);
     void SimulatePlayerWallPlacement(state::PlayerState &player, Character::CharacterDef charDef);
-    void HandleWallInput(state::PlayerState &player, const state::PlayerInput &input,
-                         const Character::CharacterDef &charDef);
-    void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId);
-    void AddHealthOnKill(state::PlayerState &player);
-    bool TryPlaceWall(state::PlayerState &player, Map::Vector2i gridPos);
 
   private:
     float m_gameTime = MATCH_TIME;

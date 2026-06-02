@@ -40,15 +40,20 @@ class GameScene : public Scene {
     void HandleGameBegin(const char *buf);
     void HandleStateResponse(const char *buf);
     void HandleCurrentWorldState(const char *buf);
+
     void HandleBulletSpawn(const char *buf);
     void HandleBulletDestroyed(const char *buf);
+
     void HandlePlayerRespawned(const char *buf);
     void HandlePlayerDamaged(const char *buf);
     void HandlePlayerDied(const char *buf);
+
     void HandlePlaceWall(const char *buf);
     void HandleWallDamaged(const char *buf);
     void HandleDestroyWall(const char *buf);
     void HandleWallPickedUp(const char *buf);
+    void HandleWallInputDenied(const char *buf);
+
     void HandlePowerUpSpawn(const char *buf);
     void HandlePowerUpDespawn(const char *buf);
     void HandleGameEnd(const char *buf);
