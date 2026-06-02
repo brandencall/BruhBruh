@@ -3,7 +3,6 @@
 #include "../../shared/systems/bullet_system.hpp"
 #include "raylib.h"
 #include <cstdint>
-#include <functional>
 
 namespace System {
 
@@ -67,13 +66,6 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
     }
 
   private:
-    std::function<void(Map::Vector2i gridPos, float damage, uint32_t shooterId)> m_onWallHit;
-    std::function<void(uint32_t playerId, float damage, uint32_t shooterId)> m_onPlayerHit;
-    std::function<void(uint32_t bulletId, uint32_t ownerId, Character::CharacterId characterId, Vector2 position,
-                       Vector2 velocity, uint32_t bulletPredSequence)>
-        m_onBulletSpawn;
-    std::function<void(uint32_t bulletId, Vector2 position, Character::CharacterId characterId)> m_onBulletDestroyed;
-
     Map::WallManager *m_wallManager = nullptr;
     std::array<state::PlayerState, MAX_PLAYERS> &m_players;
     AbilitySystem *m_abilitySystem = nullptr;

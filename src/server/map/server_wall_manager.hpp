@@ -5,60 +5,39 @@
 #include "../../shared/state/player_state.hpp"
 #include "../event_bus.hpp"
 #include <cstdint>
-#include <functional>
 
 namespace Map {
 
 class ServerWallManager : public WallManager {
   public:
-    ServerWallManager() = default;
+    ServerWallManager(std::array<state::PlayerState, MAX_PLAYERS> &players) : m_players(players) {}
 
     void Initialize(EventBus &eventBus) { m_eventBus = &eventBus; }
 
-    void SetOnWallPlaced(std::function<void(Map::Vector2i, float, const state::PlayerState &)> callback) {
-        m_onWallPlaced = std::move(callback);
-    }
-
-    void SetOnWallDamaged(std::function<void(Map::Vector2i, float, uint32_t)> callback) {
-        m_onWallDamaged = std::move(callback);
-    }
-
-    void SetOnWallDestroyed(std::function<void(Map::Vector2i, uint32_t)> callback) {
-        m_onWallDestroyed = std::move(callback);
-    }
-
-    void SetOnWallPickedUp(std::function<void(Map::Vector2i, uint32_t)> callback) {
-        m_onWallPickedUp = std::move(callback);
-    }
-
   protected:
     void OnWallPlaced(Map::Vector2i gridPos, float health, const state::PlayerState &player) override {
-        if (m_onWallPlaced)
-            m_onWallPlaced(gridPos, health, player);
+        m_eventBus->publish(event::PlaceWallEvent{gridPos, health, player});
     }
 
     void OnWallDamaged(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) override {
-        if (m_onWallDamaged)
-            m_onWallDamaged(gridPos, currentHealth, ownerId);
+        m_eventBus->publish(event::DamageWallEvent{gridPos, currentHealth, ownerId});
     }
 
     void OnWallDestroyed(Map::Vector2i gridPos, uint32_t ownerId) override {
-        if (m_onWallDestroyed)
-            m_onWallDestroyed(gridPos, ownerId);
+        state::PlayerState &player = m_players[ownerId];
+        player.currentAvaliableWalls++;
+        m_eventBus->publish(event::DestroyWallEvent{gridPos, player});
     }
 
     void OnWallPickedUp(Map::Vector2i gridPos, uint32_t ownerId) override {
-        if (m_onWallPickedUp)
-            m_onWallPickedUp(gridPos, ownerId);
+        state::PlayerState &player = m_players[ownerId];
+        player.currentAvaliableWalls++;
+        m_eventBus->publish(event::WallPickedUpEvent{gridPos, player});
     }
 
   private:
+    std::array<state::PlayerState, MAX_PLAYERS> &m_players;
     EventBus *m_eventBus = nullptr;
-
-    std::function<void(Map::Vector2i gridPos, float health, const state::PlayerState &player)> m_onWallPlaced;
-    std::function<void(Map::Vector2i gridPos, float currentHealth, uint32_t ownerId)> m_onWallDamaged;
-    std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallDestroyed;
-    std::function<void(Map::Vector2i gridPos, uint32_t ownerId)> m_onWallPickedUp;
 };
 
 } // namespace Map

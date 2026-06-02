@@ -17,9 +17,9 @@ void GameSimulation::Initialize(EventBus &eventBus) {
     m_players = {};
     m_map = Map::LoadMap(ACTIVE_MAP);
     m_eventBus = &eventBus;
-    SetupWallManager();
     m_abilitySystem.Initialize(eventBus, m_map);
     m_bulletSystem.SetMap(m_map);
+    m_wallManager.Initialize(*m_eventBus);
     m_bulletSystem.Initialize(m_wallManager, m_abilitySystem, *m_eventBus);
 }
 
@@ -28,27 +28,6 @@ void GameSimulation::Reset() {
     m_players.fill(state::PlayerState{});
     m_bulletSystem.Reset();
     m_wallManager.Reset();
-}
-
-void GameSimulation::SetupWallManager() {
-    m_wallManager.SetOnWallPlaced([this](Map::Vector2i gridPos, float health, const state::PlayerState &player) {
-        m_eventBus->publish(event::PlaceWallEvent{gridPos, health, player});
-    });
-
-    m_wallManager.SetOnWallDamaged([this](Map::Vector2i gridPos, float currentHealth, uint32_t ownerId) {
-        m_eventBus->publish(event::DamageWallEvent{gridPos, currentHealth, ownerId});
-    });
-
-    m_wallManager.SetOnWallDestroyed([this](Map::Vector2i gridPos, uint32_t ownerId) {
-        state::PlayerState &player = m_players[ownerId];
-        player.currentAvaliableWalls++;
-        m_eventBus->publish(event::DestroyWallEvent{gridPos, player});
-    });
-    m_wallManager.SetOnWallPickedUp([this](Map::Vector2i gridPos, uint32_t ownerId) {
-        state::PlayerState &player = m_players[ownerId];
-        player.currentAvaliableWalls++;
-        m_eventBus->publish(event::WallPickedUpEvent{gridPos, player});
-    });
 }
 
 void GameSimulation::Update(float tickRate) {
