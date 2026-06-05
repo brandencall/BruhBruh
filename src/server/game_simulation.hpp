@@ -37,7 +37,7 @@ class GameSimulation {
                              std::vector<Collision::AABB> &dynamicColliders);
     void SimulatePlayerMovement(state::PlayerState &player, float tickRate,
                                 std::vector<Collision::AABB> &dynamicColliders);
-    void SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef, Vector2 spawnPos);
+    void SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef);
     void SimulatePlayerWallPlacement(state::PlayerState &player, Character::CharacterDef charDef);
 
   private:

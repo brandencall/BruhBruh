@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include <filesystem>
+#include <iostream>
 
 namespace System {
 

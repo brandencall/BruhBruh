@@ -86,7 +86,7 @@ void CharacterCamera::OnWallPlaced(const client::WallPlacedEvent &e) {
     AddShake(shakeAmount * MAX_SHAKE);
 }
 
-void CharacterCamera::OnWallInputDenied(const event::WallInputDeniedEvent &e) { AddShake(.75); }
+void CharacterCamera::OnWallInputDenied(const event::WallInputDeniedEvent &e) { AddShake(.25); }
 
 void CharacterCamera::AddShake(float amount) { m_shake = std::min(1.0f, m_shake + amount); }
 

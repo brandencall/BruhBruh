@@ -77,11 +77,10 @@ void GameSimulation::SimulatePlayerInput(state::PlayerState &player, float tickR
     player.prevButtons = player.lastButtons;
     player.lastButtons = player.currentInput.buttons;
 
-    Vector2 spawnPos = player.position;
     SimulatePlayerMovement(player, tickRate, dynamicColliders);
 
     const Character::CharacterDef &charDef = Character::GetCharacterDef(player.characterId);
-    SimulatePlayerShoot(player, charDef, spawnPos);
+    SimulatePlayerShoot(player, charDef);
     SimulatePlayerWallPlacement(player, charDef);
 }
 
@@ -100,8 +99,7 @@ void GameSimulation::SimulatePlayerMovement(state::PlayerState &player, float ti
     Character::SimulateMove(player, tickRate, m_map.walls, dynamicColliders);
 }
 
-void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef,
-                                         Vector2 spawnPos) {
+void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::CharacterDef charDef) {
     bool wantsToShoot = player.currentInput.buttons & (1 << 0);
     bool newShot = wantsToShoot && (player.currentInput.predBulletSequence != player.lastPredBulletSequence);
 
@@ -109,12 +107,12 @@ void GameSimulation::SimulatePlayerShoot(state::PlayerState &player, Character::
 
     if (wantsToShoot && rapidFire && player.shootTimer <= 0.0f) {
         Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
-        m_bulletSystem.Spawn({player.id, spawnPos, aimDir, charDef, player.currentInput.predBulletSequence});
+        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, player.currentInput.predBulletSequence});
         player.shootTimer = rapidFire->magnitude;
     } else if (newShot && player.shootTimer <= 0.0f) {
         player.lastPredBulletSequence = player.currentInput.predBulletSequence;
         Vector2 aimDir = {player.currentInput.aimX, player.currentInput.aimY};
-        m_bulletSystem.Spawn({player.id, spawnPos, aimDir, charDef, player.currentInput.predBulletSequence});
+        m_bulletSystem.Spawn({player.id, player.position, aimDir, charDef, player.currentInput.predBulletSequence});
         player.shootTimer = charDef.bullet.cooldown;
     }
 }

@@ -36,6 +36,7 @@ class ServerBulletSystem : public BulletSystem<state::BulletState> {
             AddHealthOnKill(attacker);
             return;
         }
+        m_eventBus->publish(event::PlayerDamagedEvent{target.id, attacker.id, target.health});
     }
 
     void HandlePlayerDied(state::PlayerState &player, uint32_t shooterId) {

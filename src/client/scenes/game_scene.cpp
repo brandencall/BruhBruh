@@ -267,7 +267,6 @@ void GameScene::HandlePlayerDamaged(const char *buffer) {
     m_worldState.m_players[pkt->vitimId].health = pkt->currentHealth;
     Vector2 victimPos = m_worldState.m_players[pkt->vitimId].position;
     Vector2 currentPlayerPos = m_worldState.m_players[m_currentPlayerId].position;
-
     m_events.onHit.Publish({pkt->attackerId, pkt->vitimId, m_worldState.m_players[pkt->attackerId].characterId,
                             m_currentPlayerId, victimPos, currentPlayerPos});
 }
@@ -447,8 +446,6 @@ void GameScene::TickPrediction(float dt) {
         return;
 
     float moveX = 0.0f, moveY = 0.0f;
-    m_sendAccumulator += dt;
-    m_moveAccumulator += dt;
 
     if (IsKeyDown(KEY_W))
         moveY -= 1.0f;
@@ -459,6 +456,9 @@ void GameScene::TickPrediction(float dt) {
     if (IsKeyDown(KEY_D))
         moveX += 1.0f;
 
+    m_sendAccumulator += dt;
+    m_tickAccumulator += dt;
+
     PredictLocalActions();
 
     state::PlayerState predicted = lp;
@@ -467,9 +467,7 @@ void GameScene::TickPrediction(float dt) {
     predicted.currentInput.moveY = moveY;
 
     std::vector<Collision::AABB> dynamicColliders = m_wallManager.GetColliders();
-
     Character::SimulateMove(predicted, dt, m_worldState.m_map.walls, dynamicColliders);
-
     m_predictedPos = predicted.position;
 
     if (m_sendAccumulator >= m_sendInterval) {
@@ -527,14 +525,13 @@ void GameScene::PredictLocalActions() {
 
     if (shootNow && rapidFire && m_predictedShootTimer <= 0.0f) {
         Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
-        m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
+        m_bulletSystem.Spawn({m_currentPlayerId, playerPos, aimDir, charDef, m_localBulletSeq});
         m_localBulletSeq++;
         m_predictedShootTimer = rapidFire->magnitude;
-    } else if (shootNow && !shootPrev && m_predictedShootTimer <= 0.0f) {
+    } else if (shootNow && !shootPrev) {
         Vector2 aimDir = Vector2Subtract(mouseWorld, playerPos);
-        m_bulletSystem.Spawn({m_currentPlayerId, m_predictedPos, aimDir, charDef, m_localBulletSeq});
+        m_bulletSystem.Spawn({m_currentPlayerId, playerPos, aimDir, charDef, m_localBulletSeq});
         m_localBulletSeq++;
-        m_predictedShootTimer = charDef.bullet.cooldown;
     }
 
     m_lastButtons = buttons;
